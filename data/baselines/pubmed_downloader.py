@@ -21,7 +21,6 @@ from urllib.request import urlopen
 from multiprocessing import Process, Queue, cpu_count
 
 import requests
-import re
 from lxml import etree
 import pubmed_parser as pp
 
@@ -134,28 +133,30 @@ type PubmedLink = tuple[int, str, str]  # year, url, filename
 def get_pubmed_links(years: list[int]) -> list[PubmedLink]:
     """Fetch all XML.gz links for given years."""
     links: list[PubmedLink] = []
+
     for year in years:
         print(f"Fetching index page for year {year}...")
-        url = f"https://web.archive.org/web/{year}0216212530/https://ftp.ncbi.nlm.nih.gov/pubmed/baseline"
-        if year < 2025:
-            url = f"https://web.archive.org/web/20241219010838/https://lhncbc.nlm.nih.gov/ii/information/MBR/Baselines/{year}.html"
-        output = urlopen(url).read()
+
+        xpath = "/html/body/pre/a" if year >= 2025 else "/html/body/ul[2]/li/a"
+        xpath_replace = "/https://ftp" if year >= 2025 else "/https://data.lhncbc"
+        url = (
+            f"https://web.archive.org/web/{year}0216212530/https://ftp.ncbi.nlm.nih.gov/pubmed/baseline"
+            if year >= 2025
+            else f"https://web.archive.org/web/20241219010838/https://lhncbc.nlm.nih.gov/ii/information/MBR/Baselines/{year}.html"
+        )
+
+        output: bytes = urlopen(url).read()
         print(f"Fetching index page for year {year} from {url}")
 
         tree = etree.fromstring(output.decode("utf-8"), etree.HTMLParser())
 
-        if year < 2025:
-            for link_elem in tree.xpath("/html/body/ul[2]/li/a"):
-                if not link_elem.text.endswith("xml.gz"):
-                    continue
-                href = link_elem.get("href").replace(
-                    "/https://data.lhncbc", "if_/https://data.lhncbc"
-                )
-                links.append((year, href, link_elem.text))
-        else:
-            files = re.findall(r'href="(pubmed\d{2}n\d{4}\.xml\.gz)"', output)
-            for file in files:
-                links.append((year, url + file, file))
+        for link_elem in tree.xpath(xpath):
+            if not link_elem.text.endswith("xml.gz"):
+                continue
+            href: str = link_elem.get("href").replace(
+                xpath_replace, f"if_{xpath_replace}"
+            )
+            links.append((year, href, link_elem.text))
 
     return links
 
@@ -452,7 +453,7 @@ Examples:
         "-f",
         "--fields",
         nargs="+",
-        default=["pmid", "title", "abstract", "mesh_terms", "keywords"],
+        default=["pmid", "title", "abstract"],
         help="Fields to include in output",
     )
 
