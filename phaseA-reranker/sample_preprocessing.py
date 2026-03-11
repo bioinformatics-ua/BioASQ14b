@@ -1,5 +1,4 @@
 
-
 from typing import Any
 
 
@@ -111,5 +110,46 @@ class SentencePreprocessing(BasicSamplePreprocessing):
         #print("all",time.time()-st)
         if "label" in sample:
             return inputs | {"label_ids": int(sample["label"])}
+        else:
+            return inputs | {"id": sample["id"], "doc_id": sample["doc_id"]}
+
+
+DEFAULT_CAUSAL_LM_PROMPT = "question:{query} \n \n passage:{doc}"
+
+
+class CausalLMSamplePreprocessing:
+    """Sample preprocessing for decoder-only reranker models (e.g. Nemotron, LLaMA-based).
+
+    Formats query and document into a single prompt string instead of a BERT-style
+    pair encoding. No token_type_ids are produced.
+    """
+
+    def __init__(
+        self,
+        tokenizer,
+        model_max_length: int = 512,
+        prompt_template: str = DEFAULT_CAUSAL_LM_PROMPT,
+    ) -> None:
+        self.tokenizer = tokenizer
+        self.model_max_length = model_max_length
+        self.prompt_template = prompt_template
+
+    def _format(self, sample) -> str:
+        return self.prompt_template.format(
+            query=sample["query_text"], doc=sample["doc_text"]
+        )
+
+    def __call__(self, sample) -> Any:
+        text = self._format(sample)
+
+        inputs = self.tokenizer(
+            text,
+            truncation=True,
+            max_length=self.model_max_length,
+            add_special_tokens=True,
+        )
+
+        if "label" in sample:
+            return inputs | {"label_ids": float(sample["label"])}
         else:
             return inputs | {"id": sample["id"], "doc_id": sample["doc_id"]}

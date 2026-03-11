@@ -15,7 +15,7 @@ Training:
 
 Evaluation:
   per_device_eval_batch_size: 64
-  evaluation_strategy: epoch
+  eval_strategy: epoch
 
   Best_model:
     metric_for_best_model: eval_map-bioasq@10
@@ -26,8 +26,9 @@ Logging:
   logging_first_step: True
   logging_steps: 100
   output_dir: pubmed_bert_classifier_V2
-  report_to: 'wandb'
-
+  # report_to: 'wandb'
+  report_to: none
+  
   Saving:
     save_strategy: epoch
     push_to_hub: False

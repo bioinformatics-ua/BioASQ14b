@@ -2,7 +2,9 @@ import pyterrier as pt
 if not pt.started():
   pt.init()
 from pyterrier_pisa import PisaIndex
-import json, os, glob
+import argparse, json, os, glob
+from tqdm import tqdm
+
 
 
 def create_index(file_path):
@@ -11,7 +13,7 @@ def create_index(file_path):
     folder_name.pop(0)
     folder_name = "_".join(folder_name)
         
-    index_path = "../../data/indexes/" + folder_name
+    index_path = "../data/indexes/" + folder_name
     
     if not os.path.exists(index_path):
         os.makedirs(index_path)
@@ -20,7 +22,7 @@ def create_index(file_path):
     return PisaIndex(index_path, text_field='text')
 
 
-def load_collection(doc_path):
+def load_collection(doc_path): 
     latest_docs = {} 
     
     with open(doc_path, "r") as f:
@@ -37,10 +39,20 @@ def load_collection(doc_path):
 
 def main():
     """ main """
-    folder_path = "../../data/baselines"
-    jsonl_files = glob.glob(os.path.join(folder_path, "*.jsonl"))
+    parser = argparse.ArgumentParser(description="Create PISA indexes from JSONL files.")
+    parser.add_argument(
+        "files", nargs="*",
+        help="JSONL files to index. If none provided, defaults to all *.jsonl in ../data/baselines."
+    )
+    args = parser.parse_args()
 
-    for file_path in jsonl_files:
+    if args.files:
+        jsonl_files = args.files
+    else:
+        folder_path = "../data/baselines"
+        jsonl_files = glob.glob(os.path.join(folder_path, "*.jsonl"))
+
+    for file_path in tqdm(jsonl_files, desc="Indexing files", total=len(jsonl_files)):
         
         index = create_index(file_path)
         print(f"Pisa index created in '{index.path}'.")

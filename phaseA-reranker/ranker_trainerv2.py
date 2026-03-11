@@ -1,7 +1,7 @@
 from transformers import Trainer
 from transformers.trainer_pt_utils import IterableDatasetShard, nested_truncate, nested_numpify, nested_concat, find_batch_size
 from transformers.trainer_utils import seed_worker, EvalLoopOutput, has_length, EvalPrediction, denumpify_detensorize, PredictionOutput, speed_metrics
-from transformers.utils import logging, is_torch_tpu_available
+from transformers.utils import logging
 import torch
 import time
 import math

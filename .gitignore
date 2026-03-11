@@ -1,6 +1,9 @@
-data/pubmed_baseline_2025.jsonl
-data/ids_per_baseline_2025.p
-
+data/*/pubmed_baseline_*.jsonl
+data/*/ids_per_baseline_*.p
+data/*/log_download_baseline*.txt
+data/baselines/downloaded_baselines
+data/indexes
+data/*/training*.json
 
 data/quality
 !data/quality/.keep
@@ -22,10 +25,12 @@ outputs/Batch02
 outputs/Batch03
 outputs/Batch04
 
+hard_negatives*.jsonl
 
 phaseA-reranker/__pycache__
 phaseA-reranker/HF_CACHE
 
+phaseA-reranker/trained_models_tmp
 phaseA-reranker/trained_models_b01
 phaseA-reranker/trained_models_b02_val
 
@@ -34,7 +39,7 @@ phaseA-reranker/wandb
 phaseA-reranker/.api
 
 phaseA-reranker/test.ipynb
-phaseA-reranker/val_results_b02.jsonl
+phaseA-reranker/val_results_b02*.jsonl
 
 phaseB/test.ipynb
 
@@ -47,3 +52,5 @@ scripts/B04
 /venv-unsloth
 
 tmp.py
+__pycache__/
+nohup.out

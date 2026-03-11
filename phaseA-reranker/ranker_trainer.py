@@ -1,49 +1,62 @@
 from transformers import Trainer
-from transformers.trainer_pt_utils import IterableDatasetShard, nested_truncate, nested_numpify, nested_concat, find_batch_size
-from transformers.trainer_utils import seed_worker, EvalLoopOutput, has_length, EvalPrediction, denumpify_detensorize, PredictionOutput, speed_metrics
-# from transformers.deepspeed import deepspeed_init
-from transformers.utils import logging, is_torch_tpu_available
+from transformers.trainer_pt_utils import (
+    IterableDatasetShard,
+    nested_truncate,
+    nested_numpify,
+    nested_concat,
+    find_batch_size,
+)
+from transformers.trainer_utils import (
+    seed_worker,
+    EvalLoopOutput,
+    has_length,
+    EvalPrediction,
+    denumpify_detensorize,
+    PredictionOutput,
+    speed_metrics,
+)
+from transformers.utils import logging
 import torch
 import time
 import math
 from torch.utils.data import DataLoader, Dataset
 from typing import Dict, List, Tuple, Optional, Union, Any
 import numpy as np
-if is_torch_tpu_available(check_device=False):
-    import torch_xla.core.xla_model as xm
-    import torch_xla.debug.metrics as met
-    import torch_xla.distributed.parallel_loader as pl
 
 logger = logging.get_logger(__name__)
 
 from dataclasses import dataclass
 
+
 class RankingPredictionOutput:
-    def __init__(self,
-                 predictions: Union[np.ndarray, Tuple[np.ndarray]],
-                 label_ids: Optional[Union[np.ndarray, Tuple[np.ndarray]]],
-                 metrics: Optional[Dict[str, float]],
-                 ranking_metadata: List[Dict],
-                ):
+    def __init__(
+        self,
+        predictions: Union[np.ndarray, Tuple[np.ndarray]],
+        label_ids: Optional[Union[np.ndarray, Tuple[np.ndarray]]],
+        metrics: Optional[Dict[str, float]],
+        ranking_metadata: List[Dict],
+    ):
         self.predictions = predictions
         self.label_ids = label_ids
         self.metrics = metrics
-        self.ranking_metadata=ranking_metadata
+        self.ranking_metadata = ranking_metadata
 
 
 class RankingEvalLoopOutput:
-    def __init__(self,
-                 predictions: Union[np.ndarray, Tuple[np.ndarray]],
-                 label_ids: Optional[Union[np.ndarray, Tuple[np.ndarray]]],
-                 metrics: Optional[Dict[str, float]],
-                 num_samples: Optional[int],
-                 ranking_metadata: List[Dict],
-                ):
+    def __init__(
+        self,
+        predictions: Union[np.ndarray, Tuple[np.ndarray]],
+        label_ids: Optional[Union[np.ndarray, Tuple[np.ndarray]]],
+        metrics: Optional[Dict[str, float]],
+        num_samples: Optional[int],
+        ranking_metadata: List[Dict],
+    ):
         self.predictions = predictions
         self.label_ids = label_ids
         self.metrics = metrics
         self.num_samples = num_samples
-        self.ranking_metadata=ranking_metadata
+        self.ranking_metadata = ranking_metadata
+
 
 class RankingEvalPrediction(EvalPrediction):
     def __init__(
@@ -52,14 +65,15 @@ class RankingEvalPrediction(EvalPrediction):
         label_ids: Union[np.ndarray, Tuple[np.ndarray]],
         ranking_metadata: List[Dict],
         inputs: Optional[Union[np.ndarray, Tuple[np.ndarray]]] = None,
-        
     ):
         super().__init__(predictions, label_ids, inputs)
-        self.ranking_metadata=ranking_metadata
+        self.ranking_metadata = ranking_metadata
 
     def __iter__(self):
         if self.inputs is not None:
-            return iter((self.predictions, self.label_ids, self.inputs, self.ranking_metadata))
+            return iter(
+                (self.predictions, self.label_ids, self.inputs, self.ranking_metadata)
+            )
         else:
             return iter((self.predictions, self.label_ids, self.ranking_metadata))
 
@@ -76,15 +90,21 @@ class RankingEvalPrediction(EvalPrediction):
             return self.inputs
         elif idx == 3:
             return self.ranking_metadata
-        
+
+
 class RankerTrainer(Trainer):
-    
-    def __init__(self, *args, eval_data_collator=None, preprocess_logits=None, **kwargs):
+    def __init__(
+        self, *args, eval_data_collator=None, preprocess_logits=None, **kwargs
+    ):
         super().__init__(*args, **kwargs)
-        self.eval_data_collator = eval_data_collator if eval_data_collator else self.data_collator
-        self.preprocess_logits=preprocess_logits
-    
-    def get_eval_dataloader(self, eval_dataset: Optional[torch.utils.data.Dataset] = None) -> DataLoader:
+        self.eval_data_collator = (
+            eval_data_collator if eval_data_collator else self.data_collator
+        )
+        self.preprocess_logits = preprocess_logits
+
+    def get_eval_dataloader(
+        self, eval_dataset: str | torch.utils.data.Dataset | None = None
+    ) -> DataLoader:
         """
         Returns the evaluation [`~torch.utils.data.DataLoader`].
         Subclass and override this method if you want to inject some custom behavior.
@@ -98,9 +118,9 @@ class RankerTrainer(Trainer):
         eval_dataset = eval_dataset if eval_dataset is not None else self.eval_dataset
         data_collator = self.eval_data_collator
 
-        #if is_datasets_available() and isinstance(eval_dataset, datasets.Dataset):
+        # if is_datasets_available() and isinstance(eval_dataset, datasets.Dataset):
         #    eval_dataset = self._remove_unused_columns(eval_dataset, description="evaluation")
-        #else:
+        # else:
         #    data_collator = self._get_collator_with_removed_columns(data_collator, description="evaluation")
 
         if isinstance(eval_dataset, torch.utils.data.IterableDataset):
@@ -131,24 +151,34 @@ class RankerTrainer(Trainer):
             num_workers=self.args.dataloader_num_workers,
             pin_memory=self.args.dataloader_pin_memory,
         )
-    
+
     def prediction_step(
         self,
         model: torch.nn.Module,
         inputs: Dict[str, Union[torch.Tensor, Any]],
         prediction_loss_only: bool,
         ignore_keys: Optional[List[str]] = None,
-    ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor], Optional[List[Dict]]]:
-        #print("here")
-        _, logits, _ = super().prediction_step(model, inputs["inputs"], prediction_loss_only, ignore_keys)
-        
+    ) -> Tuple[
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+        Optional[List[Dict]],
+    ]:
+        # print("here")
+        _, logits, _ = super().prediction_step(
+            model, inputs["inputs"], prediction_loss_only, ignore_keys
+        )
+
         if self.preprocess_logits:
             logits = self.preprocess_logits(logits)
-            
-        metadata = [ {"doc_id":inputs["doc_id"][i], "id":inputs["id"][i]} for i in range(len(inputs["doc_id"]))]
-        #print("done")
+
+        metadata = [
+            {"doc_id": inputs["doc_id"][i], "id": inputs["id"][i]}
+            for i in range(len(inputs["doc_id"]))
+        ]
+        # print("done")
         return None, logits, None, metadata
-    
+
     def evaluation_loop(
         self,
         dataloader: DataLoader,
@@ -163,7 +193,11 @@ class RankerTrainer(Trainer):
         """
         args = self.args
 
-        prediction_loss_only = prediction_loss_only if prediction_loss_only is not None else args.prediction_loss_only
+        prediction_loss_only = (
+            prediction_loss_only
+            if prediction_loss_only is not None
+            else args.prediction_loss_only
+        )
 
         # if eval is called w/o train init deepspeed here
         if args.deepspeed and not self.deepspeed:
@@ -202,7 +236,9 @@ class RankerTrainer(Trainer):
         eval_dataset = getattr(dataloader, "dataset", None)
 
         if is_torch_tpu_available():
-            dataloader = pl.ParallelLoader(dataloader, [args.device]).per_device_loader(args.device)
+            dataloader = pl.ParallelLoader(dataloader, [args.device]).per_device_loader(
+                args.device
+            )
 
         if args.past_index >= 0:
             self._past = None
@@ -233,8 +269,14 @@ class RankerTrainer(Trainer):
                     batch_size = observed_batch_size
 
             # Prediction step
-            loss, logits, labels, metadata = self.prediction_step(model, inputs, prediction_loss_only, ignore_keys=ignore_keys)
-            inputs_decode = self._prepare_input(inputs["input_ids"]) if args.include_inputs_for_metrics else None
+            loss, logits, labels, metadata = self.prediction_step(
+                model, inputs, prediction_loss_only, ignore_keys=ignore_keys
+            )
+            inputs_decode = (
+                self._prepare_input(inputs["input_ids"])
+                if args.include_inputs_for_metrics
+                else None
+            )
             ranking_metadata.extend(metadata)
             if is_torch_tpu_available():
                 xm.mark_step()
@@ -242,11 +284,19 @@ class RankerTrainer(Trainer):
             # Update containers on host
             if loss is not None:
                 losses = self._nested_gather(loss.repeat(batch_size))
-                losses_host = losses if losses_host is None else torch.cat((losses_host, losses), dim=0)
+                losses_host = (
+                    losses
+                    if losses_host is None
+                    else torch.cat((losses_host, losses), dim=0)
+                )
             if labels is not None:
                 labels = self._pad_across_processes(labels)
                 labels = self._nested_gather(labels)
-                labels_host = labels if labels_host is None else nested_concat(labels_host, labels, padding_index=-100)
+                labels_host = (
+                    labels
+                    if labels_host is None
+                    else nested_concat(labels_host, labels, padding_index=-100)
+                )
             if inputs_decode is not None:
                 inputs_decode = self._pad_across_processes(inputs_decode)
                 inputs_decode = self._nested_gather(inputs_decode)
@@ -260,32 +310,58 @@ class RankerTrainer(Trainer):
                 logits = self._nested_gather(logits)
                 if self.preprocess_logits_for_metrics is not None:
                     logits = self.preprocess_logits_for_metrics(logits, labels)
-                preds_host = logits if preds_host is None else nested_concat(preds_host, logits, padding_index=-100)
-            self.control = self.callback_handler.on_prediction_step(args, self.state, self.control)
+                preds_host = (
+                    logits
+                    if preds_host is None
+                    else nested_concat(preds_host, logits, padding_index=-100)
+                )
+            self.control = self.callback_handler.on_prediction_step(
+                args, self.state, self.control
+            )
 
             # Gather all tensors and put them back on the CPU if we have done enough accumulation steps.
-            if args.eval_accumulation_steps is not None and (step + 1) % args.eval_accumulation_steps == 0:
+            if (
+                args.eval_accumulation_steps is not None
+                and (step + 1) % args.eval_accumulation_steps == 0
+            ):
                 if losses_host is not None:
                     losses = nested_numpify(losses_host)
-                    all_losses = losses if all_losses is None else np.concatenate((all_losses, losses), axis=0)
+                    all_losses = (
+                        losses
+                        if all_losses is None
+                        else np.concatenate((all_losses, losses), axis=0)
+                    )
                 if preds_host is not None:
                     logits = nested_numpify(preds_host)
-                    all_preds = logits if all_preds is None else nested_concat(all_preds, logits, padding_index=-100)
+                    all_preds = (
+                        logits
+                        if all_preds is None
+                        else nested_concat(all_preds, logits, padding_index=-100)
+                    )
                 if inputs_host is not None:
                     inputs_decode = nested_numpify(inputs_host)
                     all_inputs = (
                         inputs_decode
                         if all_inputs is None
-                        else nested_concat(all_inputs, inputs_decode, padding_index=-100)
+                        else nested_concat(
+                            all_inputs, inputs_decode, padding_index=-100
+                        )
                     )
                 if labels_host is not None:
                     labels = nested_numpify(labels_host)
                     all_labels = (
-                        labels if all_labels is None else nested_concat(all_labels, labels, padding_index=-100)
+                        labels
+                        if all_labels is None
+                        else nested_concat(all_labels, labels, padding_index=-100)
                     )
 
                 # Set back to None to begin a new accumulation
-                losses_host, preds_host, inputs_host, labels_host = None, None, None, None
+                losses_host, preds_host, inputs_host, labels_host = (
+                    None,
+                    None,
+                    None,
+                    None,
+                )
 
         if args.past_index and hasattr(self, "_past"):
             # Clean the state at the end of the evaluation loop
@@ -294,25 +370,42 @@ class RankerTrainer(Trainer):
         # Gather all remaining tensors and put them back on the CPU
         if losses_host is not None:
             losses = nested_numpify(losses_host)
-            all_losses = losses if all_losses is None else np.concatenate((all_losses, losses), axis=0)
+            all_losses = (
+                losses
+                if all_losses is None
+                else np.concatenate((all_losses, losses), axis=0)
+            )
         if preds_host is not None:
             logits = nested_numpify(preds_host)
-            all_preds = logits if all_preds is None else nested_concat(all_preds, logits, padding_index=-100)
+            all_preds = (
+                logits
+                if all_preds is None
+                else nested_concat(all_preds, logits, padding_index=-100)
+            )
         if inputs_host is not None:
             inputs_decode = nested_numpify(inputs_host)
             all_inputs = (
-                inputs_decode if all_inputs is None else nested_concat(all_inputs, inputs_decode, padding_index=-100)
+                inputs_decode
+                if all_inputs is None
+                else nested_concat(all_inputs, inputs_decode, padding_index=-100)
             )
         if labels_host is not None:
             labels = nested_numpify(labels_host)
-            all_labels = labels if all_labels is None else nested_concat(all_labels, labels, padding_index=-100)
+            all_labels = (
+                labels
+                if all_labels is None
+                else nested_concat(all_labels, labels, padding_index=-100)
+            )
 
         # Number of samples
         if has_length(eval_dataset):
             num_samples = len(eval_dataset)
         # The instance check is weird and does not actually check for the type, but whether the dataset has the right
         # methods. Therefore we need to make sure it also has the attribute.
-        elif isinstance(eval_dataset, IterableDatasetShard) and getattr(eval_dataset, "num_examples", 0) > 0:
+        elif (
+            isinstance(eval_dataset, IterableDatasetShard)
+            and getattr(eval_dataset, "num_examples", 0) > 0
+        ):
             num_samples = eval_dataset.num_examples
         else:
             if has_length(dataloader):
@@ -337,10 +430,21 @@ class RankerTrainer(Trainer):
         if self.compute_metrics is not None and all_preds is not None:
             if args.include_inputs_for_metrics:
                 metrics = self.compute_metrics(
-                    RankingEvalPrediction(predictions=all_preds, label_ids=all_labels, inputs=all_inputs, ranking_metadata=ranking_metadata)
+                    RankingEvalPrediction(
+                        predictions=all_preds,
+                        label_ids=all_labels,
+                        inputs=all_inputs,
+                        ranking_metadata=ranking_metadata,
+                    )
                 )
             else:
-                metrics = self.compute_metrics(RankingEvalPrediction(predictions=all_preds, label_ids=all_labels, ranking_metadata=ranking_metadata))
+                metrics = self.compute_metrics(
+                    RankingEvalPrediction(
+                        predictions=all_preds,
+                        label_ids=all_labels,
+                        ranking_metadata=ranking_metadata,
+                    )
+                )
         else:
             metrics = {}
 
@@ -350,7 +454,9 @@ class RankerTrainer(Trainer):
         if all_losses is not None:
             metrics[f"{metric_key_prefix}_loss"] = all_losses.mean().item()
         if hasattr(self, "jit_compilation_time"):
-            metrics[f"{metric_key_prefix}_jit_compilation_time"] = self.jit_compilation_time
+            metrics[f"{metric_key_prefix}_jit_compilation_time"] = (
+                self.jit_compilation_time
+            )
 
         # Prefix all keys with metric_key_prefix + '_'
         for key in list(metrics.keys()):
@@ -358,12 +464,26 @@ class RankerTrainer(Trainer):
                 metrics[f"{metric_key_prefix}_{key}"] = metrics.pop(key)
 
         if metrics:
-            return EvalLoopOutput(predictions=all_preds, label_ids=all_labels, metrics=metrics, num_samples=num_samples)
+            return EvalLoopOutput(
+                predictions=all_preds,
+                label_ids=all_labels,
+                metrics=metrics,
+                num_samples=num_samples,
+            )
         else:
-            return RankingEvalLoopOutput(predictions=all_preds, label_ids=all_labels, metrics=metrics, num_samples=num_samples, ranking_metadata=ranking_metadata)
-    
+            return RankingEvalLoopOutput(
+                predictions=all_preds,
+                label_ids=all_labels,
+                metrics=metrics,
+                num_samples=num_samples,
+                ranking_metadata=ranking_metadata,
+            )
+
     def predict(
-        self, test_dataset: Dataset, ignore_keys: Optional[List[str]] = None, metric_key_prefix: str = "test"
+        self,
+        test_dataset: Dataset,
+        ignore_keys: Optional[List[str]] = None,
+        metric_key_prefix: str = "test",
     ) -> Union[PredictionOutput, RankingPredictionOutput]:
         """
         Run prediction and returns predictions and potential metrics.
@@ -396,9 +516,16 @@ class RankerTrainer(Trainer):
         test_dataloader = self.get_eval_dataloader(test_dataset)
         start_time = time.time()
 
-        eval_loop = self.prediction_loop if self.args.use_legacy_prediction_loop else self.evaluation_loop
+        eval_loop = (
+            self.prediction_loop
+            if self.args.use_legacy_prediction_loop
+            else self.evaluation_loop
+        )
         output = eval_loop(
-            test_dataloader, description="Prediction", ignore_keys=ignore_keys, metric_key_prefix=metric_key_prefix
+            test_dataloader,
+            description="Prediction",
+            ignore_keys=ignore_keys,
+            metric_key_prefix=metric_key_prefix,
         )
         total_batch_size = self.args.eval_batch_size * self.args.world_size
         if f"{metric_key_prefix}_jit_compilation_time" in output.metrics:
@@ -412,25 +539,33 @@ class RankerTrainer(Trainer):
             )
         )
 
-        self.control = self.callback_handler.on_predict(self.args, self.state, self.control, output.metrics)
+        self.control = self.callback_handler.on_predict(
+            self.args, self.state, self.control, output.metrics
+        )
         self._memory_tracker.stop_and_update_metrics(output.metrics)
 
-        return RankingPredictionOutput(predictions=output.predictions, label_ids=output.label_ids, metrics=output.metrics, ranking_metadata=output.ranking_metadata)
+        return RankingPredictionOutput(
+            predictions=output.predictions,
+            label_ids=output.label_ids,
+            metrics=output.metrics,
+            ranking_metadata=output.ranking_metadata,
+        )
 
-    
+
 class PairwiseTrainer(RankerTrainer):
-    
     def compute_loss(self, model, inputs, return_outputs=False):
-        
+
         # forward pass
         pos_doc_logits = model(**inputs.get("pos_doc")).get("logits")
         neg_doc_logits = model(**inputs.get("neg_doc")).get("logits")
 
         # compute custom loss (suppose one has 3 labels with different weights)
-        loss_fct = torch.nn.MarginRankingLoss(margin=1.0, size_average=None, reduce=None, reduction='mean')
+        loss_fct = torch.nn.MarginRankingLoss(
+            margin=1.0, size_average=None, reduce=None, reduction="mean"
+        )
         loss = loss_fct(pos_doc_logits, neg_doc_logits, torch.ones_like(pos_doc_logits))
         return (loss, (pos_doc_logits, neg_doc_logits)) if return_outputs else loss
-    
+
     def get_train_dataloader(self) -> DataLoader:
         """
         Returns the training [`~torch.utils.data.DataLoader`].
@@ -443,11 +578,10 @@ class PairwiseTrainer(RankerTrainer):
 
         train_dataset = self.train_dataset
         data_collator = self.data_collator
-        #if is_datasets_available() and isinstance(train_dataset, datasets.Dataset):
+        # if is_datasets_available() and isinstance(train_dataset, datasets.Dataset):
         #    train_dataset = self._remove_unused_columns(train_dataset, description="training")
-        #else:
+        # else:
         #    data_collator = self._get_collator_with_removed_columns(data_collator, description="training")
-
 
         if isinstance(train_dataset, torch.utils.data.IterableDataset):
             if self.args.world_size > 1:
@@ -479,4 +613,3 @@ class PairwiseTrainer(RankerTrainer):
             pin_memory=self.args.dataloader_pin_memory,
             worker_init_fn=seed_worker,
         )
-        

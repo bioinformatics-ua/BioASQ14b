@@ -1,0 +1,1 @@
+okay so pyterrier needs java, pyterrier-pisa needs python 3.8

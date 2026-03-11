@@ -24,8 +24,8 @@ def read_new_training_file(current_training_file, old_questions):
         new_questions = [ question for question in data['questions'] if question['id'] not in old_questions_ids ]
         
         for question in new_questions:
-            question['edition']  = "12B"
-            question['baseline'] = "2024"
+            question['edition']  = "13B"
+            question['baseline'] = "2025"
         
     print(f"duplicate questions = { len(data['questions']) - len(new_questions) }")        
     print(f"new questions = {len(new_questions)}")
@@ -89,24 +89,24 @@ def main():
     """ main funtion """
     
     # 1) inflated: add new key-value pairs (baseline and edition) and join this new questions to the previous questions
-    prev_questions = read_prev_training_file("training12b/training12b_inflated.jsonl")
-    new_questions  = read_new_training_file("training13b.json", prev_questions)
+    prev_questions = read_prev_training_file("training13b/training13b_inflated.jsonl")
+    new_questions  = read_new_training_file("training14b.json", prev_questions)
     
-    join_and_write("training13b_inflated.jsonl", prev_questions, new_questions)
+    join_and_write("training14b_inflated.jsonl", prev_questions, new_questions)
     
     # 2) clean: clean the document list for each new question and join this new questions to the previous questions
-    cleaned_prev_questions = read_prev_training_file("training12b/training12b_inflated_clean.jsonl")
+    cleaned_prev_questions = read_prev_training_file("training13b/training13b_inflated_clean.jsonl")
     cleaned_new_questions  = clean_questions(new_questions)
     
-    join_and_write("training13b_inflated_clean.jsonl", cleaned_prev_questions, cleaned_new_questions)
+    join_and_write("training14b_inflated_clean.jsonl", cleaned_prev_questions, cleaned_new_questions)
 
     # 3) wContent: replace the list of documents with their content and join this new questions to the previous questions
         # cleaned_prev_questions_with_content = read_prev_training_file("training12b/training12b_inflated_wContents_IA_complete.jsonl")
 
-    cleaned_prev_questions_with_content = read_prev_training_file("training12b/training12b_inflated_clean_wContents.jsonl")
+    cleaned_prev_questions_with_content = read_prev_training_file("training13b/training13b_inflated_clean_wContents.jsonl")
     cleaned_new_questions_with_content  = add_content(cleaned_new_questions)
     
-    join_and_write("training13b_inflated_clean_wContents.jsonl", cleaned_prev_questions_with_content, cleaned_new_questions_with_content)
+    join_and_write("training14b_inflated_clean_wContents.jsonl", cleaned_prev_questions_with_content, cleaned_new_questions_with_content)
 
 
 if __name__ == "__main__":

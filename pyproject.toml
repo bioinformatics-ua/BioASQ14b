@@ -1,0 +1,25 @@
+[project]
+name = "bioasq13b"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "accelerate>=1.0.1",
+    "evaluate>=0.4.6",
+    "lxml>=6.0.2",
+    "nltk>=3.9.1",
+    "optimum>=1.23.3",
+    "peft>=0.13.2",
+    "pubmed-parser>=0.5.1",
+    "ranx>=0.3.21",
+    "torch>=2.5.1",
+    "transformers>=4.46.3",
+    "trl>=0.11.4",
+    "typer>=0.20.1",
+    "wandb>=0.24.2",
+]
+
+[tool.uv.sources]
+ranx = { git = "https://github.com/T-Almeida/ranx.git", rev = "865e04a15fc47057127773a488a11e5dca235ce8" }
+

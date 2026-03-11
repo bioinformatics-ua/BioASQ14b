@@ -239,7 +239,7 @@ class BioASQInferenceDataset(torch.utils.data.Dataset):
         
         # build sequential dataset
         for q_data in dataset:
-            print(q_data.keys())
+            # print(q_data.keys())
             
             #fucking fix this shit
             if 'bm25' in q_data.keys():

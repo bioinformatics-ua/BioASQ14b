@@ -1,7 +1,7 @@
 from transformers import TrainerCallback
 import torch
 from tqdm import tqdm
-from optimum.bettertransformer import BetterTransformer
+# from optimum.bettertransformer import BetterTransformer
 from collator import RankingCollator
 from collections import defaultdict
 
@@ -63,8 +63,8 @@ def run_inference_on_negatives(model, dataset, tokenizer):
     
     ds_for_inference = FlatDataset(dataset, tokenizer)
     
-    model_inference = BetterTransformer.transform(model, keep_original_model=True)
-
+    # model_inference = BetterTransformer.transform(model, keep_original_model=True)
+    model_inference = torch.compile(model) 
     test_dl = torch.utils.data.DataLoader(ds_for_inference, 
                             batch_size=128,
                             collate_fn = RankingCollator(tokenizer=tokenizer))
