@@ -4,7 +4,7 @@ from urllib.request import urlopen
 from lxml import etree
 
 # Safely import your existing parsing logic
-from download_baselines import parse_article_info
+from .pubmed_downloader import parse_article_info
 
 
 def recover_single_file():

@@ -29,41 +29,40 @@ import pubmed_parser as pp
 # ============== PARSING FUNCTIONS ==============
 
 
-def parse_mesh_terms(medline):
+def parse_mesh_terms(medline: etree.Element) -> str:
     """Parse MeSH terms from a Medline element."""
-    if medline.find("MeshHeadingList") is not None:
-        mesh = medline.find("MeshHeadingList")
+    if (mesh := medline.find("MeshHeadingList")) is not None:
         mesh_terms_list = [
-            m.find("DescriptorName").attrib.get("UI", "")
+            (m.find("DescriptorName").attrib.get("UI", "") or "")  # ty:ignore[unresolved-attribute]
             + ":"
-            + m.find("DescriptorName").text
-            for m in mesh.getchildren()
+            + (m.find("DescriptorName").text or "")  # ty:ignore[unresolved-attribute]
+            for m in mesh
         ]
         return "; ".join(mesh_terms_list)
     return ""
 
 
-def parse_pmid(medline):
+def parse_pmid(medline: etree.Element) -> str:
     """Parse PMID from a Medline element."""
-    if medline.find("PMID") is not None:
-        return medline.find("PMID").text
+    if (pmid := medline.find("PMID")) is not None:
+        return pmid.text or ""
 
-    article_ids = medline.find("PubmedData/ArticleIdList")
-    if article_ids is not None:
-        pmid = article_ids.find('ArticleId[@IdType="pmid"]')
-        if pmid is not None and pmid.text is not None:
-            return pmid.text.strip()
+    if (article_ids := medline.find("PubmedData/ArticleIdList")) is not None and (
+        pmid := article_ids.find('ArticleId[@IdType="pmid"]')
+    ) is not None:
+        return (pmid.text or "").strip()
+
     return ""
 
 
-def parse_article_info(medline, author_list=False):
+def parse_article_info(medline: etree.Element, author_list: bool = False) -> dict:
     """Parse article information from a Medline element."""
     article = medline.find("Article")
+    if article is None:
+        return {}
 
-    if article.find("ArticleTitle") is not None:
-        title = pp.utils.stringify_children(article.find("ArticleTitle")).strip() or ""
-    else:
-        title = ""
+    if (title := article.find("ArticleTitle")) is not None:
+        title = pp.utils.stringify_children(title).strip()
 
     if article.find("Abstract/AbstractText") is not None:
         abstract_texts = article.findall("Abstract/AbstractText")
@@ -132,7 +131,7 @@ def parse_article_info(medline, author_list=False):
 type PubmedLink = tuple[int, str, str]  # year, url, filename
 
 
-def get_pubmed_links(years) -> list[PubmedLink]:
+def get_pubmed_links(years: list[int]) -> list[PubmedLink]:
     """Fetch all XML.gz links for given years."""
     links: list[PubmedLink] = []
     for year in years:
@@ -147,11 +146,12 @@ def get_pubmed_links(years) -> list[PubmedLink]:
 
         if year < 2025:
             for link_elem in tree.xpath("/html/body/ul[2]/li/a"):
-                if link_elem.text.endswith("xml.gz"):
-                    href = link_elem.get("href").replace(
-                        "/https://data.lhncbc", "if_/https://data.lhncbc"
-                    )
-                    links.append((year, href, link_elem.text))
+                if not link_elem.text.endswith("xml.gz"):
+                    continue
+                href = link_elem.get("href").replace(
+                    "/https://data.lhncbc", "if_/https://data.lhncbc"
+                )
+                links.append((year, href, link_elem.text))
         else:
             files = re.findall(r'href="(pubmed\d{2}n\d{4}\.xml\.gz)"', output)
             for file in files:
@@ -160,7 +160,15 @@ def get_pubmed_links(years) -> list[PubmedLink]:
     return links
 
 
-def download_file_worker(worker_id, task_queue, base_dir, max_retries=5):
+type DownloadStats = tuple[int, int, int]  # downloaded, skipped, failed
+
+
+def download_file_worker(
+    worker_id: int,
+    task_queue: Queue[PubmedLink | None],
+    base_dir: str,
+    max_retries: int = 5,
+) -> DownloadStats:
     """Worker: download files from queue."""
     downloaded = 0
     skipped = 0
@@ -168,8 +176,13 @@ def download_file_worker(worker_id, task_queue, base_dir, max_retries=5):
 
     while True:
         try:
-            year, url, filename = task_queue.get(timeout=1)
-        except:
+            task = task_queue.get(timeout=1)
+            if task is None:
+                task_queue.put(None)
+                break
+            year, url, filename = task
+        except Exception as e:
+            print(f"[{worker_id}] Error getting task: {e}")
             break
 
         if url is None:
@@ -212,7 +225,7 @@ def download_file_worker(worker_id, task_queue, base_dir, max_retries=5):
     return downloaded, skipped, failed
 
 
-def download_main(years, workers, base_dir):
+def download_main(years: list[int], workers: int, base_dir: str) -> None:
     """Download all files for given years."""
     print(f"Downloading PubMed baselines for years: {years}")
     print(f"Base directory: {base_dir}")
@@ -221,7 +234,7 @@ def download_main(years, workers, base_dir):
     links = get_pubmed_links(years)
     print(f"\nTotal files to download: {len(links)}\n")
 
-    task_queue = Queue()
+    task_queue: Queue[PubmedLink | None] = Queue()
     for year, url, filename in links:
         task_queue.put((year, url, filename))
     task_queue.put(None)
@@ -245,7 +258,7 @@ def download_main(years, workers, base_dir):
 # ============== PARSE STAGE ==============
 
 
-def parse_local_file(filepath, output_fields):
+def parse_local_file(filepath: str, output_fields: list[str]) -> list[dict]:
     """Parse a local XML.gz file."""
     articles = []
     try:
@@ -262,14 +275,20 @@ def parse_local_file(filepath, output_fields):
     return articles
 
 
-def parse_worker(worker_id, task_queue, results_queue, output_fields):
+def parse_worker(
+    worker_id: int,
+    task_queue: Queue[str | None],
+    results_queue: Queue[dict | str],
+    output_fields: list[str],
+) -> None:
     """Worker: parse files and put articles to results."""
     files_processed = 0
 
     while True:
         try:
             filepath = task_queue.get(timeout=1)
-        except:
+        except Exception as e:
+            print(f"[{worker_id}] Error getting filepath: {e}")
             break
 
         if filepath is None:
@@ -289,7 +308,9 @@ def parse_worker(worker_id, task_queue, results_queue, output_fields):
     results_queue.put(f"WORKER_{worker_id}_DONE:{files_processed}")
 
 
-def writer_process(results_queue, output_file, num_workers):
+def writer_process(
+    results_queue: Queue[dict | str], output_file: str, num_workers: int
+) -> None:
     """Write results to JSONL."""
     total_articles = 0
     workers_done = 0
@@ -312,7 +333,13 @@ def writer_process(results_queue, output_file, num_workers):
     print(f"\nWriter: {total_files} files → {total_articles} articles → {output_file}")
 
 
-def parse_main(years, workers, output_file, base_dir, output_fields):
+def parse_main(
+    years: list[int],
+    workers: int,
+    output_file: str,
+    base_dir: str,
+    output_fields: list[str],
+) -> None:
     """Parse downloaded files."""
     print(f"Parsing PubMed baselines for years: {years}")
     print(f"Base directory: {base_dir}")
@@ -332,12 +359,12 @@ def parse_main(years, workers, output_file, base_dir, output_fields):
 
     print(f"Files to parse: {len(files_to_parse)}\n")
 
-    task_queue = Queue()
+    task_queue: Queue[str | None] = Queue()
     for f in files_to_parse:
         task_queue.put(str(f))
     task_queue.put(None)
 
-    results_queue = Queue()
+    results_queue: Queue[dict | str] = Queue()
 
     worker_ps = [
         Process(target=parse_worker, args=(i, task_queue, results_queue, output_fields))
