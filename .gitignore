@@ -3,6 +3,7 @@ data/*/ids_per_baseline_*.p
 data/*/log_download_baseline*.txt
 data/baselines/downloaded_baselines
 data/indexes
+data/indexes_pleiades
 data/*/training*.json
 
 data/quality

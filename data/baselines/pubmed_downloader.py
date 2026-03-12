@@ -173,7 +173,7 @@ def download_file_worker(
     worker_id: int,
     task_queue: Queue[PubmedLink | None],
     base_dir: str,
-    max_retries: int = 10,
+    max_retries: int = 20,
 ) -> DownloadStats:
     """Worker: download files from queue."""
     downloaded = 0
