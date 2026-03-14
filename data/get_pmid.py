@@ -1,18 +1,55 @@
+import orjson
+import typer
+from pathlib import Path
 from tqdm import tqdm
-import json
 from collections import defaultdict
-import pickle
 
-with open("/quality/training13b_inflated_clean_wContents_IA.jsonl") as f:
-    baselines = {qdata["baseline"] for qdata in map(json.loads, f)}
+app = typer.Typer()
 
 
-ids_per_baseline = defaultdict(set)
+@app.command()
+def main(
+    file: Path = typer.Argument(
+        ..., help="The original training data file from BioASQ to process."
+    ),
+    baselines_dir: Path = typer.Option(
+        Path("./baselines"),
+        "-b",
+        "--baselines",
+        help="The directory containing the baseline files.",
+    ),
+    out_file: Path = typer.Option(
+        Path("ids_per_baseline.json"),
+        "-o",
+        "--out",
+        help="The output file to save the results to.",
+    ),
+):
+    if not file.exists():
+        raise FileNotFoundError(f"File '{file}' doesn't exist.")
 
-for baseline in baselines:
-    with open(f"pubmed_baseline_{baseline}.jsonl") as f:
-        for doc in tqdm(map(json.loads, f)):
-            ids_per_baseline[baseline].add(doc["pmid"])
+    ids_per_baseline: defaultdict[str, dict[str, int]] = defaultdict(
+        dict
+    )  # year -> pmid -> line_idx
+    baselines: list[Path] = [
+        baseline
+        for baseline in baselines_dir.iterdir()
+        if baseline.is_file()
+        and baseline.name.startswith("pubmed_baseline_")
+        and baseline.name.endswith(".jsonl")
+    ]
 
-with open("ids_per_baseline.p", "wb") as fo:
-    pickle.dump(ids_per_baseline, fo)
+    for baseline in tqdm(baselines, desc="Processing baselines", position=0):
+        year = baseline.name.split("_")[-1].rstrip(".jsonl")
+        with baseline.open("r") as f:
+            for idx, doc in tqdm(enumerate(f), desc="Processing baseline", position=1):
+                pmid = doc.lstrip('{"pmid": "').split('"', 1)[0]
+                ids_per_baseline[year][pmid] = idx
+
+    with out_file.open("wb") as fo:
+        fo.write(orjson.dumps(ids_per_baseline))
+    print(f"Saved results to '{out_file}'.")
+
+
+if __name__ == "__main__":
+    app()
