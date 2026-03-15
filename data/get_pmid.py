@@ -3,6 +3,7 @@ import typer
 from pathlib import Path
 from tqdm import tqdm
 from collections import defaultdict
+from . import IDsPerBaseline
 
 app = typer.Typer()
 
@@ -28,9 +29,7 @@ def main(
     if not file.exists():
         raise FileNotFoundError(f"File '{file}' doesn't exist.")
 
-    ids_per_baseline: defaultdict[str, dict[str, int]] = defaultdict(
-        dict
-    )  # year -> pmid -> line_idx
+    ids_per_baseline: IDsPerBaseline = defaultdict(dict)  # year -> pmid -> line_idx
     baselines: list[Path] = [
         baseline
         for baseline in baselines_dir.iterdir()
@@ -39,12 +38,12 @@ def main(
         and baseline.name.endswith(".jsonl")
     ]
 
-    for baseline in tqdm(baselines, desc="Processing baselines", position=0):
+    for baseline in tqdm(baselines, desc="Processing baselines", unit="baseline"):
         year = baseline.name.split("_")[-1].rstrip(".jsonl")
-        with baseline.open("r") as f:
-            for idx, doc in tqdm(enumerate(f), desc="Processing baseline", position=1):
-                pmid = doc.lstrip('{"pmid": "').split('"', 1)[0]
-                ids_per_baseline[year][pmid] = idx
+        with baseline.open("rb") as f:
+            for doc in f:
+                pmid: bytes = doc.lstrip(b'{"pmid": "').split(b'"', 1)[0]
+                ids_per_baseline[year][pmid.decode("utf-8")] = f.tell() - len(doc)
 
     with out_file.open("wb") as fo:
         fo.write(orjson.dumps(ids_per_baseline))

@@ -25,6 +25,11 @@ dependencies = [
 [tool.uv.sources]
 ranx = { git = "https://github.com/T-Almeida/ranx.git", rev = "865e04a15fc47057127773a488a11e5dca235ce8" }
 
+[tool.uv.workspace]
+members = [
+    "phaseA-reranker/refactored-trainer",
+]
+
 [dependency-groups]
 dev = [
     "ty>=0.0.21",

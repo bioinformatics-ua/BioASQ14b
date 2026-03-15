@@ -4,7 +4,9 @@ data/*/log_download_baseline*.txt
 data/baselines/downloaded_baselines
 data/indexes
 data/indexes_pleiades
-data/*/training*.json
+data/*/training*.json*
+data/ids_per_baseline.json
+data/not_found.jsonl
 
 data/quality
 !data/quality/.keep

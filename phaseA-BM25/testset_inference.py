@@ -1,3 +1,5 @@
+from pathlib import Path
+from data import Year
 from grid_search import load_index
 import pandas as pd
 import json
@@ -21,7 +23,15 @@ def get_queries(filepath):
     return queries, queryid2text
 
 
-def add_content(baseline, docs):
+def add_content(baseline, docs):@click.command()
+@click.argument("testset_file")
+@click.argument("output_file")
+@click.option("--baseline", type=str, default="2025")
+@click.option("--topk", default=1000)
+@click.option("--k1", default=0.4)
+@click.option("--b", default=0.3)
+@click.option("--add_contents", is_flag=True)
+def main(testset_file: Path, output_file: Path, baseline: Year, topk: int, k1: float, b: float, add_contents: bool):
 
     def get_file_path(baseline):
         return "../../data/baselines/pubmed_baseline_" + str(baseline) + ".jsonl"
@@ -66,15 +76,7 @@ def add_content(baseline, docs):
     return docs
 
 
-@click.command()
-@click.argument("testset_file")
-@click.argument("output_file")
-@click.option("--baseline", type=str, default="2025")
-@click.option("--topk", default=1000)
-@click.option("--k1", default=0.4)
-@click.option("--b", default=0.3)
-@click.option("--add_contents", is_flag=True)
-def main(testset_file, output_file, baseline, topk, k1, b, add_contents):
+
     # best bm25 params based on the grid search results (see more in analyze_grid_search.py)
     k1 = 0.4
     b = 0.3

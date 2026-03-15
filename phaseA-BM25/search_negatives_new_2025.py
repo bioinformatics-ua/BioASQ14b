@@ -1,3 +1,4 @@
+from typing import Literal
 import pyterrier as pt
 
 if not pt.started():
@@ -5,10 +6,12 @@ if not pt.started():
 import pandas as pd
 import json
 
-from grid_search import load_index, get_queries, write_results
+from grid_search import load_index, get_queries
+
+type Year = Literal["2024", "2025"]
 
 
-def add_content(baseline, docs):
+def add_content(baseline: Year, docs):
 
     def get_file_path(baseline):
         return "../../data/baselines/pubmed_baseline_" + str(baseline) + ".jsonl"
@@ -58,15 +61,13 @@ def main():
     k1 = 0.4
     b = 0.3
 
-    queries_path = (
-        "/home/bioasq/data/training/training13b_inflated_clean_wContents_IA.jsonl"
-    )
+    queries_path = "../data/training/training14b_inflated_clean_wContents_IA.jsonl"
     # print(get_queries(queries_path))
     queries, qrels_dict, _ = get_queries(
         queries_path
     )  # get list of queries for each baseline
 
-    with open(f"../results/13b/hard_negatives_IA_clean_fixed.jsonl", "w") as f:
+    with open("../results/13b/hard_negatives_IA_clean_fixed.jsonl", "w") as f:
         for baseline, query_list in queries.items():
             if baseline != "2024":
                 print("skipping ", baseline)

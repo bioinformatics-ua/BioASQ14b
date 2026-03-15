@@ -8,7 +8,9 @@ from itertools import product
 from collections import defaultdict
 from ranx import Qrels, Run
 from ranx import evaluate
-import json, os, sys
+import json
+import os
+import sys
 
 
 def load_index(baseline):
