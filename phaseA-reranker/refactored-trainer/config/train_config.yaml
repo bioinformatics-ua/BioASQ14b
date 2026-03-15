@@ -1,0 +1,42 @@
+# Base training configuration for reranker models.
+# Override via CLI or create_training_config(..., **overrides).
+
+Determinism:
+  seed: 42
+
+Data:
+  dataloader_num_workers: 0
+  remove_unused_columns: true
+
+Training:
+  per_device_train_batch_size: 32
+  gradient_accumulation_steps: 2
+  learning_rate: 2.0e-5
+  num_train_epochs: 5
+
+# Floating-point:
+#   fp16: false
+#   bf16: false
+#   fp16_full_eval: false
+
+Optimizer:
+  weight_decay: 0.01
+
+Scheduler:
+  warmup_steps: 100
+
+Evaluation:
+  per_device_eval_batch_size: 8
+  eval_strategy: epoch
+
+Logging:
+  logging_strategy: steps
+  logging_first_step: true
+  logging_steps: 25
+  report_to: "none"  # String "none" for HF; do not use unquoted 'none' (YAML -> None)
+
+Saving:
+  output_dir: outputs
+  save_strategy: epoch
+  save_total_limit: 1
+  push_to_hub: false
