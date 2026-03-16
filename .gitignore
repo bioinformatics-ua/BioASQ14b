@@ -7,6 +7,8 @@ data/indexes_pleiades
 data/*/training*.json*
 data/ids_per_baseline.json
 data/not_found.jsonl
+data/dense_vectors* 
+data/negatives*.jsonl
 
 data/quality
 !data/quality/.keep
@@ -37,6 +39,9 @@ phaseA-reranker/trained_models_tmp
 phaseA-reranker/trained_models_b01
 phaseA-reranker/trained_models_b02_val
 
+phaseA-reranker/**/wandb
+phaseA-reranker/**/all_models_evaluation.json
+phaseA-reranker/**/train.log
 phaseA-reranker/wandb
 
 phaseA-reranker/.api

@@ -1,19 +1,28 @@
-from FlagEmbedding import BGEM3FlagModel
-import json
-from tqdm import tqdm
-import numpy as np
-import torch
 import os
 
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+# os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-def load_collection(path):
+import torch
+from pathlib import Path
+from sentence_transformers import SentenceTransformer
+import orjson
+from tqdm import tqdm
+import numpy as np
+import typer
+import gc
+
+app = typer.Typer()
+
+
+def load_collection(path: Path):
     with open(path) as f:
-        for article in map(json.loads, f):
+        for article in map(orjson.loads, f):
             yield article["title"] + " " + article["abstract"]
 
 
-def chunked_load_collection(path, chunk_size):
-
+def chunked_load_collection(path: Path, chunk_size: int):
     chunk = []  # Initialize an empty list to hold a chunk of articles
     for article in load_collection(path):
         chunk.append(article)
@@ -24,43 +33,62 @@ def chunked_load_collection(path, chunk_size):
         yield chunk
 
 
-model = BGEM3FlagModel("BAAI/bge-m3", use_fp16=True)
-
-chunk_size = 1_000_000
-
-dense_vectors_dir = "dense_vectors"
-
-# Get existing files
-existing_files = {f for f in os.listdir(dense_vectors_dir) if f.endswith(".npy")}
-
-
-for i, batch_text in enumerate(
-    tqdm(chunked_load_collection("pubmed_baseline_2025.jsonl", chunk_size))
+@app.command()
+def main(
+    baseline: Path = typer.Argument(..., help="The path to the JSONL baseline."),
+    model_name: str = typer.Option(
+        "unsloth/bge-m3",
+        "-m",
+        "--model",
+        help="The name of the model to use.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("../dense_vectors"),
+        "-o",
+        "--output-dir",
+        help="The directory to save the dense vectors to.",
+    ),
+    chunk_size: int = typer.Option(100_000, help="The size of the chunk."),
+    batch_size: int = typer.Option(
+        512, help="Encode batch size. Lower = less GPU memory."
+    ),
 ):
-    output_file = f"{i * chunk_size}_{(i + 1) * chunk_size}.npy"
+    output_dir.mkdir(parents=True, exist_ok=True)
+    model = SentenceTransformer(model_name, trust_remote_code=True)
+    pool = model.start_multi_process_pool(target_devices=["cuda:0", "cuda:1"])
 
-    # Skip if file already exists
-    if output_file in existing_files:
-        print(f"Skipping {output_file}: already exists.")
-        continue
+    year = baseline.name.split("_")[-1].rstrip(".jsonl")
 
-    d_embeddings = model.encode(
-        batch_text,
-        return_dense=True,
-        return_sparse=True,
-        return_colbert_vecs=False,
-        batch_size=2084,
-        max_length=124,  # If you don't need such a long length, you can set a smaller value to speed up the encoding process.
-    )
+    existing_files = {f.name for f in output_dir.glob(f"{year}_*.npy")}
+    for i, batch_text in enumerate(
+        tqdm(
+            chunked_load_collection(baseline, chunk_size),
+            desc="Processing chunk",
+            unit="chunk",
+        )
+    ):
+        output_file = output_dir / f"{year}_{i * chunk_size}_{(i + 1) * chunk_size}.npy"
 
-    # print("torch.cuda.memory_allocated: %fGB"%(torch.cuda.memory_allocated(0)/1024/1024/1024))
-    # print("torch.cuda.memory_reserved: %fGB"%(torch.cuda.memory_reserved(0)/1024/1024/1024))
-    # print("torch.cuda.max_memory_reserved: %fGB"%(torch.cuda.max_memory_reserved(0)/1024/1024/1024))
+        # Skip if file already exists
+        if output_file.name in existing_files:
+            print(f"Skipping {output_file}: already exists.")
+            continue
 
-    np.save(f"dense_vectors/{output_file}", d_embeddings["dense_vecs"])
+        embeddings = model.encode(
+            batch_text,
+            batch_size=batch_size,
+            convert_to_numpy=True,
+            show_progress_bar=True,
+            pool=pool,
+        )
 
-    # with open(f"sparse_vectors/{i*chunk_size}_{((i+1)*chunk_size)}.json", "w") as f:
-    # wrong code
-    # json.dump({k:float(v) for doc in d_embeddings["lexical_weights"] for k,v in doc.items()}, f)
+        # clean the grad in cache
+        torch.cuda.empty_cache()
+        gc.collect()
 
-    # json.dump([{k:float(v) for k,v in doc.items()} for doc in d_embeddings["lexical_weights"]], f)
+        np.save(output_file, embeddings)
+        print(f"Saved embeddings to {output_file}")
+
+
+if __name__ == "__main__":
+    app()

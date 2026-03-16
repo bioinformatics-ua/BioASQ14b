@@ -17,6 +17,7 @@ Training:
 # Floating-point:
 #   fp16: false
 #   bf16: false
+#   bf16: false
 #   fp16_full_eval: false
 
 Optimizer:

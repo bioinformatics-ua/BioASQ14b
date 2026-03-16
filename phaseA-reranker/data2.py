@@ -141,7 +141,7 @@ class BioASQRelevanceAwarePairwiseIterator(BioASQPairwiseIterator):
         only_pos_relevance_order = self.relevance_order[:-1]
         return sum(
             [
-                len(docs)
+                len(docs[k])
                 for q_data in self.slice_dataset.values()
                 for k in only_pos_relevance_order
                 for docs in q_data[k]

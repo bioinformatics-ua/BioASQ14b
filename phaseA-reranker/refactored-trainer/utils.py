@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from aliases import SliceDataset, QrelsDict
+import hashlib
 import os
 from collections.abc import Generator
 from pathlib import Path
@@ -11,12 +12,19 @@ import yaml
 from transformers import TrainingArguments
 
 
-def setup_wandb(project: str, name: str) -> None:
+def get_wandb_run_id(run_name: str) -> str:
+    """Deterministic 8-char run ID from run name. Same experiment => same run => updates instead of duplicating."""
+    return hashlib.sha256(run_name.encode()).hexdigest()[:8]
+
+
+def setup_wandb(name: str) -> None:
     # print(os.getcwd())
     os.environ["WANDB_NAME"] = name
+    os.environ["WANDB_RUN_ID"] = get_wandb_run_id(name)
+    os.environ["WANDB_RESUME"] = "allow"  # Update existing run if same id, else create new
 
-    os.environ["WANDB_API_KEY"] = open(".api").read().strip()
-    os.environ["WANDB_PROJECT"] = project
+    os.environ["WANDB_API_KEY"] = "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"
+    os.environ["WANDB_PROJECT"] = "bioasq-14b-phaseA-reranker"
     os.environ["WANDB_LOG_MODEL"] = "false"
     os.environ["WANDB_ENTITY"] = "bitua"
 
@@ -135,3 +143,43 @@ def set_seed(seed: int) -> None:
     from transformers.trainer_utils import set_seed as _set_seed
 
     _set_seed(seed)
+
+
+def _short_model_name(model_name: str) -> str:
+    """Return the last path component for HF model names, else the name as-is."""
+    if "://" in model_name or "/" not in model_name:
+        return model_name
+    return Path(model_name).name
+
+
+def build_output_dir_name(
+    *,
+    model_name: str,
+    seed: int,
+    epoch: int,
+    sampler_name: str,
+    sample_preprocessing_name: str,
+    val: str = "val",
+    data: str = "data",
+    callback: bool = False,
+    num_neg_samples: int = 4,
+    gradient_accumulation_steps: int = 2,
+    use_expanded_pos: bool = False,
+    warmup_ratio: bool = True,
+    loss_mode: str,
+) -> str:
+    """
+    Build output directory name following the hf_bert_trainer_v2 pattern.
+
+    Pattern:
+        {model}-{seed}-E{epoch}-S{sampler}-SP{preproc}-{val}-{data}_data-CB{callback}-KN{num_neg}
+        -GA{grad_accum}-ExPOS{expanded}-warmup{ratio}-{loss_mode}
+    """
+    _model_identifier = _short_model_name(model_name).replace("/", "-")
+    return (
+        f"{_model_identifier}-{seed}-E{epoch}"
+        f"-S{sampler_name}-SP{sample_preprocessing_name}"
+        f"-{val}-{data}_data-CB{callback}-KN{num_neg_samples}"
+        f"-GA{gradient_accumulation_steps}-ExPOS{use_expanded_pos}-warmup{warmup_ratio}"
+        f"-{loss_mode}"
+    )

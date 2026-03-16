@@ -1,33 +1,51 @@
+from pathlib import Path
 import pickle
 from tqdm import tqdm
-import json
+import numpy as np
+import typer
 
-total_sims = []
-
-with open("pubmed_baseline_2025.jsonl") as f:
-    collection = {
-        i: article["pmid"]
-        for i, article in enumerate(tqdm(map(json.loads, f)))
-        if len(article["title"] + " " + article["abstract"]) > 200
-    }
-
-print(len(collection))
-number_of_shards = 39
+type PMID = str
+app = typer.Typer()
 
 
-with tqdm(
-    total=(number_of_shards * (number_of_shards - 1) // 2) + number_of_shards
-) as pbar:
-    for i in range(number_of_shards):
-        for j in range(i, number_of_shards):
-            with open(f"similarity_results/shard_T0.8_{i}_{j}.p", "rb") as f:
-                data = pickle.load(f)
-                for (doc0, doc1), score in data:
-                    if doc0 in collection and doc1 in collection:
-                        total_sims.append(((collection[doc0], collection[doc1]), score))
-                # total_sims.extend([((collection[doc0], collection[doc1]), score) for (doc0, doc1), score in data])
+@app.command()
+def main(
+    shards_dir: Path = typer.Argument(..., help="Path to shards directory."),
+    baseline: Path = typer.Argument(..., help="Path to JSONL."),
+    output_file: Path = typer.Option(
+        Path("../similarity_results/merged_shards.p"),
+        "-o",
+        "--output",
+        help="Path to output file.",
+    ),
+):
+    if not shards_dir.exists():
+        raise FileNotFoundError(f"Shards directory '{shards_dir}' doesn't exist.")
+    if not baseline.exists():
+        raise FileNotFoundError(f"Baseline file '{baseline}' doesn't exist.")
 
-            pbar.update(1)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
 
-with open(f"similarity_results/sim_matrix_T0.8.p", "wb") as f:
-    pickle.dump(total_sims, f)
+    print(f"Loading collection from '{baseline}'...")
+    with baseline.open("rb") as f:
+        collection: dict[int, PMID] = {
+            i: line.lstrip(b'{"pmid": "').split(b'"', 1)[0].decode("utf-8")
+            for i, line in enumerate(f)
+            if len(line) < 1000
+        }
+
+    shard_files = sorted(shards_dir.glob("*.npy"))
+    total_sims: list[tuple[PMID, PMID, float]] = []
+    for shard_file in tqdm(shard_files, desc="Processing shards", unit="shard"):
+        with shard_file.open("rb") as f:
+            indexes0, indexes1, scores = np.load(f, allow_pickle=False).T
+            for idx0, idx1, score in zip(indexes0, indexes1, scores):
+                if idx0 in collection and idx1 in collection:
+                    total_sims.append((collection[idx0], collection[idx1], score))
+
+    with output_file.open("wb") as f:
+        pickle.dump(total_sims, f)
+
+
+if __name__ == "__main__":
+    app()

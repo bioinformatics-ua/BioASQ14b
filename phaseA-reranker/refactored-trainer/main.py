@@ -32,6 +32,7 @@ from evaluation import (
     DEFAULT_METRICS,
     evaluate_run,
     run_inference,
+    save_predictions,
 )
 from factory import (
     get_collator,
@@ -40,7 +41,7 @@ from factory import (
     get_sampler,
     get_trainer_cls,
 )
-from utils import create_training_config, set_seed
+from utils import build_output_dir_name, create_training_config, set_seed
 
 app = typer.Typer()
 BASE_DIR = Path(__file__).parent.resolve()
@@ -131,7 +132,13 @@ def train(
         str | None,
         typer.Option(help="Comma-separated paths to golden JSON val files"),
     ] = None,
-    output_dir: Annotated[str, typer.Option()] = "outputs",
+    output_dir: Annotated[
+        str, typer.Option(help="Base directory for model outputs")
+    ] = "outputs",
+    use_expanded_pos: Annotated[bool, typer.Option()] = False,
+    callback: Annotated[bool, typer.Option(help="Enable ResampleByReranker callback")] = False,
+    warmup_ratio: Annotated[bool, typer.Option(help="Enable 10%% warmup")] = True,
+    data: Annotated[str, typer.Option(help="Data identifier (e.g. quality)")] = "data",
     seed: Annotated[int, typer.Option()] = 42,
     batch_size: Annotated[int, typer.Option()] = 16,
     gradient_accumulation_steps: Annotated[int, typer.Option()] = 2,
@@ -157,7 +164,7 @@ def train(
     margin: Annotated[
         float, typer.Option(help="Margin for pairwise/multi-neg loss")
     ] = 1.0,
-    bf16: Annotated[bool, typer.Option()] = False,
+    bf16: Annotated[bool, typer.Option()] = True,
     fp16: Annotated[bool, typer.Option()] = False,
 ) -> None:
     """Train a reranker model."""
@@ -220,9 +227,33 @@ def train(
         else eval_multi_neg if mode == "multi_neg_pairwise" else eval_pairwise
     )
 
+    loss_mode = (
+        "Pointwise"
+        if mode == "pointwise"
+        else "MultiNegPairwise" if mode == "multi_neg_pairwise" else "Pairwise"
+    )
+    val_str = "val" if val_files_list else "full"
+    out_dir_name = build_output_dir_name(
+        model_name=model_name,
+        seed=seed,
+        epoch=num_epochs,
+        sampler_name=sampler_cls.__name__,
+        sample_preprocessing_name=preprocessor.__class__.__name__,
+        val=val_str,
+        data=data,
+        callback=callback,
+        num_neg_samples=num_neg_samples,
+        gradient_accumulation_steps=gradient_accumulation_steps,
+        use_expanded_pos=use_expanded_pos,
+        warmup_ratio=warmup_ratio,
+        loss_mode=loss_mode,
+    )
+    final_output_dir = Path(output_dir) / out_dir_name
+    typer.echo(f"Output dir: {final_output_dir}")
+
     training_args = create_training_config(
         config_path or DEFAULT_CONFIG,
-        output_dir=output_dir,
+        output_dir=str(final_output_dir),
         seed=seed,
         per_device_train_batch_size=batch_size,
         gradient_accumulation_steps=gradient_accumulation_steps,
@@ -230,6 +261,7 @@ def train(
         learning_rate=learning_rate,
         bf16=bf16,
         fp16=fp16,
+        warmup_ratio=0.1 if warmup_ratio else 0.0,
         eval_strategy="no" if eval_dataset is None else "epoch",
         remove_unused_columns=(mode == "pointwise"),
     )
@@ -277,7 +309,7 @@ def inference(
     inference_dtype: Annotated[
         str,
         typer.Option(help="float32, bfloat16, or float16"),
-    ] = "float32",
+    ] = "bfloat16",
     num_workers: Annotated[int, typer.Option(help="DataLoader worker processes")] = 2,
     pin_memory: Annotated[
         bool,
@@ -377,6 +409,11 @@ def inference(
     )
     for key, metrics_dict in results.items():
         typer.echo(f"{key}: {metrics_dict}")
+
+    # Save predictions to model folder (model_name/predictions/predictions.json)
+    pred_path = save_predictions(run_dict, model_name)
+    typer.echo(f"Predictions saved to {pred_path}")
+
     if results_file:
         metadata = {
             "model": model_name.replace("/", "-"),

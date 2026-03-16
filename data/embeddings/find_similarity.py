@@ -1,97 +1,103 @@
+import gc
+from pathlib import Path
+from tqdm import tqdm
+import typer
 import numpy as np
 import torch
-import datetime
-import math
-import json
-import pickle
-import os
 
-chunk_size = 1_000_000
-T = 0.80
-dense_vectors_dir = "dense_vectors"
-results_dir = "similarity_results"
+app = typer.Typer()
 
-# NOTES to future self the 39 needs to be updated according to pubmed
+DEVICE = "cuda:1"
+GC_INTERVAL = 5  # Run gc/empty_cache every N inner iterations to reduce overhead
 
-for file_i in range(39):
-    f0_chunk = file_i * chunk_size
-    file0_path = os.path.join(
-        dense_vectors_dir, f"{f0_chunk}_{(file_i + 1) * chunk_size}.npy"
+
+def load_vectors(path: Path, pin_memory: bool = False) -> torch.Tensor:
+    """Load .npy file to GPU. Uses from_numpy to avoid extra copy. pin_memory enables faster H2D transfer."""
+    arr = np.load(path, allow_pickle=False)
+    t = torch.from_numpy(arr).to(dtype=torch.float16)
+    if pin_memory:
+        t = t.pin_memory().to(DEVICE, non_blocking=True)
+    else:
+        t = t.to(DEVICE)
+    return t
+
+
+@app.command()
+def main(
+    dense_vectors_dir: Path = typer.Argument(
+        Path("../dense_vectors"), help="Dense vectors directory."
+    ),
+    T: float = typer.Option(0.80, "-t", "--threshold", help="Threshold."),
+    output_dir: Path = typer.Option(
+        Path("../similarity_results"), "-o", "--output-dir", help="Results directory."
+    ),
+    pin_memory: bool = typer.Option(
+        False, "--pin-memory", help="Use pinned CPU memory for faster H2D transfer."
+    ),
+):
+    vector_files = sorted(
+        dense_vectors_dir.glob("*.npy"), key=lambda x: int(x.stem.split("_")[1])
     )
-    file0 = torch.as_tensor(np.load(file0_path))
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    for file_j in range(file_i, 39):
-        output_file = os.path.join(results_dir, f"shard_T{T}_{file_i}_{file_j}.p")
+    for file_i, file0_path in tqdm(
+        enumerate(vector_files),
+        desc="Processing row files",
+        unit="file",
+        position=0,
+        total=len(vector_files),
+    ):
+        file0_range: tuple[str, str] = tuple(file0_path.stem.split("_")[1:3])
+        file0 = load_vectors(file0_path, pin_memory=pin_memory)
 
-        # Skip processing if output file already exists
-        if os.path.exists(output_file):
-            print(f"Skipping {file_i=}, {file_j=}: result already exists.")
-            continue
+        inner_count = 0
+        for file1_path in tqdm(
+            vector_files[file_i:],
+            desc="Processing col files",
+            unit="file",
+            position=1,
+        ):
+            file1_range: tuple[str, str] = tuple(file1_path.stem.split("_")[1:3])
+            file1 = load_vectors(file1_path, pin_memory=pin_memory)
 
-        f1_chunk = file_j * chunk_size
+            output_file = (
+                output_dir
+                / f"shard_T{T}_{file0_range[0]}-{file0_range[1]}_{file1_range[0]}-{file1_range[1]}.npy"
+            )
 
-        print(f"start load {file_i=} {file_j=}", datetime.datetime.now(), flush=True)
-        file1_path = os.path.join(
-            dense_vectors_dir, f"{f1_chunk}_{(file_j + 1) * chunk_size}.npy"
-        )
+            # Skip processing if output already exists
+            if output_file.exists():
+                continue
 
-        file1 = torch.as_tensor(np.load(file1_path))
-
-        mini_chuck = 80_000
-        n_chunck_file1 = math.ceil(file0.shape[0] / mini_chuck)
-        n_chunck_file2 = math.ceil(file1.shape[0] / mini_chuck)
-
-        all_similarities = []
-
-        print(
-            "start magic",
-            datetime.datetime.now(),
-            n_chunck_file1,
-            n_chunck_file2,
-            flush=True,
-        )
-        for i in range(n_chunck_file1):
-            row = file0[i * mini_chuck : (i + 1) * mini_chuck, :].to("cuda")
-            for j in range(n_chunck_file2):
-                col = file1[j * mini_chuck : (j + 1) * mini_chuck, :].to("cuda")
-
-                M = torch.as_tensor(
-                    [[f0_chunk + i * mini_chuck, f1_chunk + j * mini_chuck]],
-                    device="cuda",
-                )
-
-                sim_docs = row @ col.T
-                if i == j and file_i == file_j:
+            with torch.inference_mode():
+                sim_docs = file0 @ file1.T
+                if file0_range == file1_range:
                     sim_docs = torch.triu(sim_docs, diagonal=1)
 
                 mask = sim_docs > T
                 values = sim_docs[mask]
+                sim_docs_indices = torch.argwhere(mask)
+                combined = np.hstack(
+                    [
+                        sim_docs_indices.cpu().numpy(),
+                        values.cpu().numpy().reshape(-1, 1),
+                    ]
+                )
 
-                sim_docs_indixes = torch.argwhere(mask)
+            # np.save is faster than torch.save for raw arrays and produces smaller files
+            np.save(
+                output_file,
+                combined,
+                allow_pickle=False,
+            )
 
-                final_indices = sim_docs_indixes + M
+            del file1, sim_docs, values, sim_docs_indices, mask
 
-                cpu_values = values.cpu().numpy().tolist()
-                cpu_indices = final_indices.cpu().numpy().tolist()
-                assert len(cpu_values) == len(cpu_indices)
+            inner_count += 1
+            if inner_count % GC_INTERVAL == 0:
+                torch.cuda.empty_cache()
+                gc.collect()
 
-                for value, indices in zip(cpu_values, cpu_indices):
-                    all_similarities.append((indices, value))
 
-        print("end magic", datetime.datetime.now(), flush=True)
-
-        with open(output_file, "wb") as f:
-            pickle.dump(all_similarities, f)
-
-print(
-    "torch.cuda.memory_allocated: %fGB"
-    % (torch.cuda.memory_allocated(0) / 1024 / 1024 / 1024)
-)
-print(
-    "torch.cuda.memory_reserved: %fGB"
-    % (torch.cuda.memory_reserved(0) / 1024 / 1024 / 1024)
-)
-print(
-    "torch.cuda.max_memory_reserved: %fGB"
-    % (torch.cuda.max_memory_reserved(0) / 1024 / 1024 / 1024)
-)
+if __name__ == "__main__":
+    app()

@@ -104,3 +104,54 @@ def load_rank_data(bm25_rank_path, at=1000, qrels=None):
                 "question": q_data["question"],
             }
     return dataset
+
+
+
+import torch
+from transformers.modeling_outputs import SequenceClassifierOutput
+
+class MaxPPoolingReranker(torch.nn.Module):
+    """
+    Wraps a base HuggingFace Sequence Classification model.
+    Takes flattened chunks, runs them through the model, and max-pools 
+    the logits back to the original batch size based on sentences_count.
+    """
+    def __init__(self, base_model):
+        super().__init__()
+        self.base_model = base_model
+        # The Hugging Face Trainer needs access to the config
+        self.config = base_model.config 
+
+    def forward(self, input_ids, attention_mask, sentences_count, token_type_ids=None, **kwargs):
+        inputs = {"input_ids": input_ids, "attention_mask": attention_mask}
+        if token_type_ids is not None:
+            inputs["token_type_ids"] = token_type_ids
+
+        # 1. Run all chunks through the base model
+        outputs = self.base_model(**inputs)
+        chunk_logits = outputs.logits  # Shape: [total_chunks_in_batch, num_labels]
+
+        # 2. Pool the logits back to the original batch size
+        pooled_logits = []
+        start_idx = 0
+        for count in sentences_count:
+            end_idx = start_idx + count
+            doc_chunk_logits = chunk_logits[start_idx:end_idx]
+
+            # MaxP: Take the maximum logit score across all chunks for this document
+            # Handle edge case: if count is 0, doc_chunk_logits is empty
+            if doc_chunk_logits.numel() == 0:
+                # Use zeros as default logit for empty documents
+                num_labels = chunk_logits.shape[1] if chunk_logits.dim() > 1 else 1
+                doc_pooled_logit = torch.zeros(num_labels, device=chunk_logits.device, dtype=chunk_logits.dtype)
+            else:
+                doc_pooled_logit, _ = torch.max(doc_chunk_logits, dim=0)
+            pooled_logits.append(doc_pooled_logit)
+
+            start_idx = end_idx
+
+        # Stack back into a tensor of shape [batch_size, num_labels]
+        pooled_logits = torch.stack(pooled_logits)
+
+        # Return a standard HF output object so your Trainer doesn't crash
+        return SequenceClassifierOutput(logits=pooled_logits)

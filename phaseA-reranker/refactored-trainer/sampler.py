@@ -282,7 +282,8 @@ class ShifterSampler(BasicSampler):
         super().__init__(slice_dataset, collection, *args, **kwargs)
         self.max_epoch: int = kwargs.pop("max_epoch", 10)  # Default to 10 epochs
 
-    def choose_negative_doc(
+# this is from start to the end of the list
+    def choose_negative_doc_v1(
         self, sample_index: int, epoch: int, q_id: str
     ) -> str | None:
         """
@@ -315,6 +316,37 @@ class ShifterSampler(BasicSampler):
 
         # Sample from the remaining (harder) negatives
         doc: dict[str, str] = random.choice(neg_docs[start_pos:])
+        return self._lookup_doc(doc)
+
+# this is from the end to the start of the list
+# so starts learn the very easy
+    def choose_negative_doc(
+        self, sample_index: int, epoch: int, q_id: str
+    ) -> str | None:
+        """
+        Sample negative with shrinking window toward the hardest negatives.
+        - Early epochs: Sample from all negatives [0:N] (mix of hard and easy)
+        - Final epochs: Sample only from the top hardest negatives [0:K]
+        """
+        # Get negatives from the standard key (0)
+        neg_docs: list[dict[str, str]] = cast(list[dict[str, str]], self.slice_dataset[q_id][self.negative_index])  # type: ignore
+
+        if len(neg_docs) == 0:
+            return None
+
+        # Calculate how many negatives to drop from the EASY tail end each epoch
+        interval = len(neg_docs) // (self.max_epoch + 1)
+
+        # End position shrinks leftward (towards index 0) each epoch
+        end_pos = len(neg_docs) - (interval * epoch)
+        
+        # Safety net: Ensure we always have a small pool of the hardest docs to sample from
+        # (e.g., never shrink below the top 5 or 10, depending on what's available)
+        min_pool_size = min(10, len(neg_docs))
+        end_pos = max(end_pos, min_pool_size)
+
+        # Sample from the hardest remaining negatives [0:end_pos]
+        doc: dict[str, str] = random.choice(neg_docs[:end_pos])
         return self._lookup_doc(doc)
 
     def choose_positive_doc(

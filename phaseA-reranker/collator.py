@@ -2,7 +2,7 @@ class RankingCollator:
     def __init__(
         self,
         tokenizer,
-        model_inputs={"input_ids", "attention_mask", "token_type_ids"},
+        model_inputs=None,  # Auto-detect from batch if None
         padding=True,
         max_length=None,
     ):
@@ -14,10 +14,19 @@ class RankingCollator:
     def __call__(self, batch):
         batch = {key: [i[key] for i in batch] for key in batch[0]}
 
-        reminder_keys = set(batch.keys()) - self.model_inputs
+        # Auto-detect model inputs if not specified
+        if self.model_inputs is None:
+            standard_inputs = {"input_ids", "attention_mask", "token_type_ids"}
+            present_inputs = set(batch.keys()) & standard_inputs
+            # Must have at least input_ids and attention_mask
+            model_inputs = present_inputs
+        else:
+            model_inputs = self.model_inputs
+
+        reminder_keys = set(batch.keys()) - model_inputs
         return {
             "inputs": self.tokenizer.pad(
-                {k: batch[k] for k in self.model_inputs},
+                {k: batch[k] for k in model_inputs},
                 padding=self.padding,
                 max_length=self.max_length,
                 return_tensors="pt",
@@ -66,8 +75,12 @@ class SentenceCollator:
         self.max_length = max_length
 
     def __call__(self, batch):
+        # Dynamically detect keys from the first sample (token_type_ids may not exist)
+        first_sample = batch[0]
+        standard_keys = {"input_ids", "attention_mask", "token_type_ids"}
+        present_keys = [k for k in standard_keys if k in first_sample]
 
-        expanded_batch = {"input_ids": [], "attention_mask": [], "token_type_ids": []}
+        expanded_batch = {k: [] for k in present_keys}
 
         sentences_count = []
 
@@ -117,14 +130,18 @@ class RankingSentenceCollator(SentenceCollator):
         self.max_length = max_length
 
     def __call__(self, batch):
+        # Filter model_inputs_keys to only include keys present in the batch
+        # (token_type_ids may not be present for some tokenizers)
+        first_sample = batch[0]
+        actual_model_keys = {k for k in self.model_inputs_keys if k in first_sample}
 
         model_inputs = []
         reminder_inputs = {
-            k: [] for k in batch[0].keys() if k not in self.model_inputs_keys
+            k: [] for k in first_sample.keys() if k not in actual_model_keys
         }
 
         for sample in batch:
-            model_inputs.append({k: sample[k] for k in self.model_inputs_keys})
+            model_inputs.append({k: sample[k] for k in actual_model_keys})
 
             for k in reminder_inputs.keys():
                 reminder_inputs[k].append(sample[k])

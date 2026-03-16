@@ -7,8 +7,10 @@ and evaluates with ranx metrics (nDCG@k, MRR, recall@k, map@k, map-bioasq@10).
 
 from __future__ import annotations
 
+import json
 from collections import defaultdict
 from contextlib import nullcontext
+from pathlib import Path
 from typing import Any
 
 import torch
@@ -22,7 +24,7 @@ DEFAULT_METRICS = [
     "mrr",
     "recall@10",
     "recall@100",
-    "recall@1000",
+    # "recall@1000",
     "map@10",
     "map-bioasq@10",
 ]
@@ -114,6 +116,27 @@ def run_inference(
                     inspected += 1
 
     return dict(run_dict)
+
+
+def save_predictions(
+    run_dict: dict[str, dict[str, float]],
+    output_dir: str | Path,
+) -> Path:
+    """Save predictions (run dict) to output_dir/predictions/predictions.json.
+
+    Args:
+        run_dict: {qid: {doc_id: score}} format (ranx Run compatible).
+        output_dir: Base directory for the model (predictions/ will be created inside).
+
+    Returns:
+        Path to the saved predictions file.
+    """
+    pred_dir = Path(output_dir) / "predictions"
+    pred_dir.mkdir(parents=True, exist_ok=True)
+    pred_path = pred_dir / "predictions.json"
+    with open(pred_path, "w") as f:
+        json.dump(run_dict, f, indent=2)
+    return pred_path
 
 
 def evaluate_run(

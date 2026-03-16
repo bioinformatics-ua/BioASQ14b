@@ -5,16 +5,16 @@ Data:
   dataloader_pin_memory: True
 
 Training: 
-  per_device_train_batch_size: 8
+  per_device_train_batch_size: 6
   learning_rate: 2e-5
-  num_train_epochs: 10
+  num_train_epochs: 2
 
   Floating-point:
     fp16: False
     fp16_full_eval: False
 
 Evaluation:
-  per_device_eval_batch_size: 64
+  per_device_eval_batch_size: 8
   eval_strategy: epoch
 
   Best_model:
@@ -24,7 +24,7 @@ Evaluation:
 Logging:
   logging_strategy: steps
   logging_first_step: True
-  logging_steps: 100
+  logging_steps: 25
   output_dir: pubmed_bert_classifier_V2
   # report_to: 'wandb'
   report_to: none

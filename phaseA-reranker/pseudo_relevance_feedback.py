@@ -1,29 +1,47 @@
-import click
+import orjson
+from pathlib import Path
 import pickle
-import json
-from transformers import AutoModelForSequenceClassification, AutoTokenizer
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    PreTrainedTokenizerBase,
+    TokenizersBackend,
+)
 from collator import RankingCollator
-from datasets import Dataset
 import torch
-from collections import defaultdict
 from tqdm import tqdm
+import typer
+
+type PMID = str
+app = typer.Typer()
 
 
-@click.command()
-@click.argument("testset")
-@click.option("--ranx_runs", nargs=24)
-@click.option("--model_checkpoints", nargs=24)
-def main(testset, ranx_runs, model_checkpoints):
-    # ranx_runs = ranx_runs]
-    # model_checkpoints = [model_checkpoints]
-    print(len(ranx_runs))
-    print(len(model_checkpoints))
-    print("load collection", flush=True)
-
-    collection = {}
-    with open("../data/pubmed_baseline_2025.jsonl") as f:
-        for article in map(json.loads, f):
-            collection[article["pmid"]] = article["title"] + " " + article["abstract"]
+@app.command()
+def main(
+    testset: Path = typer.Argument(..., help="Path to testset."),
+    ranx_runs: Path = typer.Option(..., help="Path to ranx runs."),
+    model_checkpoints: Path = typer.Option(..., help="Path to model checkpoints."),
+    baseline: Path = typer.Option(
+        Path("../data/pubmed_baseline_2026.jsonl"),
+        "-b",
+        "--baseline",
+        help="Path to baseline.",
+    ),
+    output_dir: Path = typer.Option(
+        Path("../outputs/pseudo_relevance_feedback"),
+        "-o",
+        "--output",
+        help="Path to output directory.",
+    ),
+    max_length: int = typer.Option(
+        512, "-m", "--max-length", help="Maximum length of the input text."
+    ),
+):
+    with baseline.open("rb") as f:
+        collection: dict[PMID, str] = {
+            article["pmid"]: article["title"] + " " + article["abstract"]
+            for article in map(orjson.loads, f)
+        }
 
     print("load lookup", flush=True)
     with open("../data/similarity_results/lookup_T0.8.p", "rb") as f:
@@ -32,29 +50,30 @@ def main(testset, ranx_runs, model_checkpoints):
     print("load testset", flush=True)
     with open(testset) as f:
         testset_data = {
-            q_data["id"]: q_data["body"] for q_data in json.load(f)["questions"]
+            q_data["id"]: q_data["body"]
+            for q_data in orjson.loads(f.read())["questions"]
         }
 
-    for i in range(len(ranx_runs)):
-        ranx_run = ranx_runs[i]
-
-        model_checkpoint = model_checkpoints[i]
-        print(model_checkpoints)
-        print(model_checkpoint)
-        is_pairwise = "pairwise" in model_checkpoint
+    for ranx_run, model_checkpoint in tqdm(
+        zip(ranx_runs.iterdir(), model_checkpoints.iterdir()),
+        desc="Processing runs",
+        unit="run",
+    ):
+        is_pairwise = "pairwise" in model_checkpoint.name
         print(f"Running in {'pairwise' if is_pairwise else 'pointwise'} mode")
 
         print("load run", flush=True)
-        with open(ranx_run) as f:
-            run = json.load(f)
+        with ranx_run.open("rb") as f:
+            run = orjson.loads(f.read())
 
         print("load model", flush=True)
         model = AutoModelForSequenceClassification.from_pretrained(model_checkpoint).to(
             "cuda"
         )
         tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
-        MAX_LENGTH = 512
-        tokenizer.model_max_length = MAX_LENGTH
+        if not tokenizer:  # Just to shut up pyright and ty
+            raise ValueError(f"Tokenizer not found for {model_checkpoint}")
+        tokenizer.model_max_length = max_length
 
         def semantic_search_based_on_list_ids(list_ids, th=0.8, topk=1):
             expanding_results = set()
@@ -77,7 +96,7 @@ def main(testset, ranx_runs, model_checkpoints):
                     q_text = testset_data[q_data_id]
                     doc_text = collection[doc_id]
                     inputs = tokenizer(
-                        q_text, doc_text, truncation=True, max_length=MAX_LENGTH
+                        q_text, doc_text, truncation=True, max_length=max_length
                     )
                     yield inputs | {"id": q_data_id, "doc_id": doc_id}
 
@@ -123,12 +142,11 @@ def main(testset, ranx_runs, model_checkpoints):
             )
 
         out_run = ranx_run[:-5]
-        print("write")
 
-        outfile = f"{out_run}_dprf.json".replace("2025", "2025_dprf")
+        outfile = output_dir / f"{out_run}_dprf.json"
 
-        with open(outfile, "w") as f:
-            json.dump(run, f)
+        with outfile.open("wb") as f:
+            f.write(orjson.dumps(run))
 
 
 if __name__ == "__main__":
