@@ -529,6 +529,17 @@ class BioASQPairwiseEvalDataset(torch.utils.data.Dataset[ProcessedSample]):
         return self._samples[index]
 
 
+# Relevance mapping when using expanded positive training (semantic-similarity-expanded docs).
+# Gold documents get highest weight (5), then 0.95, 0.9, 0.85, 0.8 similarity tiers.
+EXPANDED_RELEVANCE_MAPPING: dict[str, int] = {
+    "documents": 5,
+    "expanded_docs_095": 4,
+    "expanded_docs_09": 3,
+    "expanded_docs_085": 2,
+    "expanded_docs_08": 1,
+}
+
+
 def create_bioASQ_datasets(
     positive_data_path: str,
     all_data_path: str,
@@ -536,6 +547,7 @@ def create_bioASQ_datasets(
     test_sample_preprocessing: BasicSamplePreprocessing,
     val_files: list[str] | None = None,
     relevance_mapping: dict[str, int] | None = None,
+    use_expanded_pos: bool = False,
     **kwargs: object,
 ) -> tuple[
     BioASQDataset,
@@ -547,7 +559,9 @@ def create_bioASQ_datasets(
     if val_files is None:
         val_files = []
     if relevance_mapping is None:
-        relevance_mapping = {"documents": 1}
+        relevance_mapping = (
+            EXPANDED_RELEVANCE_MAPPING if use_expanded_pos else {"documents": 1}
+        )
 
     train_dataset: SliceDataset = {}
     test_dataset: list[ProcessedSample] = []
@@ -598,7 +612,8 @@ def create_bioASQ_datasets(
                 "question": sample_body
             }
             for relevance_order, key_name in reminder_pos_index:
-                entry[relevance_order] = sample[key_name]
+                # Use .get() for expanded keys; non-expanded files won't have them
+                entry[relevance_order] = sample.get(key_name, [])
             train_dataset[sample_id] = entry
             # qrels_train[sample["id"]] = {doc["id"]:1 for doc in sample["documents"]}
 

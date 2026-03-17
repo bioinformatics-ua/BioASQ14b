@@ -155,7 +155,9 @@ def run_experiment(
 
     # 2. Instantiate Components via Factory
     preprocessor = get_preprocessor("basic", tokenizer=tokenizer, max_length=512)
-    sampler_cls = get_sampler("shifter")  # Shifter is great for your 100 negatives
+    use_expanded_pos = bool(config.get("expanded_pos_path"))
+    # Use exponential sampler when training with expanded positives (multi-tier relevance)
+    sampler_cls = get_sampler("exponential" if use_expanded_pos else "shifter")
 
     iterator = get_iterator(
         mode=config["mode"],
@@ -169,13 +171,15 @@ def run_experiment(
     trainer_cls = get_trainer_cls(mode=config["mode"])
 
     # 3. Create Datasets
+    train_pos_path = config.get("expanded_pos_path") or config["train_pos_path"]
     train_ds, test_ds, eval_pointwise, eval_pairwise, eval_multi_neg = (
         create_bioASQ_datasets(
-            positive_data_path=config["train_pos_path"],
+            positive_data_path=train_pos_path,
             all_data_path=config["train_neg_path"],
             iterator=iterator,
             test_sample_preprocessing=preprocessor,
             val_files=config["val_files"] if config.get("full_data", False) else None,
+            use_expanded_pos=use_expanded_pos,
         )
     )
 
@@ -230,11 +234,12 @@ def run_experiment(
         # RECREATE THE TEST DATASET WITH THE VALIDATION
         _, test_ds, _, _, _ = (
             create_bioASQ_datasets(
-                positive_data_path=config["train_pos_path"],
+                positive_data_path=train_pos_path,
                 all_data_path=config["train_neg_path"],
                 iterator=iterator,
                 test_sample_preprocessing=preprocessor,
                 val_files=config["val_files"],
+                use_expanded_pos=use_expanded_pos,
             )
         )
 
@@ -380,29 +385,30 @@ if __name__ == "__main__":
     #   - str: model name (load from HuggingFace)
     #   - dict: {"model": "base-model-id", "checkpoint": "path/to/checkpoint-500"} to resume from checkpoint
     MODELS_TO_TEST = [
-        # "ncbi/MedCPT-Cross-Encoder",
-        {"model": "ncbi/MedCPT-Cross-Encoder", "checkpoint": "./outputs-E5-Pairwise/ncbi_MedCPT-Cross-Encoder/checkpoint-6375"},
-        # "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-        {"model": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext", "checkpoint": "./outputs-E5-Pairwise/microsoft_BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/checkpoint-6375"},
+        "ncbi/MedCPT-Cross-Encoder",
+        #{"model": "ncbi/MedCPT-Cross-Encoder", "checkpoint": "./outputs-E5-Pairwise/ncbi_MedCPT-Cross-Encoder/checkpoint-6375"},
+        "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+        # {"model": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext", "checkpoint": "./outputs-E5-Pairwise/microsoft_BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/checkpoint-6375"},
         # "dmis-lab/biobert-base-cased-v1.2",
         # "emilyalsentzer/Bio_ClinicalBERT",
-        {"model": "michiyasunaga/BioLinkBERT-base", "checkpoint": "./outputs-E5-Pairwise/michiyasunaga_BioLinkBERT-base/checkpoint-6375"},
+        # {"model": "michiyasunaga/BioLinkBERT-base", "checkpoint": "./outputs-E5-Pairwise/michiyasunaga_BioLinkBERT-base/checkpoint-6375"},
+        "michiyasunaga/BioLinkBERT-base",
         "michiyasunaga/BioLinkBERT-large",
-        # "pritamdeka/S-PubMedBert-MS-MARCO",
-        {"model": "pritamdeka/S-PubMedBert-MS-MARCO", "checkpoint": "./outputs-E5-Pairwise/pritamdeka_S-PubMedBert-MS-MARCO/checkpoint-6375"},
+        "pritamdeka/S-PubMedBert-MS-MARCO",
+        #{"model": "pritamdeka/S-PubMedBert-MS-MARCO", "checkpoint": "./outputs-E5-Pairwise/pritamdeka_S-PubMedBert-MS-MARCO/checkpoint-6375"},
         # "cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
-        # "monologg/biobert_v1.1_pubmed",
-        {"model": "monologg/biobert_v1.1_pubmed", "checkpoint": "./outputs-E5-Pairwise/monologg_biobert_v1.1_pubmed/checkpoint-6375"},
-        # "nboost/pt-biobert-base-msmarco",
-        {"model": "nboost/pt-biobert-base-msmarco", "checkpoint": "./outputs-E5-Pairwise/nboost_pt-biobert-base-msmarco/checkpoint-6375"},
+        "monologg/biobert_v1.1_pubmed",
+        # {"model": "monologg/biobert_v1.1_pubmed", "checkpoint": "./outputs-E5-Pairwise/monologg_biobert_v1.1_pubmed/checkpoint-6375"},
+        "nboost/pt-biobert-base-msmarco",
+        #{"model": "nboost/pt-biobert-base-msmarco", "checkpoint": "./outputs-E5-Pairwise/nboost_pt-biobert-base-msmarco/checkpoint-6375"},
         # "allenai/specter2_base",
-        # "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        {"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "checkpoint": "./outputs-E5-Pairwise/cross-encoder_ms-marco-MiniLM-L-6-v2/checkpoint-6375"},
+        "cross-encoder/ms-marco-MiniLM-L-6-v2",
+        # {"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "checkpoint": "./outputs-E5-Pairwise/cross-encoder_ms-marco-MiniLM-L-6-v2/checkpoint-6375"},
         # "cross-encoder/ms-marco-electra-base",
-        # "BAAI/bge-reranker-base",
-        {"model": "BAAI/bge-reranker-base", "checkpoint": "./outputs-E5-Pairwise/BAAI_bge-reranker-base/checkpoint-6375"},
-        # "BAAI/bge-reranker-v2-m3",
-        {"model": "BAAI/bge-reranker-v2-m3", "checkpoint": "./outputs-E5-Pairwise/BAAI_bge-reranker-v2-m3/checkpoint-6375"},
+        "BAAI/bge-reranker-base",
+        # {"model": "BAAI/bge-reranker-base", "checkpoint": "./outputs-E5-Pairwise/BAAI_bge-reranker-base/checkpoint-6375"},
+        "BAAI/bge-reranker-v2-m3",
+        # {"model": "BAAI/bge-reranker-v2-m3", "checkpoint": "./outputs-E5-Pairwise/BAAI_bge-reranker-v2-m3/checkpoint-6375"},
         # Example: start from checkpoint instead of base model:
         # {"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "checkpoint": "./outputs/cross-encoder_ms-marco-MiniLM-L-6-v2/checkpoint-500"},
     ]
@@ -416,6 +422,7 @@ if __name__ == "__main__":
         "learning_rate": 2e-5,
         "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
         "train_neg_path": "../../data/negatives.jsonl",
+        # "expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",  # Use when training with expanded positives
         "full_data": True,
         # Train on val (13B1+13B2); hold out 13B3 for evaluation
         "val_files": ["../../data/val_data/13B3_golden.json", "../../data/val_data/13B1_golden.json", "../../data/val_data/13B2_golden.json", "../../data/val_data/13B4_golden.json"],
@@ -423,7 +430,7 @@ if __name__ == "__main__":
     }
     failed_models = []
     all_results = {}
-    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-FullData{full_data}"
+    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-FullData{full_data}{expanded}"
     for entry in MODELS_TO_TEST:
         if isinstance(entry, dict):
             model_name = entry["model"]
@@ -438,6 +445,7 @@ if __name__ == "__main__":
             num_neg=CONFIG["num_neg_samples"],
             mode=CONFIG["mode"],
             full_data=CONFIG["full_data"],
+            expanded="-Expanded" if CONFIG.get("expanded_pos_path") else "",
         )
         try:
             if args.inference_only:

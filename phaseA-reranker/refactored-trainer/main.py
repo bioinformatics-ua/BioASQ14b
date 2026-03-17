@@ -136,7 +136,9 @@ def train(
         str, typer.Option(help="Base directory for model outputs")
     ] = "outputs",
     use_expanded_pos: Annotated[bool, typer.Option()] = False,
-    callback: Annotated[bool, typer.Option(help="Enable ResampleByReranker callback")] = False,
+    callback: Annotated[
+        bool, typer.Option(help="Enable ResampleByReranker callback")
+    ] = False,
     warmup_ratio: Annotated[bool, typer.Option(help="Enable 10%% warmup")] = True,
     data: Annotated[str, typer.Option(help="Data identifier (e.g. quality)")] = "data",
     seed: Annotated[int, typer.Option()] = 42,
@@ -301,9 +303,9 @@ def inference(
     ],
     all_data_path: Annotated[str, typer.Option(help="JSONL with id, neg_docs")],
     val_files: Annotated[
-        str,
+        str | None,
         typer.Option(help="Comma-separated paths to golden JSON val files"),
-    ],
+    ] = None,
     batch_size: Annotated[int, typer.Option()] = 64,
     max_length: Annotated[int, typer.Option()] = 512,
     inference_dtype: Annotated[
@@ -327,16 +329,18 @@ def inference(
         int,
         typer.Option(help="Max decoded chars shown per inspected sample"),
     ] = 240,
-    show_progress: Annotated[bool, typer.Option(help="Show inference progress bar")] = True,
+    show_progress: Annotated[
+        bool, typer.Option(help="Show inference progress bar")
+    ] = True,
     results_file: Annotated[
         Optional[str],
         typer.Option(help="Append results to this JSONL file"),
     ] = None,
 ) -> None:
     """Run inference and evaluate a reranker model on validation data."""
-    val_files_list = [p.strip() for p in val_files.split(",") if p.strip()]
-    if not val_files_list:
-        raise typer.BadParameter("val_files cannot be empty")
+    val_files_list = (
+        [p.strip() for p in val_files.split(",") if p.strip()] if val_files else None
+    )
 
     if num_workers < 0:
         raise typer.BadParameter("num_workers must be >= 0")
@@ -400,7 +404,7 @@ def inference(
         show_progress=show_progress,
     )
     qrels = test_dataset.get_qrels()
-    per_file = _load_qids_per_val_file(val_files_list)
+    per_file = _load_qids_per_val_file(val_files_list) if val_files_list else None
     results = evaluate_run(
         run_dict,
         qrels,

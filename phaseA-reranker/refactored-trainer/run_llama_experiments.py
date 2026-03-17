@@ -209,7 +209,8 @@ def run_experiment(model_name: str, config: dict, run_name: str | None = None):
 
     # 2. Instantiate Components (Nemotron preprocessor: question:/passage: format)
     preprocessor = get_preprocessor("nemotron", tokenizer=tokenizer, max_length=512)
-    sampler_cls = get_sampler("shifter")  # Shifter is great for your 100 negatives
+    use_expanded_pos = bool(config.get("expanded_pos_path"))
+    sampler_cls = get_sampler("exponential" if use_expanded_pos else "shifter")
 
     iterator = get_iterator(
         mode=config["mode"],
@@ -223,13 +224,15 @@ def run_experiment(model_name: str, config: dict, run_name: str | None = None):
     trainer_cls = get_trainer_cls(mode=config["mode"])
 
     # 3. Create Datasets
+    train_pos_path = config.get("expanded_pos_path") or config["train_pos_path"]
     train_ds, test_ds, eval_pointwise, eval_pairwise, eval_multi_neg = (
         create_bioASQ_datasets(
-            positive_data_path=config["train_pos_path"],
+            positive_data_path=train_pos_path,
             all_data_path=config["train_neg_path"],
             iterator=iterator,
             test_sample_preprocessing=preprocessor,
             val_files=config["val_files"] if config.get("full_data", False) else None,
+            use_expanded_pos=use_expanded_pos,
         )
     )
 
@@ -302,11 +305,12 @@ def run_experiment(model_name: str, config: dict, run_name: str | None = None):
     if config.get("full_data", True):
         # Recreate test dataset with validation data for inference (when trained on full data, test_ds was empty)
         _, test_ds, _, _, _ = create_bioASQ_datasets(
-            positive_data_path=config["train_pos_path"],
+            positive_data_path=train_pos_path,
             all_data_path=config["train_neg_path"],
             iterator=iterator,
             test_sample_preprocessing=preprocessor,
             val_files=config["val_files"],
+            use_expanded_pos=use_expanded_pos,
         )
 
     test_dataloader = DataLoader(
@@ -475,13 +479,14 @@ if __name__ == "__main__":
         "learning_rate": 1e-4,
         "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
         "train_neg_path": "../../data/negatives.jsonl",
+        # "expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",  # Use when training with expanded positives
         "val_files": ["../../data/val_data/13B3_golden.json", "../../data/val_data/13B1_golden.json", "../../data/val_data/13B2_golden.json", "../../data/val_data/13B4_golden.json"],
 
         # "force_retrain": True,
     }
     failed_models = []
     all_results = {}
-    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}-FullData" if CONFIG.get("full_data") else "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}"
+    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}-FullData{expanded}" if CONFIG.get("full_data") else "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}{expanded}"
     for model_name in MODELS_TO_TEST:
         run_name = run_name_tpl.format(
             model=model_name.replace("/", "-"),
@@ -489,6 +494,7 @@ if __name__ == "__main__":
             num_neg=CONFIG["num_neg_samples"],
             mode=CONFIG["mode"],
             loss=CONFIG.get("loss_type", "margin"),
+            expanded="-Expanded" if CONFIG.get("expanded_pos_path") else "",
         )
         try:
             if args.inference_only:
