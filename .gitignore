@@ -40,6 +40,7 @@ phaseA-reranker/trained_models_b01
 phaseA-reranker/trained_models_b02_val
 
 phaseA-reranker/**/wandb
+phaseA-reranker/**/outputs*
 phaseA-reranker/**/all_models_evaluation.json
 phaseA-reranker/**/train.log
 phaseA-reranker/wandb
