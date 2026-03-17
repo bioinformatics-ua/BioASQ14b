@@ -25,14 +25,14 @@ def load_vectors(path: Path, pin_memory: bool = False) -> torch.Tensor:
 @app.command()
 def main(
     dense_vectors_dir: Path = typer.Argument(
-        Path("../dense_vectors"), help="Dense vectors directory."
+        Path("../dense_vectors_numpy"), help="Dense vectors directory."
     ),
     T: float = typer.Option(0.80, "-t", "--threshold", help="Threshold."),
     output_dir: Path = typer.Option(
         Path("../similarity_results"), "-o", "--output-dir", help="Results directory."
     ),
     pin_memory: bool = typer.Option(
-        False, "--pin-memory", help="Use pinned CPU memory for faster H2D transfer."
+        True, "--pin-memory", help="Use pinned CPU memory for faster H2D transfer."
     ),
 ):
     vector_files = sorted(

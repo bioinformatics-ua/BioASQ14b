@@ -1,3 +1,4 @@
+from collections import defaultdict
 import orjson
 from pathlib import Path
 import pickle
@@ -27,8 +28,14 @@ def main(
         "--baseline",
         help="Path to baseline.",
     ),
+    lookup_path: Path = typer.Option(
+        Path("../data/similarity_results/lookup.json"),
+        "-l",
+        "--lookup",
+        help="Path to lookup.",
+    ),
     output_dir: Path = typer.Option(
-        Path("../outputs/pseudo_relevance_feedback"),
+        Path("../dprf"),
         "-o",
         "--output",
         help="Path to output directory.",
@@ -44,8 +51,8 @@ def main(
         }
 
     print("load lookup", flush=True)
-    with open("../data/similarity_results/lookup_T0.8.p", "rb") as f:
-        lookup = pickle.load(f)
+    with lookup_path.open("rb") as f:
+        lookup: dict[PMID, list[tuple[PMID, float]]] = orjson.loads(f.read())
 
     print("load testset", flush=True)
     with open(testset) as f:
@@ -132,7 +139,7 @@ def main(
                         )
 
                     for i, doc_id in enumerate(sample["doc_id"]):
-                        if type(scores) == list:
+                        if type(scores) is list:
                             run[q_data_id][doc_id] = scores[i]
                         else:
                             run[q_data_id][doc_id] = scores
@@ -144,6 +151,7 @@ def main(
         out_run = ranx_run[:-5]
 
         outfile = output_dir / f"{out_run}_dprf.json"
+        outfile.parent.mkdir(parents=True, exist_ok=True)
 
         with outfile.open("wb") as f:
             f.write(orjson.dumps(run))

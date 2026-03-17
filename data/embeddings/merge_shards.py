@@ -1,5 +1,6 @@
+import orjson
+from collections import defaultdict
 from pathlib import Path
-import pickle
 from tqdm import tqdm
 import numpy as np
 import typer
@@ -13,7 +14,7 @@ def main(
     shards_dir: Path = typer.Argument(..., help="Path to shards directory."),
     baseline: Path = typer.Argument(..., help="Path to JSONL."),
     output_file: Path = typer.Option(
-        Path("../similarity_results/merged_shards.p"),
+        Path("../similarity_results/lookup.json"),
         "-o",
         "--output",
         help="Path to output file.",
@@ -34,17 +35,22 @@ def main(
             if len(line) < 1000
         }
 
-    shard_files = sorted(shards_dir.glob("*.npy"))
-    total_sims: list[tuple[PMID, PMID, float]] = []
+    shard_files = list(shards_dir.glob("*.npy"))
+
+    shard_files.sort(key=lambda x: int(x.stem.split("_")[1]))
+    lookup: defaultdict[PMID, list[tuple[PMID, float]]] = defaultdict(list)
     for shard_file in tqdm(shard_files, desc="Processing shards", unit="shard"):
         with shard_file.open("rb") as f:
             indexes0, indexes1, scores = np.load(f, allow_pickle=False).T
             for idx0, idx1, score in zip(indexes0, indexes1, scores):
                 if idx0 in collection and idx1 in collection:
-                    total_sims.append((collection[idx0], collection[idx1], score))
+                    pmid0 = collection[idx0]
+                    pmid1 = collection[idx1]
+                    lookup[pmid0].append((pmid1, score))
+                    lookup[pmid1].append((pmid0, score))
 
     with output_file.open("wb") as f:
-        pickle.dump(total_sims, f)
+        f.write(orjson.dumps(lookup))
 
 
 if __name__ == "__main__":

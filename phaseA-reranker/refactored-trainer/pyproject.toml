@@ -24,6 +24,9 @@ dependencies = [
     "wandb>=0.24.2",
 ]
 
+[tool.uv.sources]
+ranx = { git = "https://github.com/T-Almeida/ranx.git", rev = "865e04a15fc47057127773a488a11e5dca235ce8" }
+
 [dependency-groups]
 dev = [
     "pyright>=1.1.408",

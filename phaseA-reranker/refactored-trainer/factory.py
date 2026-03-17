@@ -18,7 +18,7 @@ from data import (
     BioASQPairwiseIterator,
     BioASQPointwiseIterator,
 )
-from sample_preprocessing import BasicSamplePreprocessing
+from sample_preprocessing import BasicSamplePreprocessing, NemotronSamplePreprocessing
 from sampler import (
     BasicSampler,
     BasicV2Sampler,
@@ -75,6 +75,8 @@ def get_preprocessor(
     match name.lower():
         case "basic":
             return BasicSamplePreprocessing(tokenizer, model_max_length=max_length)
+        case "nemotron":
+            return NemotronSamplePreprocessing(tokenizer, model_max_length=max_length)
         case _:
             raise ValueError(f"Unknown preprocessor: {name!r}")
 

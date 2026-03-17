@@ -1,13 +1,15 @@
 """
 docker run --gpus '"device=0"' -p 8080:80 -v $PWD/data/dense_vectors:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
-  --model-id BAAI/bge-m3 --max-batch-tokens 16384
+  --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
 
 docker run --gpus '"device=1"' -p 8081:80 -v $PWD/data/dense_vectors:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
-  --model-id BAAI/bge-m3 --max-batch-tokens 16384
+  --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
 
 """
+
+import random
 
 import asyncio
 import httpx
@@ -20,7 +22,7 @@ from tqdm.asyncio import tqdm
 app = typer.Typer()
 
 # TEI Endpoints for your 2x A40s
-ENDPOINTS = ["http://localhost:8080/embed"]
+ENDPOINTS = ["http://localhost:8080/embed", "http://localhost:8081/embed"]
 
 
 async def call_tei(client, url, texts, semaphore):
@@ -42,10 +44,9 @@ async def process_chunk_async(texts, output_file, tei_batch_size=16):
 
     async with httpx.AsyncClient() as client:
         tasks = []
-        # Use the only available endpoint
-        url = ENDPOINTS[0]
 
         for i in range(0, len(texts), tei_batch_size):
+            url = random.choice(ENDPOINTS)
             batch = texts[i : i + tei_batch_size]
             tasks.append(call_tei(client, url, batch, semaphore))
 

@@ -1,8 +1,17 @@
+"""
+Run BioASQ reranker experiments for Llama/Nemotron models.
+
+This is a copy of run_experiments.py with Nemotron-specific changes:
+- Nemotron prompt template: question:{query} \\n \\n passage:{passage}
+- Tokenizer: padding_side="left", pad_token=eos_token if None
+- Model: pad_token_id, _sanitize_position_ids_buffers for RoPE
+- Outputs go to outputs/{model}_llama/ to avoid clashing with run_experiments
+"""
 from pathlib import Path
 import argparse
 import os
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 import json
 import wandb
@@ -10,6 +19,8 @@ import torch
 from transformers import (
     AutoTokenizer,
     AutoModelForSequenceClassification,
+    PreTrainedModel,
+    PreTrainedTokenizerBase,
     TrainingArguments,
 )
 from torch.utils.data import DataLoader
@@ -23,6 +34,7 @@ from factory import (
     get_iterator,
     get_trainer_cls,
 )
+from trainer import EarlyStoppingOnGradNorm
 from evaluation import DEFAULT_METRICS, run_inference, evaluate_run, save_predictions
 from utils import set_seed, setup_wandb, get_wandb_run_id, build_output_dir_name, create_training_config
 
@@ -31,7 +43,9 @@ DEFAULT_CONFIG = BASE_DIR / "config" / "train_config.yaml"
 
 
 def _output_dir(model_name: str, run_name: str | None = None) -> str:
-    return f"./outputs/{model_name.replace('/', '_')}/{run_name if run_name else ''}"
+    """Output dir with _llama suffix to avoid clashing with run_experiments outputs."""
+    base = f"./outputs/{model_name.replace('/', '_')}_llama"
+    return f"{base}/{run_name}" if run_name else base
 
 
 def _load_cached_results(model_name: str, run_name: str | None = None) -> dict | None:
@@ -117,6 +131,54 @@ def _log_results_to_wandb(run_name: str, results: dict, model_name: str) -> None
     wandb.finish()
 
 
+def _sanitize_position_ids_buffers(model: torch.nn.Module) -> None:
+    """Ensure any `position_ids` buffers are monotonic 0..N-1.
+
+    Some remote-code checkpoints (e.g. Llama-based) may load a corrupted
+    `position_ids` buffer, which causes out-of-bounds indexing in RoPE.
+    """
+    for module in model.modules():
+        position_ids = getattr(module, "position_ids", None)
+        if not isinstance(position_ids, torch.Tensor):
+            continue
+        if position_ids.dtype not in (torch.int32, torch.int64):
+            continue
+        if position_ids.ndim == 1:
+            expected = torch.arange(
+                position_ids.shape[0],
+                device=position_ids.device,
+                dtype=position_ids.dtype,
+            )
+        elif position_ids.ndim == 2 and position_ids.shape[0] == 1:
+            expected = torch.arange(
+                position_ids.shape[1],
+                device=position_ids.device,
+                dtype=position_ids.dtype,
+            ).unsqueeze(0)
+        else:
+            continue
+
+        if not torch.equal(position_ids, expected):
+            position_ids.copy_(expected)
+
+
+def _setup_nemotron_tokenizer(tokenizer: PreTrainedTokenizerBase) -> None:
+    """Apply Nemotron reranker tokenizer settings per model README."""
+    tokenizer.padding_side = "left"
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+
+def _setup_nemotron_model(model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase) -> None:
+    """Apply Nemotron model config (pad_token_id) and label head sanitization."""
+    if model.config.pad_token_id is None:
+        model.config.pad_token_id = tokenizer.eos_token_id
+    if getattr(model.config, "num_labels", 1) != 1:
+        model.config.num_labels = 1
+        model.config.id2label = {0: "SCORE"}
+        model.config.label2id = {"SCORE": 0}
+
+
 def _load_qids_per_val_file(val_files: list[str]) -> dict[str, list[str]]:
     """Return {basename: [qid, ...]} for each val file. Same as main.py."""
     per_file: dict[str, list[str]] = {}
@@ -128,33 +190,25 @@ def _load_qids_per_val_file(val_files: list[str]) -> dict[str, list[str]]:
     return per_file
 
 
-def run_experiment(
-    model_name: str,
-    config: dict,
-    run_name: str | None = None,
-    model_path: str | None = None,
-):
-    """
-    Args:
-        model_name: Base model ID (for tokenizer and output dir). Also used as load path if model_path is None.
-        model_path: Optional checkpoint path to load weights from. If set, load model from here instead of model_name.
-    """
-    load_path = model_path if model_path is not None else model_name
-    print(f"--- Starting experiment for: {model_name} (loading from {load_path}) ---")
+def run_experiment(model_name: str, config: dict, run_name: str | None = None):
+    print(f"--- Starting Llama/Nemotron experiment for: {model_name} ---")
 
-    # 1. Load Tokenizer & Model
-    # Tokenizer from base model (checkpoints may lack full tokenizer files)
+    # 1. Load Tokenizer & Model (Nemotron-specific setup)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    _setup_nemotron_tokenizer(tokenizer)
+
     model = AutoModelForSequenceClassification.from_pretrained(
-        load_path,
+        model_name,
         num_labels=1,
         trust_remote_code=True,
         ignore_mismatched_sizes=True,
-        dtype=torch.bfloat16,
+        torch_dtype=torch.bfloat16,
     )
+    _sanitize_position_ids_buffers(model)
+    _setup_nemotron_model(model, tokenizer)
 
-    # 2. Instantiate Components via Factory
-    preprocessor = get_preprocessor("basic", tokenizer=tokenizer, max_length=512)
+    # 2. Instantiate Components (Nemotron preprocessor: question:/passage: format)
+    preprocessor = get_preprocessor("nemotron", tokenizer=tokenizer, max_length=512)
     sampler_cls = get_sampler("shifter")  # Shifter is great for your 100 negatives
 
     iterator = get_iterator(
@@ -182,7 +236,8 @@ def run_experiment(
     # 4. Set up TrainingArguments
     output_dir = _output_dir(model_name, run_name)
     if run_name is None:
-        run_name = f"{model_name}-E{config['epochs']}-S{config['num_neg_samples']}-M{config['mode']}"
+        loss = config.get("loss_type", "margin")
+        run_name = f"{model_name}-E{config['epochs']}-S{config['num_neg_samples']}-M{config['mode']}-L{loss}"
     training_args = TrainingArguments(
         output_dir=output_dir,
         run_name=run_name,
@@ -208,14 +263,32 @@ def run_experiment(
         else eval_pairwise
     )
 
-    trainer = trainer_cls(
+    loss_type = config.get("loss_type", "margin")
+    infonce_temperature = config.get("infonce_temperature", 0.05)
+    callbacks = []
+    if config.get("early_stop_on_grad", True):
+        callbacks.append(
+            EarlyStoppingOnGradNorm(
+                grad_norm_threshold=config.get("grad_norm_threshold", 1e-6),
+                patience=config.get("grad_norm_patience", 5),
+            )
+        )
+
+    # loss_type and infonce_temperature only apply to MultiNegativePairwiseRerankerTrainer
+    trainer_kwargs = dict(
         model=model,
         args=training_args,
         train_dataset=train_ds,
         eval_dataset=eval_ds,
         data_collator=collator,
-        margin=1.0,  # default from your losses
+        margin=1.0,
+        callbacks=callbacks,
     )
+    if config["mode"] == "multi_neg_pairwise":
+        trainer_kwargs["loss_type"] = loss_type
+        trainer_kwargs["infonce_temperature"] = infonce_temperature
+
+    trainer = trainer_cls(**trainer_kwargs)
 
     # 6. Train
     trainer.train()
@@ -227,17 +300,14 @@ def run_experiment(
     )  # Inference is always pointwise scoring
 
     if config.get("full_data", True):
-        # RECREATE THE TEST DATASET WITH THE VALIDATION
-        _, test_ds, _, _, _ = (
-            create_bioASQ_datasets(
-                positive_data_path=config["train_pos_path"],
-                all_data_path=config["train_neg_path"],
-                iterator=iterator,
-                test_sample_preprocessing=preprocessor,
-                val_files=config["val_files"],
-            )
+        # Recreate test dataset with validation data for inference (when trained on full data, test_ds was empty)
+        _, test_ds, _, _, _ = create_bioASQ_datasets(
+            positive_data_path=config["train_pos_path"],
+            all_data_path=config["train_neg_path"],
+            iterator=iterator,
+            test_sample_preprocessing=preprocessor,
+            val_files=config["val_files"],
         )
-
 
     test_dataloader = DataLoader(
         test_ds,
@@ -285,8 +355,10 @@ def run_inference_only(model_name: str, config: dict, run_name: str | None = Non
     Loads from output_dir checkpoint if found; otherwise uses the base model.
     Predictions and results are saved to output_dir (created if needed).
     """
+    if run_name is None:
+        run_name = f"{model_name}-E{config['epochs']}-S{config['num_neg_samples']}-M{config['mode']}-L{config.get('loss_type', 'margin')}"
     output_dir = _output_dir(model_name, run_name)
-    model_path = Path(_output_dir(model_name, run_name))
+    model_path = Path(output_dir)
 
     # Load from latest checkpoint if present; else use base model
     load_path = model_name
@@ -301,6 +373,8 @@ def run_inference_only(model_name: str, config: dict, run_name: str | None = Non
 
     # Load tokenizer from base model (checkpoint may lack full tokenizer files)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    _setup_nemotron_tokenizer(tokenizer)
+
     model = AutoModelForSequenceClassification.from_pretrained(
         load_path,
         num_labels=1,
@@ -308,8 +382,10 @@ def run_inference_only(model_name: str, config: dict, run_name: str | None = Non
         ignore_mismatched_sizes=True,
         torch_dtype=torch.bfloat16,
     )
+    _sanitize_position_ids_buffers(model)
+    _setup_nemotron_model(model, tokenizer)
 
-    preprocessor = get_preprocessor("basic", tokenizer=tokenizer, max_length=512)
+    preprocessor = get_preprocessor("nemotron", tokenizer=tokenizer, max_length=512)
     iterator = get_iterator(
         mode="pointwise",
         sample_preprocessing=preprocessor,
@@ -366,78 +442,53 @@ def run_inference_only(model_name: str, config: dict, run_name: str | None = Non
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run BioASQ reranker experiments")
+    parser = argparse.ArgumentParser(
+        description="Run BioASQ reranker experiments for Llama/Nemotron models (nvidia/llama-nemotron-rerank-1b-v2)"
+    )
     parser.add_argument(
         "--inference-only",
         action="store_true",
-        help="Skip training; run inference only for already-trained models (load from outputs/)",
+        help="Skip training; run inference only (load from outputs/{model}_llama/)",
     )
     args = parser.parse_args()
 
     set_seed(42)
     # You can loop through a subset first to test
-    # Each entry can be:
-    #   - str: model name (load from HuggingFace)
-    #   - dict: {"model": "base-model-id", "checkpoint": "path/to/checkpoint-500"} to resume from checkpoint
     MODELS_TO_TEST = [
-        # "ncbi/MedCPT-Cross-Encoder",
-        {"model": "ncbi/MedCPT-Cross-Encoder", "checkpoint": "./outputs-E5-Pairwise/ncbi_MedCPT-Cross-Encoder/checkpoint-6375"},
-        # "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-        {"model": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext", "checkpoint": "./outputs-E5-Pairwise/microsoft_BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/checkpoint-6375"},
-        # "dmis-lab/biobert-base-cased-v1.2",
-        # "emilyalsentzer/Bio_ClinicalBERT",
-        {"model": "michiyasunaga/BioLinkBERT-base", "checkpoint": "./outputs-E5-Pairwise/michiyasunaga_BioLinkBERT-base/checkpoint-6375"},
-        "michiyasunaga/BioLinkBERT-large",
-        # "pritamdeka/S-PubMedBert-MS-MARCO",
-        {"model": "pritamdeka/S-PubMedBert-MS-MARCO", "checkpoint": "./outputs-E5-Pairwise/pritamdeka_S-PubMedBert-MS-MARCO/checkpoint-6375"},
-        # "cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
-        # "monologg/biobert_v1.1_pubmed",
-        {"model": "monologg/biobert_v1.1_pubmed", "checkpoint": "./outputs-E5-Pairwise/monologg_biobert_v1.1_pubmed/checkpoint-6375"},
-        # "nboost/pt-biobert-base-msmarco",
-        {"model": "nboost/pt-biobert-base-msmarco", "checkpoint": "./outputs-E5-Pairwise/nboost_pt-biobert-base-msmarco/checkpoint-6375"},
-        # "allenai/specter2_base",
-        # "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        {"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "checkpoint": "./outputs-E5-Pairwise/cross-encoder_ms-marco-MiniLM-L-6-v2/checkpoint-6375"},
-        # "cross-encoder/ms-marco-electra-base",
-        # "BAAI/bge-reranker-base",
-        {"model": "BAAI/bge-reranker-base", "checkpoint": "./outputs-E5-Pairwise/BAAI_bge-reranker-base/checkpoint-6375"},
-        # "BAAI/bge-reranker-v2-m3",
-        {"model": "BAAI/bge-reranker-v2-m3", "checkpoint": "./outputs-E5-Pairwise/BAAI_bge-reranker-v2-m3/checkpoint-6375"},
-        # Example: start from checkpoint instead of base model:
-        # {"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "checkpoint": "./outputs/cross-encoder_ms-marco-MiniLM-L-6-v2/checkpoint-500"},
+        "nvidia/llama-nemotron-rerank-1b-v2",
+
+        
     ]
 
     CONFIG = {
-        "mode": "pairwise",  # "pairwise" | "multi_neg_pairwise" | "pointwise"
-        "num_neg_samples": 1,  # For pairwise: 1; for multi_neg_pairwise: 4-20+ depending on GPU memory
+        "mode": "multi_neg_pairwise",  # "pairwise" | "multi_neg_pairwise" | "pointwise"
+        "num_neg_samples": 4,  # For pairwise: 1; for multi_neg_pairwise: 4-20+ depending on GPU memory
+        "loss_type": "infonce",  # "margin" (hinge, can saturate) | "infonce" (always has gradient)
+        "infonce_temperature": 0.05,  # For InfoNCE: smaller = sharper
+        "early_stop_on_grad": True,  # Stop when grad_norm ~0 for N logs (margin loss only)
+        "grad_norm_threshold": 1e-6,
+        "grad_norm_patience": 5,
+        "full_data": True,  # True: hold out val for test, recreate test_ds for inference. False: train on all, recreate test_ds for inference.
         "report_to": "wandb",
         "epochs": 2,
-        "batch_size": 16,
-        "learning_rate": 2e-5,
+        "batch_size": 4,
+        "learning_rate": 1e-4,
         "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
         "train_neg_path": "../../data/negatives.jsonl",
-        "full_data": True,
-        # Train on val (13B1+13B2); hold out 13B3 for evaluation
         "val_files": ["../../data/val_data/13B3_golden.json", "../../data/val_data/13B1_golden.json", "../../data/val_data/13B2_golden.json", "../../data/val_data/13B4_golden.json"],
+
         # "force_retrain": True,
     }
     failed_models = []
     all_results = {}
-    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-FullData{full_data}"
-    for entry in MODELS_TO_TEST:
-        if isinstance(entry, dict):
-            model_name = entry["model"]
-            model_path = entry.get("checkpoint")
-        else:
-            model_name = entry
-            model_path = None
-
+    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}-FullData" if CONFIG.get("full_data") else "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}"
+    for model_name in MODELS_TO_TEST:
         run_name = run_name_tpl.format(
             model=model_name.replace("/", "-"),
             epochs=CONFIG["epochs"],
             num_neg=CONFIG["num_neg_samples"],
             mode=CONFIG["mode"],
-            full_data=CONFIG["full_data"],
+            loss=CONFIG.get("loss_type", "margin"),
         )
         try:
             if args.inference_only:
@@ -451,9 +502,7 @@ if __name__ == "__main__":
                     all_results[model_name] = cached["total"]
                 else:
                     setup_wandb(run_name)
-                    results = run_experiment(
-                        model_name, CONFIG, run_name=run_name, model_path=model_path
-                    )
+                    results = run_experiment(model_name, CONFIG, run_name=run_name)
                     all_results[model_name] = results["total"]
         except Exception as e:
             print(f"Failed to run {model_name}: {e}")
@@ -464,5 +513,5 @@ if __name__ == "__main__":
     
     print(f"Failed models: {failed_models}")
     # Save a master JSON with all model comparisons
-    with open("all_models_evaluation.json", "a") as f:
+    with open("all_models_evaluation_llama.json", "a") as f:
         json.dump(all_results, f, indent=4)
