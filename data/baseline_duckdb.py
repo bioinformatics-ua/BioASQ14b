@@ -5,26 +5,33 @@ import typer
 
 try:
     import ijson
+
     _HAS_IJSON = True
 except ImportError:
     ijson = None  # type: ignore[assignment]
     _HAS_IJSON = False
 
 
-def init_pubmed_db(jsonl_path: Path | str, db_path: Path | str) -> duckdb.DuckDBPyConnection:
+def init_pubmed_db(
+    jsonl_path: Path | str, db_path: Path | str
+) -> duckdb.DuckDBPyConnection:
     """
     1. Cria a base de dados DuckDB a partir do JSONL (se não existir).
     Cria a tabela 'articles' e o índice no 'pmid'.
     """
     con = duckdb.connect(str(db_path))
-    
+
     # Verifica se a tabela já existe
-    tables = con.execute("SELECT table_name FROM information_schema.tables WHERE table_name = 'articles'").fetchall()
-    
+    tables = con.execute(
+        "SELECT table_name FROM information_schema.tables WHERE table_name = 'articles'"
+    ).fetchall()
+
     if not tables:
         print(f"A criar a base de dados a partir de {jsonl_path}...")
-        print("Isto vai demorar alguns minutos na primeira vez, mas poupa horas no futuro!")
-        
+        print(
+            "Isto vai demorar alguns minutos na primeira vez, mas poupa horas no futuro!"
+        )
+
         # Lemos apenas pmid, title e abstract. Ignoramos mesh_terms e keywords para poupar espaço.
         # Deduplicamos por PMID (mantemos a primeira ocorrência) para permitir índice único.
         query = f"""
@@ -41,13 +48,13 @@ def init_pubmed_db(jsonl_path: Path | str, db_path: Path | str) -> duckdb.DuckDB
             WHERE rn = 1
         """
         con.execute(query)
-        
+
         print("A criar índice único no PMID...")
         con.execute("CREATE UNIQUE INDEX idx_pmid ON articles(pmid)")
         print("Base de dados DuckDB criada com sucesso!")
     else:
         print("Base de dados DuckDB já existe. A ligar diretamente...")
-        
+
     return con
 
 
@@ -58,33 +65,36 @@ def get_article(con: duckdb.DuckDBPyConnection, pmid: str) -> Optional[Dict[str,
     """
     query = "SELECT title, abstract FROM articles WHERE pmid = ?"
     resultado = con.execute(query, [pmid]).fetchone()
-    
+
     if resultado:
         return {"title": resultado[0], "abstract": resultado[1]}
     return None
 
 
-def get_articles_batch(con: duckdb.DuckDBPyConnection, pmids: List[str]) -> Dict[str, str]:
+def get_articles_batch(
+    con: duckdb.DuckDBPyConnection, pmids: List[str]
+) -> Dict[str, str]:
     """
-    3. Utilidade vital para o teu PyTorch DataLoader: 
+    3. Utilidade vital para o teu PyTorch DataLoader:
     Vai buscar dezenas/centenas de PMIDs de uma só vez e já devolve o texto concatenado.
     """
     if not pmids:
         return {}
-        
+
     # Cria os placeholders (?, ?, ?) correspondentes ao número de PMIDs
-    placeholders = ','.join(['?'] * len(pmids))
-    
+    placeholders = ",".join(["?"] * len(pmids))
+
     # concat_ws(' ', title, abstract) junta os dois com um espaço no meio nativamente no C++
     query = f"""
         SELECT pmid, concat_ws(' ', title, abstract) 
         FROM articles 
         WHERE pmid IN ({placeholders})
     """
-    
+
     # Retorna num formato dicionário {pmid: "title abstract"}
     resultados = con.execute(query, pmids).fetchall()
     return {linha[0]: linha[1] for linha in resultados}
+
 
 def get_total_articles(con: duckdb.DuckDBPyConnection) -> int:
     """
@@ -119,13 +129,15 @@ def init_lookup_table(
         print(f"A criar tabela lookup a partir de {json_path}...")
         print("Isto pode demorar para ficheiros grandes (streaming em progresso)...")
 
-        con.execute("""
+        con.execute(
+            """
             CREATE TABLE lookup (
                 source_pmid VARCHAR,
                 target_pmid VARCHAR,
                 score DOUBLE
             )
-        """)
+        """
+        )
 
         def iter_lookup_rows():
             with open(json_path, "rb") as f:
@@ -218,13 +230,16 @@ def get_lookup_entries_batch(
 
 app = typer.Typer()
 
+
 @app.command()
 def main(
     jsonl_path: Path = typer.Argument(
-        "./baselines/pubmed_baseline_2026.jsonl", help="The path to the JSONL file containing the articles."
+        "./baselines/pubmed_baseline_2026.jsonl",
+        help="The path to the JSONL file containing the articles.",
     ),
     db_path: Path = typer.Argument(
-        "./db_baselines/pubmed_baseline_2026.db", help="The path to the DuckDB database file."
+        "./db_baselines/pubmed_baseline_2026.db",
+        help="The path to the DuckDB database file.",
     ),
 ):
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -233,7 +248,9 @@ def main(
 
 @app.command(name="init-lookup")
 def init_lookup_cmd(
-    lookup_json: Path = typer.Argument(..., help="Path to the lookup JSON file ({pmid: [[pmid, score], ...]})."),
+    lookup_json: Path = typer.Argument(
+        ..., help="Path to the lookup JSON file ({pmid: [[pmid, score], ...]})."
+    ),
     db_path: Path = typer.Argument(
         "./db_baselines/pubmed_baseline_2026.db",
         help="Path to the DuckDB database file (same as articles).",
@@ -244,6 +261,32 @@ def init_lookup_cmd(
     con = duckdb.connect(str(db_path))
     init_lookup_table(con, lookup_json)
     con.close()
+
+
+@app.command(name="add-articles")
+def add_articles_to_db_cmd(
+    jsonl_path: Path = typer.Argument(
+        "./baselines/pubmed_baseline_2026.jsonl",
+        help="The path to the JSONL file containing the articles.",
+    ),
+    db_path: Path = typer.Argument(
+        "./db_baselines/pubmed_baseline_2026.db",
+        help="The path to the DuckDB database file.",
+    ),
+) -> None:
+    """Adiciona artigos à base de dados DuckDB a partir do JSONL."""
+
+    con = duckdb.connect(str(db_path))
+    con.execute(
+        f"""
+        INSERT INTO articles
+            SELECT 
+                CAST(pmid AS VARCHAR) as pmid, 
+                CAST(title AS VARCHAR) as title, 
+                CAST(abstract AS VARCHAR) as abstract
+            FROM read_json_auto('{jsonl_path}')
+        """
+    )
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ Usage:
     python pubmed_downloader.py parse 2026 --workers 8
 """
 
+from datetime import datetime
 import gzip
 import json
 import random
@@ -140,7 +141,7 @@ def get_pubmed_links(years: list[int]) -> list[PubmedLink]:
         xpath = "/html/body/pre/a" if year >= 2025 else "/html/body/ul[2]/li/a"
         snapshot = f"{year}0216212530"
         url = (
-            f"https://web.archive.org/web/{snapshot}/https://ftp.ncbi.nlm.nih.gov/pubmed/baseline"
+            f"{'https://web.archive.org/web/' + snapshot + '/' if datetime.now().year != year else ''}https://ftp.ncbi.nlm.nih.gov/pubmed/baseline"
             if year >= 2025
             else f"https://web.archive.org/web/20241219010838/https://lhncbc.nlm.nih.gov/ii/information/MBR/Baselines/{year}.html"
         )
@@ -157,7 +158,7 @@ def get_pubmed_links(years: list[int]) -> list[PubmedLink]:
             if year >= 2025:
                 # href is just the filename (e.g., "pubmed25n0001.xml.gz")
                 # Construct full web archive download URL with if_ flag
-                href = f"https://web.archive.org/web/{snapshot}if_/https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/{href}"
+                href = f"{'https://web.archive.org/web/' + snapshot + 'if_/' if datetime.now().year != year else ''}https://ftp.ncbi.nlm.nih.gov/pubmed/baseline/{href}"
             else:
                 # Web archive: fix the URL format for older years
                 href = href.replace("/https://data.lhncbc", "if_/https://data.lhncbc")
@@ -173,7 +174,7 @@ def download_file_worker(
     worker_id: int,
     task_queue: Queue[PubmedLink | None],
     base_dir: str,
-    max_retries: int = 20,
+    max_retries: int = 40,
 ) -> DownloadStats:
     """Worker: download files from queue."""
     downloaded = 0

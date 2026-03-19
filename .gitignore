@@ -14,7 +14,8 @@ data/not_found.jsonl
 data/dense_vectors* 
 data/negatives*.jsonl
 data/lookup*.json
-data/BioASQ-task*bPhase*-testset*.json
+data/BioASQ-task*bPhase*-testset*.json*
+data/band_aid
 
 data/quality
 !data/quality/.keep
