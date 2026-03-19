@@ -479,14 +479,14 @@ if __name__ == "__main__":
         "learning_rate": 1e-4,
         "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
         "train_neg_path": "../../data/negatives.jsonl",
-        # "expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",  # Use when training with expanded positives
+        "expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",  # Use when training with expanded positives
         "val_files": ["../../data/val_data/13B3_golden.json", "../../data/val_data/13B1_golden.json", "../../data/val_data/13B2_golden.json", "../../data/val_data/13B4_golden.json"],
 
         # "force_retrain": True,
     }
     failed_models = []
     all_results = {}
-    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}-FullData{expanded}" if CONFIG.get("full_data") else "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}{expanded}"
+    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}-FullData-{expanded}" if CONFIG.get("full_data") else "{model}-E{epochs}-S{num_neg}-M{mode}-L{loss}{expanded}"
     for model_name in MODELS_TO_TEST:
         run_name = run_name_tpl.format(
             model=model_name.replace("/", "-"),

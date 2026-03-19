@@ -1,0 +1,26 @@
+{
+  "1": {
+    "description": "Simple: read answers, write concise synthesis, CoT before JSON",
+    "template": "Act as a biomedical expert. You will receive several answers to a question. Given these answers you should construct a short and concise full answer (50-150 words, at least one sentence).\n\nFirst read and understand the relevant information present in the several answers, extracting all relevant facts.\n\nAfter thinking about the information presented, present a final JSON containing your concise answer {{\"answer\": answer}}. Please show all your reasoning first.\n\nAnswer in around 50 - 150 words, without using any markdown.\n\nQuestion: {question}\n\n{answers}"
+  },
+  "2": {
+    "description": "Numbered steps synthesis, medically accurate, no markdown",
+    "template": "Act as a biomedical expert. You will receive multiple answers to a given question. Your task is to analyze these responses, extract all relevant information, and synthesize a concise yet comprehensive final answer (50-150 words, at least one complete sentence).\n\n1. Carefully read and understand the key facts and insights from the provided answers.\n2. Thoughtfully evaluate the information to form a well-reasoned conclusion.\n3. Present your reasoning step-by-step before delivering the final response.\n\nFinally, output a JSON object in the following format:\n{{\"answer\": \"<your concise answer>\"}}\n\nGuidelines:\n- Ensure the answer is informative, clear, and medically accurate.\n- Do not use Markdown formatting.\n- Keep the response within the word limit.\n\nQuestion: {question}\n\nAnswers: {answers}"
+  },
+  "3": {
+    "description": "Same as 2 with a few-shot example",
+    "template": "Act as a biomedical expert. You will receive multiple answers to a given question. Your task is to analyze these responses, extract all relevant information, and synthesize a concise yet comprehensive final answer (50-150 words, at least one complete sentence).\n\n1. Carefully read and understand the key facts and insights from the provided answers.\n2. Thoughtfully evaluate the information to form a well-reasoned conclusion.\n3. Present your reasoning step-by-step before delivering the final response.\n\nFinally, output a JSON object in the following format:\n{{\"answer\": \"<your concise answer>\"}}\n\nGuidelines:\n- Ensure the answer is informative, clear, and medically accurate.\n- Do not use Markdown formatting.\n- Keep the response within the word limit.\n\nFor example:\n\nQuestion: \"What is the use of P85-Ab?\"\n\nInsert your thinking here.\n\n{{\"answer\": \"P85-Ab is a promising novel biomarker for nasopharyngeal carcinoma screening.\"}}\n\nQuestion: {question}\n\nAnswers: {answers}"
+  },
+  "4": {
+    "description": "Conflict resolution: favour majority, medically accurate",
+    "template": "Act as a biomedical expert writing a synthesis for peer review. You will receive multiple draft answers to the same question.\n\nYour task:\n1. Extract all relevant facts mentioned across the answers.\n2. Where answers contradict each other, favour the position supported by the majority.\n3. Write one concise, medically accurate paragraph (50-150 words, plain text, no markdown).\n\nOutput only this JSON:\n{{\"answer\": \"your synthesized paragraph here\"}}\n\nQuestion: {question}\n\nAnswers: {answers}"
+  },
+  "5": {
+    "description": "BioASQ criteria: recall, precision, no repetition, readability",
+    "template": "Act as a biomedical expert. You will receive multiple draft answers to the same question. Synthesize them into one final paragraph that meets all four BioASQ evaluation criteria:\n\n1. Information recall: include all relevant findings mentioned across the answers.\n2. Information precision: do not include anything not supported by the answers.\n3. No repetition: each sentence must add new information.\n4. Readability: write in clear, fluent prose.\n\nConstraints: 50-150 words, plain text only, no markdown, no lists.\n\nOutput only this JSON:\n{{\"answer\": \"your synthesized paragraph here\"}}\n\nQuestion: {question}\n\nAnswers: {answers}"
+  },
+  "6": {
+    "description": "Chain-of-thought synthesis with few-shot example (BRCA1)",
+    "template": "Act as a biomedical expert. You will receive multiple draft answers to the same biomedical question. Reason through them first, then write a single synthesized paragraph.\n\nFor example:\n\nQuestion: \"What is the role of BRCA1 in DNA repair?\"\nAnswer 1: BRCA1 is involved in homologous recombination.\nAnswer 2: BRCA1 helps repair double-strand DNA breaks via HR pathway.\nAnswer 3: BRCA1 loss leads to genomic instability and cancer predisposition.\n\nReasoning: All three answers agree on HR involvement. Answer 3 adds the consequence of BRCA1 loss.\n\n{{\"answer\": \"BRCA1 plays a central role in the homologous recombination pathway for repairing double-strand DNA breaks. Loss of BRCA1 function impairs this pathway, leading to genomic instability and predisposition to breast and ovarian cancers.\"}}\n\nNow synthesize the following. Show your reasoning first, then output the JSON.\n\nQuestion: {question}\n\nAnswers: {answers}"
+  }
+}

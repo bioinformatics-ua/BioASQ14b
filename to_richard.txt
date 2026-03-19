@@ -1,0 +1,67 @@
+# With love André
+
+# I need you to run the summarization it is i guess runnning the generation for tons of models
+# check all the other comments
+# The dprf files for each model are at: phaseA-reranker/dprf
+
+# to generate the result run fusion.py and then bioasq_format_converter.py
+
+
+# DPRF!! 
+ NOTES: The files that starts with runs_ are trained by me (andre) the other ones are from 2025
+
+# ALL the submissions are at: /home/ucloud/BioASQ13B/phaseA-reranker/runs_bioasq_format
+
+# commands i've run to generate the submissions
+- submission2
+uv run fusion.py /home/ucloud/BioASQ13B/phaseA-reranker/dprf/runs_nvidia-llama-nemotron-rerank-1b-v2-E2-S4-Mmulti_neg_pairwise-Linfonce-FullData-checkpoint-600_dprf.json \
+                /home/ucloud/BioASQ13B/phaseA-reranker/dprf/runs_BAAI-bge-reranker-v2-m3-E2-S1-Mpairwise-FullDataTrue-checkpoint-4452_dprf.json \
+                /home/ucloud/BioASQ13B/phaseA-reranker/dprf/runs_BAAI-bge-reranker-base-E2-S1-Mpairwise-FullDataTrue-checkpoint-4452_dprf.json \
+                --out dprf_0.64.json
+uv run bioasq_format_converter.py dprf_0.64.json ../data/BioASQ-task14bPhaseA-testset1.json 
+
+- submission3
+uv run fusion.py /home/ucloud/BioASQ13B/phaseA-reranker/dprf/runs_* --out all_trained_dprf.json
+uv run bioasq_format_converter.py all_trained_dprf.json ../data/BioASQ-task14bPhaseA-testset1.json 
+
+- submission4
+uv run fusion.py /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-100-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupFalse-checkpoint-4452_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-100-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-8922_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-42-E1-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupFalse-checkpoint-2226_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-42-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpointwise-ExPOSTrue-warmupFalse-checkpoint-4452_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-42-E2-Sbasicv2-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupTrue-checkpoint-4452_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-42-E2-Sexponential-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-8922_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-42-E4-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupFalse-checkpoint-8904_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-base-42-E4-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-17844_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-large-100-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-8922_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-large-100-E4-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpointwise-ExPOSTrue-warmupFalse-checkpoint-8904_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-large-42-E1-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-4461_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/michiyasunaga-BioLinkBERT-large-42-E3-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpointwise-ExPOSTrue-warmupFalse-checkpoint-6678_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-100-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupFalse-checkpoint-4452_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-100-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-8922_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-42-E1-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupFalse-checkpoint-2226_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-42-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpointwise-ExPOSTrue-warmupFalse-checkpoint-4452_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-42-E2-Sbasicv2-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupTrue-checkpoint-4452_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-42-E2-Sexponential-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-8922_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-42-E4-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSFalse-warmupFalse-checkpoint-8904_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-base-uncased-abstract-42-E4-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-17844_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-large-uncased-abstract-100-E2-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-8922_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-large-uncased-abstract-100-E4-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpointwise-ExPOSTrue-warmupFalse-checkpoint-8904_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-large-uncased-abstract-42-E1-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpairwise-ExPOSTrue-warmupFalse-checkpoint-4461_predictions_dprf.json \
+                    /home/ucloud/BioASQ13B/phaseA-reranker/dprf/microsoft-BiomedNLP-BiomedBERT-large-uncased-abstract-42-E3-Sbasic-SPbasic-full-quality_data-CBFalse-KN1-GA1-TRpointwise-ExPOSTrue-warmupFalse-checkpoint-6678_predictions_dprf.json \
+                --out 2025_dprf.json
+uv run bioasq_format_converter.py 2025_dprf.json ../data/BioASQ-task14bPhaseA-testset1.json 
+
+- submission5
+uv run fusion.py /home/ucloud/BioASQ13B/phaseA-reranker/dprf/* --out all_of_all_dprf.json
+uv run bioasq_format_converter.py all_of_all_dprf.json ../data/BioASQ-task14bPhaseA-testset1.json 
+
+
+
+## hydrations
+uv run hydration.py runs_bioasq_format/submission1-0.64.json -o runs_bioasq_format_hydrated/submission1-0.64_hydrated.jsonl
+uv run hydration.py runs_bioasq_format/submission2-dprf_0.64.json -o runs_bioasq_format_hydrated/submission2-dprf_0.64_hydrated.jsonl
+uv run hydration.py runs_bioasq_format/submission3-all_trained_dprf.json -o runs_bioasq_format_hydrated/submission3-all_trained_dprf_hydrated.jsonl
+uv run hydration.py runs_bioasq_format/submission4-2025_dprf.json -o runs_bioasq_format_hydrated/submission4-2025_dprf_hydrated.jsonl
+uv run hydration.py runs_bioasq_format/submission5-all_of_all_dprf.json -o runs_bioasq_format_hydrated/submission5-all_of_all_dprf_hydrated.jsonl
+

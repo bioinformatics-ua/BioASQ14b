@@ -11,12 +11,15 @@ Output format: Same as input, with additional keys:
 """
 
 from __future__ import annotations
+from collections import defaultdict
+import time
 
 from pathlib import Path
 from typing import Any
 
 import orjson
 import typer
+from tqdm import tqdm
 
 app = typer.Typer()
 
@@ -67,15 +70,16 @@ def _load_collection(path: Path) -> Collection:
 def semantic_search_from_ids(
     doc_ids: set[str],
     lookup: SimilarityLookup,
-    threshold: float,
-) -> set[str]:
+    thresholds: tuple[float, ...],
+) -> dict[float, set[str]]:
     """Return pmids of documents similar to any in doc_ids with score > threshold."""
-    expanded: set[str] = set()
+    expanded_docs: defaultdict[float, set[str]] = defaultdict(set)
     for doc_id in doc_ids:
         for other_id, score in lookup.get(doc_id, []):
-            if score > threshold:
-                expanded.add(other_id)
-    return expanded
+            for threshold in thresholds:
+                if score > threshold:
+                    expanded_docs[threshold].add(other_id)
+    return expanded_docs
 
 
 def expand_question(
@@ -83,29 +87,28 @@ def expand_question(
     lookup: SimilarityLookup,
     ids_per_baseline: dict[str, set[str]],
     collection: Collection,
-    thresholds: tuple[float, ...] = (0.95, 0.9, 0.85, 0.8),
+    thresholds: tuple[float, ...] = (0.95, 0.9),
 ) -> TrainingRecord:
     """Expand positives for one question and attach expanded_docs_* keys."""
     all_pos: set[str] = {str(doc["id"]) for doc in qdata.get("documents", [])}
     baseline: str = str(qdata.get("baseline", ""))
     exclude_baseline: set[str] = ids_per_baseline.get(baseline, set())
 
-    def exclude() -> set[str]:
-        return all_pos | exclude_baseline
-
-    expanded_095: set[str] = semantic_search_from_ids(all_pos, lookup, thresholds[0]) - exclude()
-    expanded_09: set[str] = semantic_search_from_ids(all_pos, lookup, thresholds[1]) - exclude() - expanded_095
-    expanded_085: set[str] = semantic_search_from_ids(all_pos, lookup, thresholds[2]) - exclude() - expanded_095 - expanded_09
-    expanded_08: set[str] = semantic_search_from_ids(all_pos, lookup, thresholds[3]) - exclude() - expanded_095 - expanded_09 - expanded_085
-
+    exclude = all_pos | exclude_baseline
+    
     def to_docs(pmids: set[str]) -> list[ExpandedDoc]:
-        return [{"id": pmid, "text": collection.get(pmid, "")} for pmid in pmids if collection.get(pmid)]
+        return [{"id": pmid, "text": doc} for pmid in pmids if (doc := collection.get(pmid)) is not None]
 
+    expanded_docs = semantic_search_from_ids(all_pos, lookup, thresholds)
+    expanded_095 = expanded_docs[0.95] - exclude
+    expanded_09 = expanded_docs[0.9] - exclude - expanded_095
+    # expanded_085 = expanded_docs[0.85] - exclude - expanded_095 - expanded_09
+    # expanded_08 = expanded_docs[0.8] - exclude - expanded_095 - expanded_09 - expanded_085
     out = dict(qdata)
     out["expanded_docs_095"] = to_docs(expanded_095)
     out["expanded_docs_09"] = to_docs(expanded_09)
-    out["expanded_docs_085"] = to_docs(expanded_085)
-    out["expanded_docs_08"] = to_docs(expanded_08)
+    # out["expanded_docs_085"] = to_docs(expanded_085)
+    # out["expanded_docs_08"] = to_docs(expanded_08)
     return out
 
 
@@ -140,7 +143,7 @@ def main(
         help="Output JSONL with expanded_docs_* attached.",
     ),
     thresholds: str = typer.Option(
-        "0.95,0.9,0.85,0.8",
+        "0.95,0.9",
         "--thresholds",
         "-t",
         help="Comma-separated similarity thresholds for tiers (default: 0.95,0.9,0.85,0.8).",
@@ -157,8 +160,6 @@ def main(
         raise FileNotFoundError(f"ids_per_baseline file not found: {ids_per_baseline_path}")
 
     th_list = tuple(float(x.strip()) for x in thresholds.split(","))
-    if len(th_list) != 4:
-        raise ValueError("--thresholds must have exactly 4 comma-separated values")
 
     typer.echo("Loading lookup...", err=True)
     lookup = _load_lookup(lookup_path)
@@ -174,7 +175,7 @@ def main(
     typer.echo("Expanding training data...", err=True)
     count = 0
     with training_path.open("rb") as fin, output_path.open("wb") as fout:
-        for line in fin:
+        for line in tqdm(fin, desc="Expanding training data"):
             if not line.strip():
                 continue
             qdata = orjson.loads(line)

@@ -1,6 +1,7 @@
 from pathlib import Path
 import argparse
 import os
+
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -24,7 +25,13 @@ from factory import (
     get_trainer_cls,
 )
 from evaluation import DEFAULT_METRICS, run_inference, evaluate_run, save_predictions
-from utils import set_seed, setup_wandb, get_wandb_run_id, build_output_dir_name, create_training_config
+from utils import (
+    set_seed,
+    setup_wandb,
+    get_wandb_run_id,
+    build_output_dir_name,
+    create_training_config,
+)
 
 BASE_DIR = Path(__file__).parent.resolve()
 DEFAULT_CONFIG = BASE_DIR / "config" / "train_config.yaml"
@@ -57,7 +64,9 @@ def _find_latest_checkpoint(out_dir: Path) -> Path | None:
             return 0
 
     latest = max(checkpoints, key=_step)
-    if (latest / "model.safetensors").exists() or (latest / "pytorch_model.bin").exists():
+    if (latest / "model.safetensors").exists() or (
+        latest / "pytorch_model.bin"
+    ).exists():
         return latest
     return None
 
@@ -75,11 +84,13 @@ def _find_trainer_state(model_name: str, run_name: str | None = None) -> Path | 
     checkpoints = list(out_dir.glob("checkpoint-*/trainer_state.json"))
     if not checkpoints:
         return None
+
     def _step(p: Path) -> int:
         try:
             return int(p.parent.name.replace("checkpoint-", ""))
         except ValueError:
             return 0
+
     return max(checkpoints, key=_step)
 
 
@@ -93,7 +104,11 @@ def _replay_log_history_to_wandb(state_path: Path) -> None:
         if step is None:
             continue
         # Log only scalar metrics (skip non-numeric)
-        metrics = {k: v for k, v in entry.items() if k != "step" and isinstance(v, (int, float))}
+        metrics = {
+            k: v
+            for k, v in entry.items()
+            if k != "step" and isinstance(v, (int, float))
+        }
         if metrics:
             wandb.log(metrics, step=step)
 
@@ -157,7 +172,7 @@ def run_experiment(
     preprocessor = get_preprocessor("basic", tokenizer=tokenizer, max_length=512)
     use_expanded_pos = bool(config.get("expanded_pos_path"))
     # Use exponential sampler when training with expanded positives (multi-tier relevance)
-    sampler_cls = get_sampler("exponential" if use_expanded_pos else "shifter")
+    sampler_cls = get_sampler("exponential" if use_expanded_pos else "basicv2") #TODO CHANGE ME
 
     iterator = get_iterator(
         mode=config["mode"],
@@ -207,9 +222,7 @@ def run_experiment(
     eval_ds = (
         eval_pointwise
         if config["mode"] == "pointwise"
-        else eval_multi_neg
-        if config["mode"] == "multi_neg_pairwise"
-        else eval_pairwise
+        else eval_multi_neg if config["mode"] == "multi_neg_pairwise" else eval_pairwise
     )
 
     trainer = trainer_cls(
@@ -232,17 +245,14 @@ def run_experiment(
 
     if config.get("full_data", True):
         # RECREATE THE TEST DATASET WITH THE VALIDATION
-        _, test_ds, _, _, _ = (
-            create_bioASQ_datasets(
-                positive_data_path=train_pos_path,
-                all_data_path=config["train_neg_path"],
-                iterator=iterator,
-                test_sample_preprocessing=preprocessor,
-                val_files=config["val_files"],
-                use_expanded_pos=use_expanded_pos,
-            )
+        _, test_ds, _, _, _ = create_bioASQ_datasets(
+            positive_data_path=train_pos_path,
+            all_data_path=config["train_neg_path"],
+            iterator=iterator,
+            test_sample_preprocessing=preprocessor,
+            val_files=config["val_files"],
+            use_expanded_pos=use_expanded_pos,
         )
-
 
     test_dataloader = DataLoader(
         test_ds,
@@ -284,7 +294,9 @@ def run_experiment(
     return results
 
 
-def run_inference_only(model_name: str, config: dict, run_name: str | None = None) -> dict:
+def run_inference_only(
+    model_name: str, config: dict, run_name: str | None = None
+) -> dict:
     """Run inference (and evaluation). Skips training.
 
     Loads from output_dir checkpoint if found; otherwise uses the base model.
@@ -299,7 +311,9 @@ def run_inference_only(model_name: str, config: dict, run_name: str | None = Non
         latest_ckpt = _find_latest_checkpoint(model_path)
         if latest_ckpt is not None:
             load_path = str(latest_ckpt)
-        elif (model_path / "model.safetensors").exists() or (model_path / "pytorch_model.bin").exists():
+        elif (model_path / "model.safetensors").exists() or (
+            model_path / "pytorch_model.bin"
+        ).exists():
             load_path = str(model_path)
 
     print(f"--- Inference-only for: {model_name} (loading from {load_path}) ---")
@@ -386,7 +400,7 @@ if __name__ == "__main__":
     #   - dict: {"model": "base-model-id", "checkpoint": "path/to/checkpoint-500"} to resume from checkpoint
     MODELS_TO_TEST = [
         "ncbi/MedCPT-Cross-Encoder",
-        #{"model": "ncbi/MedCPT-Cross-Encoder", "checkpoint": "./outputs-E5-Pairwise/ncbi_MedCPT-Cross-Encoder/checkpoint-6375"},
+        # {"model": "ncbi/MedCPT-Cross-Encoder", "checkpoint": "./outputs-E5-Pairwise/ncbi_MedCPT-Cross-Encoder/checkpoint-6375"},
         "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
         # {"model": "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext", "checkpoint": "./outputs-E5-Pairwise/microsoft_BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext/checkpoint-6375"},
         # "dmis-lab/biobert-base-cased-v1.2",
@@ -395,12 +409,12 @@ if __name__ == "__main__":
         "michiyasunaga/BioLinkBERT-base",
         "michiyasunaga/BioLinkBERT-large",
         "pritamdeka/S-PubMedBert-MS-MARCO",
-        #{"model": "pritamdeka/S-PubMedBert-MS-MARCO", "checkpoint": "./outputs-E5-Pairwise/pritamdeka_S-PubMedBert-MS-MARCO/checkpoint-6375"},
+        # {"model": "pritamdeka/S-PubMedBert-MS-MARCO", "checkpoint": "./outputs-E5-Pairwise/pritamdeka_S-PubMedBert-MS-MARCO/checkpoint-6375"},
         # "cambridgeltl/SapBERT-from-PubMedBERT-fulltext",
         "monologg/biobert_v1.1_pubmed",
         # {"model": "monologg/biobert_v1.1_pubmed", "checkpoint": "./outputs-E5-Pairwise/monologg_biobert_v1.1_pubmed/checkpoint-6375"},
         "nboost/pt-biobert-base-msmarco",
-        #{"model": "nboost/pt-biobert-base-msmarco", "checkpoint": "./outputs-E5-Pairwise/nboost_pt-biobert-base-msmarco/checkpoint-6375"},
+        # {"model": "nboost/pt-biobert-base-msmarco", "checkpoint": "./outputs-E5-Pairwise/nboost_pt-biobert-base-msmarco/checkpoint-6375"},
         # "allenai/specter2_base",
         "cross-encoder/ms-marco-MiniLM-L-6-v2",
         # {"model": "cross-encoder/ms-marco-MiniLM-L-6-v2", "checkpoint": "./outputs-E5-Pairwise/cross-encoder_ms-marco-MiniLM-L-6-v2/checkpoint-6375"},
@@ -422,15 +436,20 @@ if __name__ == "__main__":
         "learning_rate": 2e-5,
         "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
         "train_neg_path": "../../data/negatives.jsonl",
-        # "expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",  # Use when training with expanded positives
+        #"expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",  # Use when training with expanded positives
         "full_data": True,
         # Train on val (13B1+13B2); hold out 13B3 for evaluation
-        "val_files": ["../../data/val_data/13B3_golden.json", "../../data/val_data/13B1_golden.json", "../../data/val_data/13B2_golden.json", "../../data/val_data/13B4_golden.json"],
+        "val_files": [
+            "../../data/val_data/13B3_golden.json",
+            "../../data/val_data/13B1_golden.json",
+            "../../data/val_data/13B2_golden.json",
+            "../../data/val_data/13B4_golden.json",
+        ],
         # "force_retrain": True,
     }
     failed_models = []
     all_results = {}
-    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-FullData{full_data}{expanded}"
+    run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-FullData{full_data}-{expanded}-{sampler}"
     for entry in MODELS_TO_TEST:
         if isinstance(entry, dict):
             model_name = entry["model"]
@@ -446,13 +465,18 @@ if __name__ == "__main__":
             mode=CONFIG["mode"],
             full_data=CONFIG["full_data"],
             expanded="-Expanded" if CONFIG.get("expanded_pos_path") else "",
+            sampler="Exponential" if CONFIG.get("use_expanded_pos") else "BasicV2", #TODO CHANGE ME
         )
         try:
             if args.inference_only:
                 results = run_inference_only(model_name, CONFIG, run_name=run_name)
                 all_results[model_name] = results["total"]
             else:
-                cached = None if CONFIG.get("force_retrain") else _load_cached_results(model_name, run_name)
+                cached = (
+                    None
+                    if CONFIG.get("force_retrain")
+                    else _load_cached_results(model_name, run_name)
+                )
                 if cached is not None:
                     print(f"--- Skipping (cached): {model_name} ---")
                     _log_results_to_wandb(run_name, cached, model_name)
@@ -469,7 +493,7 @@ if __name__ == "__main__":
         finally:
             if not args.inference_only:
                 wandb.finish()
-    
+
     print(f"Failed models: {failed_models}")
     # Save a master JSON with all model comparisons
     with open("all_models_evaluation.json", "a") as f:

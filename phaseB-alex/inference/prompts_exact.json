@@ -1,0 +1,74 @@
+{
+  "yesno": {
+    "1": {
+      "description": "Yes/no exact answer only. Chain-of-thought reasoning, then a single JSON with exact_answer yes or no.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a yes/no question.\n\nRead the abstracts carefully. Before answering:\n1. List the evidence that supports \"yes\".\n2. List the evidence that supports \"no\".\n3. Weigh both sides — do not default to \"yes\" if the evidence is mixed or weak.\n\nThen output only this JSON (no markdown):\n{{\"exact_answer\": \"yes\"}}\nor\n{{\"exact_answer\": \"no\"}}\n\nQuestion: {question}\n\n{context}"
+    },
+    "2": {
+      "description": "Null hypothesis framing. Treats 'yes' as a claim that must be proven by the abstracts; defaults to 'no' if evidence is absent, mixed, or inconclusive. Designed to reduce yes-bias.",
+      "template": "Act as a biomedical expert conducting a critical appraisal. You will receive several abstracts and a yes/no question.\n\nApply a null hypothesis stance: assume the answer is \"no\" unless the abstracts provide clear, direct evidence to the contrary. Absence of evidence, mixed results, or weak associations should all be treated as insufficient to overturn the null.\n\nReason through the abstracts, then output only this JSON (no markdown):\n{{\"exact_answer\": \"yes\"}}\nor\n{{\"exact_answer\": \"no\"}}\n\nQuestion: {question}\n\n{context}"
+    },
+    "3": {
+      "description": "Blind verdict framing. Model first writes a single neutral sentence summarising what the abstracts collectively say, then commits to yes or no. Avoids pro/con list structure that anchors toward yes.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a yes/no question.\n\nFirst, write one sentence summarising what the abstracts collectively show — without yet committing to an answer. Then, based solely on that summary, decide yes or no.\n\nOutput your summary sentence followed by only this JSON (no markdown):\n{{\"exact_answer\": \"yes\"}}\nor\n{{\"exact_answer\": \"no\"}}\n\nQuestion: {question}\n\n{context}"
+    },
+    "4": {
+      "description": "Claim-linked verdict. Model writes one sentence explicitly stating whether the abstracts support or contradict the specific claim in the question, then answers yes or no. Ensures the summary is grounded in the question rather than a generic abstract summary.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a yes/no question.\n\nThe question makes a specific claim. In one sentence, state whether the abstracts support, contradict, or are inconclusive about that specific claim. Then answer yes or no based on that sentence — answer \"yes\" only if the abstracts clearly support the claim.\n\nOutput your sentence followed by only this JSON (no markdown):\n{{\"exact_answer\": \"yes\"}}\nor\n{{\"exact_answer\": \"no\"}}\n\nQuestion: {question}\n\n{context}"
+    }
+  },
+
+  "factoid": {
+    "1": {
+      "description": "Factoid exact answer only. Up to 5 candidate named entities ranked by likelihood.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a factoid question asking for a specific named entity (e.g. a gene, drug, disease, protein).\n\nRead the abstracts, reason through the evidence, then output only this JSON (no markdown):\n{{\"exact_answer\": [\"best answer\", \"second best\", \"third\"]}}\n\nInclude up to 5 candidates ranked by likelihood. Use the exact names as they appear in the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "2": {
+      "description": "Rank-1 confidence. Model first identifies the single most directly supported entity from the abstracts and commits to it, then lists up to 4 alternatives. Designed to push the correct answer to rank 1 and improve SAcc/MRR.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a factoid question asking for a specific named entity (e.g. a gene, drug, disease, protein).\n\nFirst, identify the one entity that the abstracts most directly and explicitly support as the answer. Commit to it — do not hedge. Then list up to 4 alternative candidates in decreasing order of support.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [\"most supported entity\", \"alternative 2\", \"alternative 3\"]}}\n\nUse exact names as they appear in the abstracts. The first entry must be your strongest single answer.\n\nQuestion: {question}\n\n{context}"
+    },
+    "3": {
+      "description": "Exhaustive coverage. Model explicitly identifies what type of entity the question asks for, then scans every abstract for matching entities before ranking. Designed to improve LAcc by reducing missed answers.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a factoid question asking for a specific named entity.\n\nFirst, state in one sentence what type of entity the question is asking for (e.g. 'The question asks for a drug name'). Then scan every abstract for entities of that type that answer the question. Rank them by how directly and explicitly they are supported.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [\"best answer\", \"second best\", \"third\"]}}\n\nInclude up to 5 candidates. Use exact names as they appear in the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "4": {
+      "description": "Abstract-grounded factoid. Explicitly forbids answering from prior knowledge — every candidate must be traceable to a specific statement in the provided abstracts. Targets confabulation, which is especially common in factoid questions where the model is confident it knows the answer.",
+      "template": "Act as a biomedical expert performing evidence extraction. You will receive several abstracts and a factoid question.\n\nImportant: answer only from the provided abstracts. Do not use prior knowledge, even if you are confident in it. If the abstracts do not explicitly state an answer, say so.\n\nFor each abstract, note any entity that directly answers the question. Then rank your candidates by how explicitly and frequently they appear across the abstracts.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [\"entity most explicitly supported by abstracts\", \"second candidate if supported by a different abstract\", \"third if applicable\"]}}\n\nInclude up to 5 candidates. Use exact names as they appear in the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "5": {
+      "description": "Reformulation-then-retrieve. Model first rewrites the question as a fill-in-the-blank statement to narrow the semantic target, then retrieves candidates using the clean baseline format. Combines the coverage benefit of slot-filling reformulation with straightforward ranked extraction.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a factoid question asking for a specific named entity.\n\nFirst, rewrite the question as a fill-in-the-blank statement (e.g. 'What drug treats X?' → 'The drug that treats X is ___'). Then read the abstracts and list up to 5 entity candidates that fill the blank, ranked by how directly they are supported.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [\"best answer\", \"second best\", \"third\"]}}\n\nUse exact names as they appear in the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "6": {
+      "description": "Fill-in-the-blank reformulation. Model first rewrites the question as a fill-in-the-blank statement, then scans each abstract for what fills the blank. Reframes open retrieval as targeted slot-filling, producing more precise extractions.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a factoid question asking for a specific named entity.\n\nFirst, rewrite the question as a fill-in-the-blank statement (e.g. 'What drug treats X?' → 'The drug that treats X is ___'). Then scan each abstract for text that fills the blank. Rank up to 5 candidates by how explicitly they fill it.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [\"best answer\", \"second best\", \"third\"]}}\n\nUse exact names as they appear in the abstracts.\n\nQuestion: {question}\n\n{context}"
+    }
+  },
+
+  "list": {
+    "1": {
+      "description": "List exact answer only. All relevant entities as a nested list, each wrapped in its own array.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a list question asking you to enumerate all relevant entities (e.g. all drugs, all genes, all diseases mentioned).\n\nRead the abstracts carefully and collect every relevant entity. Then output only this JSON (no markdown):\n{{\"exact_answer\": [[\"entity one\"], [\"entity two\"], [\"entity three\"]]}}\n\nEach entity must be wrapped in its own array. Use exact names from the abstracts. Do not omit any relevant entity.\n\nQuestion: {question}\n\n{context}"
+    },
+    "2": {
+      "description": "Per-abstract enumeration then merge. Model lists qualifying entities from each abstract individually before deduplicating into a final answer. Prevents early stopping by forcing exhaustive coverage of every abstract.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a list question asking you to enumerate all relevant entities.\n\nFor each abstract, list every entity that directly answers the question (write 'none' if an abstract has no relevant entity). Then merge all lists, remove duplicates, and produce the final answer.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [[\"entity one\"], [\"entity two\"], [\"entity three\"]]}}\n\nEach entity must be wrapped in its own array. Use exact names from the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "3": {
+      "description": "Recall-biased inclusion. Model is explicitly instructed to err on the side of inclusion — if unsure whether an entity qualifies, include it. Targets the coverage gap by pushing recall up, justified by the near-symmetric P/R balance in the baseline.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a list question asking you to enumerate all relevant entities.\n\nRead every abstract carefully. Collect all entities that answer the question. If you are unsure whether an entity qualifies, include it — it is better to include a borderline entity than to miss a correct one.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [[\"entity one\"], [\"entity two\"], [\"entity three\"]]}}\n\nEach entity must be wrapped in its own array. Use exact names from the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "4": {
+      "description": "Entity type anchoring + exhaustive scan. Model first declares the type of entity the question asks for, then enumerates exhaustively within that category. Keeps precision high by filtering out irrelevant entity types while allowing full coverage within the right category.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a list question asking you to enumerate all relevant entities.\n\nFirst, in one sentence state what type of entity the question is asking for (e.g. 'This question asks for a list of drug names'). Then scan every abstract and collect all entities of that type that answer the question. Do not omit any.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [[\"entity one\"], [\"entity two\"], [\"entity three\"]]}}\n\nEach entity must be wrapped in its own array. Use exact names from the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "5": {
+      "description": "Precision-focused verify-then-include. Model collects all candidate entities first, then explicitly verifies each one against the question before including it in the final answer. Targets the precision gap by filtering out tangentially related entities that the baseline includes incorrectly.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a list question asking you to enumerate all relevant entities.\n\nFirst, collect every candidate entity mentioned in the abstracts that might answer the question. Then, for each candidate, ask: does this entity directly answer the question, or is it only tangentially related? Include only the ones that directly answer it.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [[\"entity one\"], [\"entity two\"], [\"entity three\"]]}}\n\nEach entity must be wrapped in its own array. Use exact names from the abstracts.\n\nQuestion: {question}\n\n{context}"
+    },
+    "6": {
+      "description": "Broad sweep then verify. Combines recall-biased collection (p3) with precision-focused verification (p5). Step 1: collect all candidates including borderline ones — if unsure, include. Step 2: verify each against the question and remove anything only tangentially related. Aims to recover recall lost in p5 while preserving its precision gain.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and a list question asking you to enumerate all relevant entities.\n\nStep 1 — Collect broadly: scan every abstract and list every entity that could answer the question. If unsure whether an entity qualifies, include it.\nStep 2 — Verify: for each collected entity, ask: does this directly answer the question, or is it only tangentially related? Remove the tangential ones.\n\nOutput only the verified entities as this JSON (no markdown):\n{{\"exact_answer\": [[\"entity one\"], [\"entity two\"], [\"entity three\"]]}}\n\nEach entity must be wrapped in its own array. Use exact names from the abstracts.\n\nQuestion: {question}\n\n{context}"
+    }
+  }
+}

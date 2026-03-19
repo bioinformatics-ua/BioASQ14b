@@ -463,7 +463,6 @@ def _run_dict_to_bioasq_format(
 @app.command()
 def inference(
     model_name: Annotated[str, typer.Option(help="Model or checkpoint path")],
-    revision: Annotated[str, typer.Option(help="Revision of the model")],
     questions_path: Annotated[
         Path, typer.Option(help="JSON with questions in BioASQ format")
     ],
@@ -488,31 +487,23 @@ def inference(
     infer_dtype = _resolve_inference_dtype(inference_dtype)
 
     questions_by_id: dict[str, dict] = {}
-    with questions_path.open("rb") as f:
-        raw = f.read()
-    try:
-        questions_data = orjson.loads(raw)
+    if questions_path.suffix.lower() == ".jsonl":
+        with questions_path.open("rb") as f:
+            for q in map(orjson.loads, f):
+                questions_by_id[str(q["id"])] = q
+    else:
+        with questions_path.open("rb") as f:
+            questions_data = orjson.loads(f.read())
         questions_by_id = {str(q["id"]): q for q in questions_data["questions"]}
-    except (orjson.JSONDecodeError, KeyError):
-        for line in raw.splitlines():
-            line = line.strip()
-            if not line:
-                continue
-            q = orjson.loads(line)
-            questions_by_id[str(q["id"])] = q
 
-    tokenizer = AutoTokenizer.from_pretrained(
-        model_name, revision=revision, trust_remote_code=True
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     tokenizer.model_max_length = max_length
-    config = AutoConfig.from_pretrained(
-        model_name, revision=revision, trust_remote_code=True
-    )
+
+    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
     model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
         config=config,
         trust_remote_code=True,
-        revision=revision,
         torch_dtype=infer_dtype,
     )
     _sanitize_position_ids_buffers(model)
@@ -550,16 +541,15 @@ def inference(
         amp_dtype=infer_dtype,
     )
 
-    # bioasq_out = _run_dict_to_bioasq_format(
-    #     run_dict,
-    #     questions_by_id=questions_by_id,
-    #     top_k=top_k,
-    # )
+    bioasq_out = _run_dict_to_bioasq_format(
+        run_dict,
+        questions_by_id=questions_by_id,
+        top_k=top_k,
+    )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "wb") as f:
-        # json.dump(run_dict, f, indent=2)
-        f.write(orjson.dumps(run_dict))
+    with open(output_path, "w") as f:
+        json.dump(bioasq_out, f, indent=2)
 
     typer.echo(f"Predictions saved to {output_path}")
 

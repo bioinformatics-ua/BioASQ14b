@@ -1,3 +1,7 @@
+*.log
+*.out
+.env
+data/db_baselines
 data/*/pubmed_baseline_*.jsonl
 data/*/ids_per_baseline_*.p
 data/*/log_download_baseline*.txt
@@ -9,6 +13,8 @@ data/ids_per_baseline.json
 data/not_found.jsonl
 data/dense_vectors* 
 data/negatives*.jsonl
+data/lookup*.json
+data/BioASQ-task*bPhase*-testset*.json
 
 data/quality
 !data/quality/.keep
@@ -32,7 +38,10 @@ outputs/Batch04
 
 hard_negatives*.jsonl
 
-phaseA-reranker/__pycache__
+phaseA-BM25/Batch01
+
+
+__pycache__
 phaseA-reranker/HF_CACHE
 
 phaseA-reranker/trained_models_tmp
@@ -40,10 +49,18 @@ phaseA-reranker/trained_models_b01
 phaseA-reranker/trained_models_b02_val
 
 phaseA-reranker/**/wandb
+phaseA-reranker/refactored-trainer/all_models_evaluation*.json
+phaseA-reranker/**/*.json*
+phaseA-reranker/refactored-trainer/inference_batch1_2025
+phaseA-reranker/**/runs_bioasq_format
+phaseA-reranker/**/runs_bioasq_format_hydrated
 phaseA-reranker/**/outputs*
 phaseA-reranker/**/all_models_evaluation.json
 phaseA-reranker/**/train.log
 phaseA-reranker/wandb
+phaseA-reranker/dprf/*.json
+phaseA-reranker/dprf_bak/*.json
+
 
 phaseA-reranker/.api
 
@@ -51,6 +68,10 @@ phaseA-reranker/test.ipynb
 phaseA-reranker/val_results_b02*.jsonl
 
 phaseB/test.ipynb
+phaseB/dev
+phaseB/batch01
+phaseB-alex/batch01
+phaseB-alex/dev
 
 scripts/B01
 scripts/B02

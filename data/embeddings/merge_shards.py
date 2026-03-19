@@ -43,6 +43,8 @@ def main(
         with shard_file.open("rb") as f:
             indexes0, indexes1, scores = np.load(f, allow_pickle=False).T
             for idx0, idx1, score in zip(indexes0, indexes1, scores):
+                if score < 0.9:
+                    continue
                 if idx0 in collection and idx1 in collection:
                     pmid0 = collection[idx0]
                     pmid1 = collection[idx1]

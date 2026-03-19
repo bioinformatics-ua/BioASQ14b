@@ -36,7 +36,8 @@ def main(run_path, testset):
             }
         )
 
-    outdir = f"{os.path.dirname(run_path)}/runs_bioasq_format"
+    outdir = f"./runs_bioasq_format"
+    os.makedirs(outdir, exist_ok=True)
     outfile_name = os.path.basename(run_path)
     path_to_w = os.path.join(outdir, outfile_name)
     print(path_to_w)

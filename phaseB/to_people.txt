@@ -1,0 +1,92 @@
+/home/ucloud/BioASQ13B/phaseB/inference/prompts_generic.json -> this is promtps file.
+
+
+last year we had the 5 promtps, new ones this year are 6,7
+
+the pipelein last year was run inference over different prompts (1,4,5) with varying context seize (3,5,10 abstracts) and pipe all outputs into summaries.
+
+
+I think we should keep a similar idea, 
+
+
+
+
+
+ Maybe we dont need all of them these are some ideas
+
+
+closed source
+
+Claude Opus
+GPT
+gemini flash 2.5
+
+open source
+
+Qwen/Qwen3.5-35B-A3B
+
+nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+
+medgemma-3-27b
+
+gemma-3-27b
+
+nvidia-llama-3.3-nemotron-super-49b-v1.5
+
+llama-3.1-nemotron-70b-instruct (last year model)
+
+nvidia-nemotron-3-super-120b-a12b -> if runnable
+
+
+in terms of summaries we used 2 prompts only i will come back
+
+
+### EXACT ANSWERS (Best Configurations for Single Prompt/Model Inference):
+
+Open Source Models has problems with parsing all outputs in the strict JSON format making cloud models a more consistent solution for this
+
+# Yes/No:
+    - Prompt 4
+    - Gemini 2.0 flash
+    - 5 abstracts
+    - 0.0 temperature
+
+    - 1.0 Macro F1
+
+# Factoid:
+    - Prompt 3 or 5
+    - Gemini 2.0 flash
+    - 10 abstracts
+        - Increase in abstracts increases evaluation scores. Though, 15 abstracts kills some prompts.
+    - 0.0 temperature
+
+    - 0.5577 MRR
+
+# List:
+    - Prompt 6
+    - Gemini 2.0 flash
+    - 5-10 abstracts
+        - Optimal is 6 abstracts for this specific validation configuration
+    - 0.0 temperature
+
+    - 0.4149 F-Measure
+
+    ---------------------
+    - Prompt 6
+    - Qwen3 Max thinking
+    - 5-10 abstracts
+        - Optimal is 7 abstracts for this specific validation configuration
+        - Increase in no. of abstracts puts more weight on recall and less weight on precision
+    - 0.0 temperature
+
+    - 0.4569 F-Measure
+    
+    ---------------------
+    - Prompt 6
+    - Hunter Alpha
+    - 5-10 abstracts
+        - Optimal is 6 abstracts for this specific validation configuration
+        - Increase in no. of abstracts puts more weight on recall and less weight on precision
+    - 0.0 temperature
+
+    - 0.4277 F-Measure

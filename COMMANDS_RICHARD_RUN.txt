@@ -1,0 +1,16 @@
+python testset_inference.py /home/ucloud/BioASQ13B/phaseA-BM25/Batch01/BioASQ-task14bPhaseA-testset1 /home/ucloud/BioASQ13B/phaseA-BM25/Batch01/b01.json --add_contents
+
+
+$ 
+
+1 - 0.64>bioasq-map
+2        + dprf
+3 - all trained (minus basaicv2) (dprf)
+4 - 2025 models (dprf)
+5 - all (dprf)
+
+
+
+phase a+ 
+
+2        + dprf

@@ -1,4 +1,5 @@
 import random
+from pathlib import Path
 from typing import cast
 
 import torch
@@ -409,6 +410,8 @@ class BioASQInferenceDataset(torch.utils.data.Dataset[ProcessedSample]):
                 _key = "bm25"
             elif "neg_docs" in q_data.keys():
                 _key = "neg_docs"
+            elif "documents" in q_data.keys():
+                _key = "documents"
 
             if _key is None:
                 continue
@@ -682,6 +685,69 @@ def create_bioASQ_datasets(
             neg_as_list=True,
         )
     return train_ds, test_ds, eval_pointwise, eval_pairwise, eval_multi_neg
+
+
+def create_inference_dataset_from_bioasq_json(
+    path: str | Path,
+    sample_preprocessing: BasicSamplePreprocessing,
+    max_docs: int = 999999999,
+) -> BioASQInferenceDataset:
+    """Load questions with document candidates from BioASQ JSON or JSONL for inference.
+
+    JSON format: {"questions": [{"id", "body", "documents"|"neg_docs"|"bm25"}]}
+    JSONL format: one object per line with {"id", "query_text"|"body", "neg_docs"|"bm25"}
+    Each doc in the candidates list must have {"id": str, "text": str}.
+    """
+    path = Path(path)
+    raw: list[dict] = []
+
+    if path.suffix.lower() == ".jsonl":
+        with open(path) as f:
+            for line in f:
+                if not line.strip():
+                    continue
+                q = orjson.loads(line)
+                query_text = str(q.get("body", q.get("query_text", "")))
+                docs_key = _get_docs_key(q)
+                if docs_key is None:
+                    continue
+                raw.append(
+                    {"id": str(q["id"]), "query_text": query_text, docs_key: q[docs_key]}
+                )
+    else:
+        with open(path) as f:
+            data = orjson.loads(f.read())
+        for q in data["questions"]:
+            query_text = str(q.get("body", q.get("query_text", "")))
+            docs_key = _get_docs_key(q)
+            if docs_key is None:
+                continue
+            raw.append(
+                {"id": str(q["id"]), "query_text": query_text, docs_key: q[docs_key]}
+            )
+
+    return BioASQInferenceDataset(
+        dataset_=raw,
+        qrels_dict={},
+        sample_preprocessing=sample_preprocessing,
+        add_labels=False,
+        max_docs=max_docs,
+    )
+
+
+def _get_docs_key(q: dict) -> str | None:
+    """Return the key for document candidates (documents, neg_docs, bm25) or None."""
+    for key in ("documents", "neg_docs", "bm25"):
+        if key not in q or not q[key]:
+            continue
+        docs = q[key]
+        first = docs[0]
+        if isinstance(first, str):
+            continue
+        if "text" not in first or "id" not in first:
+            continue
+        return key
+    return None
 
 
 def create_test_dataset(
