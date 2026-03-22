@@ -37,7 +37,17 @@ fi
     # deepseek/deepseek-v3.2
     # openai/gpt-oss-120b
     # openai/gpt-oss-20b
+
     # nvidia/nemotron-3-super-120b-a12b:free
+    # nvidia/nemotron-3-nano-30b-a3b:free
+    # google/gemma-3-27b-it:free
+    # minimax/minimax-m2.5:free
+    # mistralai/mistral-small-3.1-24b-instruct:free
+    # meta-llama/llama-3.3-70b-instruct:free
+    # openai/gpt-oss-120b:free
+    # qwen/qwen3-next-80b-a3b-instruct:free
+    # arcee-ai/trinity-large-preview:free
+    # stepfun/step-3.5-flash:free
 
     # google/medgemma-27b-text-it
     # qwen/qwen3-32b
@@ -89,32 +99,64 @@ fi
     # --- Best Models ---
     # google/gemini-2.0-flash-001
     # qwen/qwen3-max-thinking
+    # openai/gpt-oss-120b
+    # anthropic/claude-sonnet-4-6
+
     # nvidia/nemotron-3-super-120b-a12b:free
+    # nvidia/nemotron-3-nano-30b-a3b:free
+    # google/gemma-3-27b-it:free
+    # minimax/minimax-m2.5:free
+    # mistralai/mistral-small-3.1-24b-instruct:free
+    # meta-llama/llama-3.3-70b-instruct:free
+    # openai/gpt-oss-120b:free
+    # qwen/qwen3-next-80b-a3b-instruct:free
+    # arcee-ai/trinity-large-preview:free
+    # stepfun/step-3.5-flash:free
 
-MODEL="openai/gpt-oss-120b"
+    # google/medgemma-27b-text-it
+    # google/gemma-3-27b-it
+    # qwen/qwen3-32b
+    # Qwen/Qwen3.5-27B
+    # deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
+    # meta-llama/Llama-3.1-8B-Instruct
+    # openai/gpt-oss-20b
+    # mistralai/Mistral-7B-Instruct-v0.3
 
-PROMPT_ID="6"
+    # minimax/minimax-m2.5
+    # deepseek/deepseek-v3.2
+    # moonshotai/kimi-k2.5
+    # openai/gpt-oss-120b
+    # xiaomi/mimo-v2-flash
+
+    # deepseek/deepseek-v3.2
+    # qwen/qwen3-235b-a22b-2507
+
+MODEL="qwen/qwen3-235b-a22b-2507"
+
+PROMPT_ID="3"
 
 BACKEND="openrouter"         # local / openrouter
-CONTEXT_SOURCE="abstracts"   # abstracts (Phase A+) / snippets (Phase B)
+CONTEXT_SOURCE="snippets"   # abstracts (Phase A+) / snippets (Phase B)
+
+# Which types to run — space-separated subset of: yesno factoid list
+TYPES="factoid"
+
+DATASET="batch01-phaseB"                  # dev / batch01 / batch01-phaseB
 
 # ----------------------------------------
 # INFERENCE SETTINGS
 # ----------------------------------------
 
-NUM_CONTEXT=6
-MAX_TOKENS=
-TEMPERATURE=0.0
+NUM_CONTEXT=10
+MAX_TOKENS=4098
+TEMPERATURE=0.7
+REQUEST_DELAY=0.0          # seconds between requests — set to 4.0 for free OpenRouter models, 0.0 for paid
 
 # GPU settings (only used when BACKEND=local)
 TENSOR_PARALLEL_SIZE=2
-GPU_MEMORY_UTILIZATION=0.95
+GPU_MEMORY_UTILIZATION=0.85
 MAX_MODEL_LEN=8192
-
-# Which types to run — space-separated subset of: yesno factoid list
-TYPES="list"
-
-DATASET="batch01"                  # dev / batch01
+ENFORCE_EAGER=true   # true = disable CUDAGraphs/torch.compile (safer, slower); false = faster inference
 
 # ----------------------------------------
 # PATHS
@@ -124,6 +166,8 @@ if [ "$DATASET" = "dev" ]; then
     INPUT="${REPO_DIR}/../data/val_data/13B1_golden_documents.jsonl"
 elif [ "$DATASET" = "batch01" ]; then
     INPUT="/home/ucloud/BioASQ13B/phaseA-reranker/runs_bioasq_format_hydrated/submission1-0.64_hydrated.jsonl"
+elif [ "$DATASET" = "batch01-phaseB" ]; then
+    INPUT="/home/ucloud/BioASQ13B/data/BioASQ-task14bPhaseB-testset1_hydrated.jsonl"
 fi
 
 MODEL_SLUG=$(echo "$MODEL" | tr '/' '-' | tr '.' '-')
@@ -163,6 +207,9 @@ echo "========================================"
 # STEP 1 — Inference
 # ----------------------------------------
 
+EAGER_FLAG=""
+[ "$ENFORCE_EAGER" = "true" ] && EAGER_FLAG="--enforce-eager"
+
 uv run python "${REPO_DIR}/inference/run_exact.py" \
     --input                  "$INPUT" \
     --output                 "$OUTPUT" \
@@ -176,6 +223,8 @@ uv run python "${REPO_DIR}/inference/run_exact.py" \
     --tensor-parallel-size   "$TENSOR_PARALLEL_SIZE" \
     --gpu-memory-utilization "$GPU_MEMORY_UTILIZATION" \
     --max-model-len          "$MAX_MODEL_LEN" \
+    $EAGER_FLAG \
+    --request-delay          "$REQUEST_DELAY" \
     --types                  $TYPES
 
 echo "[1/2] Inference done."

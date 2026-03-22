@@ -1,0 +1,196 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      "82-144/million",
+      "150-280/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"82-144/million\", \"150-280/million\"]}\n```"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      "mesenchymal",
+      "mesenchymal subtype",
+      "mesenchymal molecular subtype",
+      "mesenchymal-like",
+      "MES-like"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"mesenchymal\", \"mesenchymal subtype\", \"mesenchymal molecular subtype\", \"mesenchymal-like\", \"MES-like\"]}\n```"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      "between 3 and 46%",
+      "21 (65.6%)",
+      "15% to 25%",
+      "5 and 20%",
+      "27.4%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"between 3 and 46%\", \"21 (65.6%)\", \"15% to 25%\", \"5 and 20%\", \"27.4%\"]}\n```"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      "aberrant lysosomal function",
+      "mutated gene",
+      "homozygous pathogenic mutation in the progranulin gene (GRN)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"aberrant lysosomal function\", \"mutated gene\", \"homozygous pathogenic mutation in the progranulin gene (GRN)\"]}\n```"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      "2 to 8 per million people annually",
+      "2-4 cases per million inhabitants per year",
+      "between 1.2 and 2.4 cases per million inhabitants per year"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"2 to 8 per million people annually\", \"2-4 cases per million inhabitants per year\", \"between 1.2 and 2.4 cases per million inhabitants per year\"]}\n```"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      "solar radiation",
+      "Solar radiation",
+      "ultraviolet radiation (UVR)",
+      "solar UV radiation"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"solar radiation\", \"Solar radiation\", \"ultraviolet radiation (UVR)\", \"solar UV radiation\"]}\n```"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      "41%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"41%\"]}\n```"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      "the diagnosis and follow-up of hair and scalp disorders",
+      "evaluate the causes of focal non-cicatricial alopecia",
+      "hair examination",
+      "early diagnosis of the disease",
+      "decoding the underlying tricoscopic condition"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"the diagnosis and follow-up of hair and scalp disorders\", \"evaluate the causes of focal non-cicatricial alopecia\", \"hair examination\", \"early diagnosis of the disease\", \"decoding the underlying tricoscopic condition\"]}\n```"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      "3"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"3\"]}\n```"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      "B cells"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"B cells\"]}\n```"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      "30 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"30 months\"]}\n```"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      "to slow the loss of ambulation in pediatric patients with CLN2",
+      "treatment of motor function loss in paediatric patients \u22653 years of age with CLN2",
+      "for CLN2 in all ages",
+      "to slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"to slow the loss of ambulation in pediatric patients with CLN2\", \"treatment of motor function loss in paediatric patients \u22653 years of age with CLN2\", \"for CLN2 in all ages\", \"to slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)\"]}\n```"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      "glucose",
+      "glutamine",
+      "lactate",
+      "lipids",
+      "fructose"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"glucose\", \"glutamine\", \"lactate\", \"lipids\", \"fructose\"]}\n```"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      "between 150-280/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"between 150-280/million\"]}\n```"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      "Parkinson's disease"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"Parkinson's disease\"]}"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      "2\u2009years",
+      "34 months",
+      "over 2 years",
+      "24 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"2\u2009years\", \"34 months\", \"over 2 years\", \"24 months\"]}\n```"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      "hearing"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"hearing\"]}\n```"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      "psychosine"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"psychosine\"]}\n```"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"14 months\"]}\n```"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      "approximately 40 %",
+      "21.5%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"approximately 40 %\", \"21.5%\"]}\n```"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      "38 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"38 months\"]}\n```"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      "trans-sphenoidal surgery (TSS)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"trans-sphenoidal surgery (TSS)\"]}\n```"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      "Cushing's disease is caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland",
+      "Endogenous Cushing's syndrome is caused either by excess ACTH secretion or by autonomous cortisol release from the adrenal cortex",
+      "Differentiating a pituitary source of excess ACTH (Cushing's disease) from an ectopic source is accomplished by imaging the pituitary and sampling for ACTH in the venous drainage of the pituitary"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"Cushing's disease is caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland\", \"Endogenous Cushing's syndrome is caused either by excess ACTH secretion or by autonomous cortisol release from the adrenal cortex\", \"Differentiating a pituitary source of excess ACTH (Cushing's disease) from an ectopic source is accomplished by imaging the pituitary and sampling for ACTH in the venous drainage of the pituitary\"]}\n```"
+  }
+}

@@ -1,0 +1,195 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      "82-144/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"82-144/million\"\n ]\n}\n```"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      "mesenchymal (MES) subtype",
+      "mesenchymal subtype",
+      "mesenchymal-like (MES-like) tumor cells"
+    ],
+    "valid": true,
+    "raw": "The question asks for a cell state.\n```json\n{\n \"exact_answer\": [\n  \"mesenchymal (MES) subtype\",\n  \"mesenchymal subtype\",\n  \"mesenchymal-like (MES-like) tumor cells\"\n ]\n}\n```"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      "27.4%",
+      "up to 20%",
+      "between 5 and 20%",
+      "15% to 25%",
+      "between 3 and 46%"
+    ],
+    "valid": true,
+    "raw": "The question asks for a percentage.\n{\"exact_answer\": [\"27.4%\", \"up to 20%\", \"between 5 and 20%\", \"15% to 25%\", \"between 3 and 46%\"]}"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      "inherited lysosomal storage disorders",
+      "mutated gene",
+      "homozygous pathogenic mutation in the progranulin gene (GRN)"
+    ],
+    "valid": true,
+    "raw": "The question asks for the causes of neuronal ceroid lipofuscinoses (NCLs).\n{\"exact_answer\": [\"inherited lysosomal storage disorders\", \"mutated gene\", \"homozygous pathogenic mutation in the progranulin gene (GRN)\"]}"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      "2 to 8 per million people annually",
+      "2 to 8 people per million annually",
+      "2-4 cases per million inhabitants per year"
+    ],
+    "valid": true,
+    "raw": "The question asks for an incidence rate.\n\n```json\n{\"exact_answer\": [\"2 to 8 per million people annually\", \"2 to 8 people per million annually\", \"2-4 cases per million inhabitants per year\"]}\n```"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      "solar UV radiation",
+      "Solar ultraviolet (UV) radiation",
+      "Solar radiation",
+      "UV radiation",
+      "UVR"
+    ],
+    "valid": true,
+    "raw": "The question asks for a genotoxic factor.\n```json\n{\n \"exact_answer\": [\n  \"solar UV radiation\",\n  \"Solar ultraviolet (UV) radiation\",\n  \"Solar radiation\",\n  \"UV radiation\",\n  \"UVR\"\n ]\n}\n```"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      "41%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"41%\"\n ]\n}\n```"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      "diagnosis and follow-up of hair and scalp disorders",
+      "diagnosis of patchy hair loss",
+      "early diagnosis of the disease",
+      "decoding the underlying tricoscopic condition"
+    ],
+    "valid": true,
+    "raw": "The question asks for the uses of a trichoscope.\n```json\n{\n \"exact_answer\": [\n  \"diagnosis and follow-up of hair and scalp disorders\",\n  \"diagnosis of patchy hair loss\",\n  \"early diagnosis of the disease\",\n  \"decoding the underlying tricoscopic condition\"\n ]\n}\n```"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      "The SRPK family includes SRPK1, SRPK2, and SRPK3."
+    ],
+    "valid": true,
+    "raw": "The question asks for the number of kinases in a specific family.\n\n```json\n{\"exact_answer\": [\"The SRPK family includes SRPK1, SRPK2, and SRPK3.\"]}\n```"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      "B cells",
+      "B-cell chronic lymphocytic leukaemia cells",
+      "B-lymphocyte"
+    ],
+    "valid": true,
+    "raw": "The question asks for a type of blood cell.\n```json\n{\"exact_answer\": [\"B cells\", \"B-cell chronic lymphocytic leukaemia cells\", \"B-lymphocyte\"]}\n```"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      "30 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"30 months\"]}"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      "slow the loss of ambulation in pediatric patients with CLN2",
+      "treatment of motor function loss in paediatric patients \u22653 years of age with CLN2",
+      "slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)"
+    ],
+    "valid": true,
+    "raw": "The question asks for a medical indication for a drug.\n```json\n{\n \"exact_answer\": [\n  \"slow the loss of ambulation in pediatric patients with CLN2\",\n  \"treatment of motor function loss in paediatric patients \\u22653 years of age with CLN2\",\n  \"slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)\"\n ]\n}\n```"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      "glucose",
+      "Glutamine",
+      "lipids",
+      "amino acids",
+      "lactate"
+    ],
+    "valid": true,
+    "raw": "The question asks for the name of an energy source.\n```json\n{\"exact_answer\": [\"glucose\", \"Glutamine\", \"lipids\", \"amino acids\", \"lactate\"]}\n```"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      "150-280/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"150-280/million\"\n ]\n}\n```"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      "Parkinson's disease"
+    ],
+    "valid": true,
+    "raw": "The question asks for a disease name.\n```json\n{\n \"exact_answer\": [\n  \"Parkinson's disease\"\n ]\n}\n```"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      "34 months",
+      "2 years",
+      "24 months",
+      "over 2 years"
+    ],
+    "valid": true,
+    "raw": "The question asks for a duration of time.\n\n```json\n{\n \"exact_answer\": [\n  \"34 months\",\n  \"2 years\",\n  \"24 months\",\n  \"over 2 years\"\n ]\n}\n```"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      "hearing",
+      "hearing loss",
+      "deafness"
+    ],
+    "valid": true,
+    "raw": "The question asks for a sense.\n{\"exact_answer\": [\"hearing\", \"hearing loss\", \"deafness\"]}"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      "psychosine"
+    ],
+    "valid": true,
+    "raw": "The question asks for the name of a toxic metabolite.\n\n```json\n{\n \"exact_answer\": [\n  \"psychosine\"\n ]\n}\n```"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"14 months\"\n ]\n}\n```"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      "approximately 40 % of cases",
+      "21.5%"
+    ],
+    "valid": true,
+    "raw": "The question asks for a frequency or percentage.\n\n```json\n{\n \"exact_answer\": [\n  \"approximately 40 % of cases\",\n  \"21.5%\"\n ]\n}\n```"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      "38 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"38 months\"\n ]\n}\n```"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      "trans-sphenoidal surgery (TSS)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"trans-sphenoidal surgery (TSS)\"\n ]\n}\n```"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      "Cushing's disease is a pituitary source of excess ACTH, while Cushing's syndrome is endogenous hypercortisolism caused either by excess ACTH secretion or by autonomous cortisol release from the adrenal cortex.",
+      "Cushing's syndrome results from sustained pathologic hypercortisolism caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland (Cushing's disease, 70%) or elsewhere (15%), or by ACTH-independent cortisol secretion from adrenal tumors (15%)."
+    ],
+    "valid": true,
+    "raw": "The question asks for the definition of medical conditions.\n\n```json\n{\n \"exact_answer\": [\n  \"Cushing's disease is a pituitary source of excess ACTH, while Cushing's syndrome is endogenous hypercortisolism caused either by excess ACTH secretion or by autonomous cortisol release from the adrenal cortex.\",\n  \"Cushing's syndrome results from sustained pathologic hypercortisolism caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland (Cushing's disease, 70%) or elsewhere (15%), or by ACTH-independent cortisol secretion from adrenal tumors (15%).\"\n ]\n}\n```"
+  }
+}

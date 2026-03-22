@@ -1,0 +1,509 @@
+{
+  "69a7fe5285870e396d000030": {
+    "exact_answer": [
+      [
+        "thymine dimer (cyclobutane pyrimidine dimer)"
+      ],
+      [
+        "(6-4) photoproduct (thymine-thymine pyrimidine\u2011pyrimidone)"
+      ],
+      [
+        "interstrand DNA cross\u2011links"
+      ],
+      [
+        "intrastrand DNA cross\u2011links"
+      ],
+      [
+        "sister chromatid exchange"
+      ],
+      [
+        "DNA breakage"
+      ]
+    ],
+    "valid": true,
+    "raw": " \nWe need main types of DNA damage induced by UV radiation. From snippets: thymine dimer (cyclobutane pyrimidine dimer), (6-4) photoproduct, sister chromatid exchange, DNA breakage. Also interstrand and intrastrand cross-links. So answer: thymine dimer (cyclobutane pyrimidine dimer), (6-4) photoproduct (thymine-thymine pyrimidine-pyrimidone), interstrand and intrastrand cross-links, sister chromatid exchange, DNA breakage. Maybe also mention DNA replication-blocking lesions. But main types: cyclobutane pyrimidine dimers (CPD), (6-4) photoproducts, DNA strand breaks, sister chromatid exchange. Provide as JSON exact answer with each entity array.\n\nLet's list entities: \"thymine dimer (cyclobutane pyrimidine dimer)\", \"(6-4) photoproduct (thymine-thymine pyrimidine-pyrimidone)\", \"interstrand cross-links\", \"intrastrand cross-links\", \"sister chromatid exchange\", \"DNA breakage\". Are cross-links considered interstrand and intrastrand? Could combine: \"interstrand and intrastrand DNA cross-links\". We'll list separately. Output JSON.assistantfinal{\"exact_answer\":[[\"thymine dimer (cyclobutane pyrimidine dimer)\"],[\"(6-4) photoproduct (thymine-thymine pyrimidine\u2011pyrimidone)\"],[\"interstrand DNA cross\u2011links\"],[\"intrastrand DNA cross\u2011links\"],[\"sister chromatid exchange\"],[\"DNA breakage\"]]}"
+  },
+  "67ed4d9918b1e36f2e0000f6": {
+    "exact_answer": [
+      [
+        "schizophrenia"
+      ],
+      [
+        "bipolar disorder"
+      ],
+      [
+        "multiple drug abuse (MDA)"
+      ],
+      [
+        "generalized anxiety disorder"
+      ],
+      [
+        "severe depression"
+      ],
+      [
+        "dementia"
+      ],
+      [
+        "mood disorders"
+      ],
+      [
+        "organic mental disorders"
+      ],
+      [
+        "disorders due to psychoactive substance use"
+      ]
+    ],
+    "valid": true,
+    "raw": ".\n\nWe have to follow steps: Step 1: collect all entities that could answer the question: \"What are indications of quetiapine?\" So we need all conditions for which quetiapine is prescribed.\n\nFrom snippets: schizophrenia, bipolar disorder, multiple drug abuse (MDA), generalized anxiety disorder, severe depression, dementia, mood disorders, organic mental disorders, disorders due to psychoactive substance use.\n\nAlso maybe other conditions not present? But only from snippets.\n\nBut we might also mention: psychosis, mania? Not in the snippets.\n\nWe must only use entities from abstracts, not general knowledge.\n\nThus list: schizophrenia, bipolar disorder, multiple drug abuse (MDA), generalized anxiety disorder, severe depression, dementia, mood disorders, organic mental disorders, disorders due to psychoactive substance use.\n\nBut \"multiple drug abuse (MDA)\" maybe a broader category; we can keep \"multiple drug abuse\" as an entity.\n\nAlso \"psychoactive substance use disorders\" etc.\n\nLet's ensure each entity appears exactly as in snippet: \"schizophrenia\", \"bipolar disorder\", \"multiple drug abuse (MDA)\", \"generalized anxiety disorder\", \"severe depression\", \"dementia\", \"mood disorders\", \"organic mental disorders\", \"disorders due to psychoactive substance use\".\n\nMake sure to preserve case and punctuation? Use names exactly from abstracts. For the snippet, they wrote \"multiple drug abuse (MDA)\", \"generalized anxiety disorder\", \"severe depression\", \"dementia\", \"mood disorders\". So we use those.\n\nAlso \"organic mental disorders\".\n\nAlso \"disorders due to psychoactive substance use\".\n\nAlso \"schizophrenia\".\n\nAlso \"bipolar disorder\".\n\nThus final JSON: {\"exact_answer\": [[\"schizophrenia\"], [\"bipolar disorder\"], [\"multiple drug abuse (MDA)\"], [\"generalized anxiety disorder\"], [\"severe depression\"], [\"dementia\"], [\"mood disorders\"], [\"organic mental disorders\"], [\"disorders due to psychoactive substance use\"]]}\n\nDouble-check formatting: each entity in its own array, arrays inside outer array.\n\nReturn only JSON. Let's produce.assistantfinal{\"exact_answer\": [[\"schizophrenia\"], [\"bipolar disorder\"], [\"multiple drug abuse (MDA)\"], [\"generalized anxiety disorder\"], [\"severe depression\"], [\"dementia\"], [\"mood disorders\"], [\"organic mental disorders\"], [\"disorders due to psychoactive substance use\"]]}"
+  },
+  "67d7fe4e18b1e36f2e000045": {
+    "exact_answer": [
+      [
+        "Thiamine"
+      ],
+      [
+        "Folate"
+      ],
+      [
+        "Vitamin B-6"
+      ],
+      [
+        "Vitamin B-12"
+      ]
+    ],
+    "valid": true,
+    "raw": ".\n\nWe have to provide the entities that answer the question: \"Vitamin deficiencies in severe alcoholism.\"\n\nWe have to gather all relevant entities from the snippets. Entities could be specific vitamins, diseases, conditions, etc. The question is broad: \"Vitamin deficiencies in severe alcoholism.\" So we need to list vitamins that are deficient in severe alcoholism and maybe the conditions associated. The snippets talk about thiamine (vitamin B1), folate, vitamin B-6, B-12. Also beriberi, Wernicke's encephalopathy, beriberi heart disease. So we need to collect all relevant entities.\n\nWe must produce JSON with \"exact_answer\" containing arrays of single strings.\n\nSo we list: Thiamine, Vitamin B1, Beriberi, Wernicke's encephalopathy, Beriberi heart disease, Folate, Vitamin B-6, Vitamin B-12. Possibly also mention \"malnutrition\" but that is not a vitamin. The question: \"Vitamin deficiencies in severe alcoholism.\" So we list vitamins: Thiamine (vitamin B1), folate (vitamin B9), vitamin B6, vitamin B12. Also mention the conditions: beriberi, Wernicke's encephalopathy, beriberi heart disease.\n\nBut the question likely expects the list of vitamins that are deficient. So we should list Thiamine, Folate, Vitamin B-6, Vitamin B-12. The snippet also mentions \"most common risk factor for thiamine deficiency is alcohol abuse.\" So we list Thiamine.\n\nThus final answer: [\"Thiamine\", \"Folate\", \"Vitamin B-6\", \"Vitamin B-12\"]. Maybe also \"Beriberi\" and \"Wernicke's encephalopathy\" as conditions resulting from deficiency. But the question is \"Vitamin deficiencies in severe alcoholism.\" So I think we should list the vitamins.\n\nThus JSON:\n\n{\"exact_answer\": [[\"Thiamine\"], [\"Folate\"], [\"Vitamin B-6\"], [\"Vitamin B-12\"]]}.\n\nCheck the instructions: \"Each entity must be wrapped in its own array.\" So each array contains one string. So that's correct.\n\nReturn only JSON. No markdown.assistantfinal{\"exact_answer\": [[\"Thiamine\"], [\"Folate\"], [\"Vitamin B-6\"], [\"Vitamin B-12\"]]}"
+  },
+  "69ac608a85870e396d000063": {
+    "exact_answer": [
+      [
+        "low morning cortisol levels (<5 \u00b5g/dL)"
+      ],
+      [
+        "high corticotropin levels"
+      ],
+      [
+        "low DHEAS levels"
+      ]
+    ],
+    "valid": true,
+    "raw": ".....\"\n\nWe have? The problem: We need to produce JSON with \"exact_answer\" list of arrays each containing entity names. Entities should be biomedical characteristics of primary adrenal insufficiency.\n\nWe need to scan the snippet: \"Primary adrenal insufficiency is typically characterized by low morning cortisol levels (<5 \u00b5g/dL), high corticotropin levels, and low DHEAS levels.\" Also perhaps other characteristics could be present in other abstracts. We will need to parse all given abstracts. The prompt says \"You will receive several abstracts and a list question\". They haven't provided all abstracts except snippet 1. But we can assume that additional abstracts might exist. But we only have snippet 1. We'll gather from snippet: low morning cortisol, high corticotropin, low DHEAS. Also maybe other characteristics like hypoglycemia, hyperkalemia, hyponatremia, hypotension? But not present. But we need to base on provided text.\n\nThus answer: list of entities: \"low morning cortisol levels (<5 \u00b5g/dL)\", \"high corticotropin levels\", \"low DHEAS levels\". Format: each entity in its own array.\n\nThus JSON: {\"exact_answer\": [[\"low morning cortisol levels (<5 \u00b5g/dL)\"], [\"high corticotropin levels\"], [\"low DHEAS levels\"]]}\n\nLet's produce.assistantfinal{\"exact_answer\": [[\"low morning cortisol levels (<5 \u00b5g/dL)\"], [\"high corticotropin levels\"], [\"low DHEAS levels\"]]}"
+  },
+  "69acbf7185870e396d00006f": {
+    "exact_answer": [
+      [
+        "visual symptoms"
+      ],
+      [
+        "blurred vision"
+      ],
+      [
+        "visual disturbances"
+      ],
+      [
+        "visual changes"
+      ],
+      [
+        "loss of visual acuity"
+      ],
+      [
+        "decline in visual fields"
+      ],
+      [
+        "prominent visual features"
+      ]
+    ],
+    "valid": true,
+    "raw": "We are..\u2026....\u2028\u2028We have to produce JSON with array of arrays with exact names.\n\nQuestion: \"Please list the common clinical characteristic of the Heidenhain variant of Creutzfeldt\u2013Jakob disease (HvCJD)\"\n\nCommon clinical characteristic likely \"visual symptoms\" or \"visual disturbances\" such as blurred vision.\n\nWe need to list all entities that answer question: common clinical characteristic. So \"visual symptoms\" or \"visual disturbances\" or \"blurred vision\". The common characteristic is \"visual symptoms at onset\" or \"visual disturbances\".\n\nFrom snippets: 1: \"predominantly visual symptoms at onset\" 2: \"Blurred vision was the most common visual disturbance at the disease's onset\" 3: \"new-onset visual changes\" 4: \"loss of visual acuity and a decline in visual fields\" 5: \"prominent visual features early in its clinical course\" 6: \"presence of visual symptoms preceding other manifestations\"\n\nThus common characteristic: visual symptoms at onset. Entities: \"visual symptoms\", \"blurred vision\", \"visual disturbances\", \"visual changes\", \"visual acuity loss\", \"decline in visual fields\".\n\nBut need list of entities that answer question: \"common clinical characteristic\". Likely the answer is \"visual symptoms\" or \"visual disturbances\". Provide each entity separately.\n\nWe need to output JSON: {\"exact_answer\": [[\"visual symptoms\"], [\"blurred vision\"] ...]}\n\nBut \"visual symptoms\" is a phrase, not a name. But we can use phrase exactly from snippet. Let's list: \"visual symptoms\", \"blurred vision\", \"visual disturbances\", \"visual changes\", \"loss of visual acuity\", \"decline in visual fields\". \"prominent visual features\".\n\nBut we should only include those that directly answer question. The question: \"Please list the common clinical characteristic of the Heidenhain variant of Creutzfeldt\u2013Jakob disease (HvCJD)\".\n\nSo the common characteristic: \"visual symptoms at onset\" is the general. So we could include phrase \"visual symptoms at onset\" or \"visual disturbances at onset\".\n\nLet's list: \"visual symptoms\", \"blurred vision\", \"visual disturbances\", \"visual changes\", \"loss of visual acuity\", \"decline in visual fields\", \"prominent visual features\".\n\nBut maybe the best answer is \"visual symptoms at onset\". But the instruction: \"list the common clinical characteristic\" plural. So we can list multiple characteristics.\n\nSo final JSON with each entity in its own array.\n\nLet's produce.\n\nEnsure no markdown.\n\nJSON: {\"exact_answer\": [[\"visual symptoms\"], [\"blurred vision\"], [\"visual disturbances\"], [\"visual changes\"], [\"loss of visual acuity\"], [\"decline in visual fields\"], [\"prominent visual features\"]]}.\n\nBut check: \"visual symptoms\" appears in snippet 1. \"blurred vision\" appears snippet 2. \"visual disturbances\" appears snippet 2. \"visual changes\" snippet 3. \"loss of visual acuity\" snippet 4. \"decline in visual fields\" snippet 4. \"prominent visual features\" snippet 5.\n\nThus all are valid. Final output.assistantfinal{\"exact_answer\": [[\"visual symptoms\"], [\"blurred vision\"], [\"visual disturbances\"], [\"visual changes\"], [\"loss of visual acuity\"], [\"decline in visual fields\"], [\"prominent visual features\"]]}"
+  },
+  "69a7002085870e396d00001a": {
+    "exact_answer": [
+      [
+        "delivery to the incorrect patient"
+      ],
+      [
+        "self-medication"
+      ],
+      [
+        "wrong administration of the medication by family members"
+      ],
+      [
+        "dosing errors"
+      ],
+      [
+        "wrong/improper drugs"
+      ],
+      [
+        "wrong infusion rate"
+      ],
+      [
+        "unauthorized medication"
+      ],
+      [
+        "wrong time"
+      ],
+      [
+        "documentation errors"
+      ],
+      [
+        "dose errors"
+      ],
+      [
+        "wrong dose"
+      ],
+      [
+        "wrong technique"
+      ],
+      [
+        "wrong route"
+      ]
+    ],
+    "valid": true,
+    "raw": "..\u2026\n\n{\"exact_answer\": [[\"delivery to the incorrect patient\"], [\"self-medication\"], [\"wrong administration of the medication by family members\"], [\"dosing errors\"], [\"wrong/improper drugs\"], [\"wrong infusion rate\"], [\"unauthorized medication\"], [\"wrong time\"], [\"documentation errors\"], [\"dose errors\"], [\"wrong dose\"], [\"wrong technique\"], [\"wrong route\"]]}"
+  },
+  "69a5df9a85870e396d000011": {
+    "exact_answer": [
+      [
+        "1 mg dexamethasone suppression test"
+      ],
+      [
+        "late night salivary cortisol"
+      ],
+      [
+        "24 h urinary free cortisol"
+      ]
+    ],
+    "valid": true,
+    "raw": " We\u00a0...... ... ...-.... .....\"\n\nWe have to output JSON exact_answer list. Entities are recommended screening tests: 1 mg dexamethasone suppression test, urine free cortisol, late night salivary cortisol. Possibly 24h urinary free cortisol is same as urine free cortisol. The question: \"What are the recommended screening tests to diagnose the presence of Cushing's Syndrome?\" So answer list: 1 mg dexamethasone suppression test, urine free cortisol, late night salivary cortisol. Provide each entity in its own array. So:\n\n{\"exact_answer\": [[\"1 mg dexamethasone suppression test\"], [\"urine free cortisol\"], [\"late night salivary cortisol\"]]}.\n\nCheck if any other test: 24 h urinary free cortisol is same. They might want 24h UFC. But snippet 3 lists 24 h urinary free cortisol, 1 mg DST, late night salivary cortisol. So maybe include 24 h urinary free cortisol as separate entity. But \"urine free cortisol\" is same. But the snippet uses \"24 h urinary free cortisol (UFC)\". Use exact names. The question: recommended screening tests to diagnose presence of Cushing's syndrome. So likely answer should be 1 mg dexamethasone suppression test, late-night salivary cortisol, 24h urinary free cortisol. So list those three. Provide each in array. Use exact names: \"1 mg dexamethasone suppression test\", \"late night salivary cortisol\", \"24 h urinary free cortisol\". Yes. Let's output accordingly.assistantfinal json\n{\"exact_answer\": [[\"1 mg dexamethasone suppression test\"], [\"late night salivary cortisol\"], [\"24 h urinary free cortisol\"]]}"
+  },
+  "69ac16e485870e396d000059": {
+    "exact_answer": [
+      [
+        "leukocytosis"
+      ],
+      [
+        "neutrophilia"
+      ],
+      [
+        "elevated neutrophil-to-lymphocyte ratio (NLR)"
+      ],
+      [
+        "decreased lymphocytes"
+      ],
+      [
+        "decreased eosinophils"
+      ]
+    ],
+    "valid": true,
+    "raw": "10\u00a0\u2026\n\n\n\nWe need to answer: \"What are common blood cell changes caused by elevated cortisol levels?\" So list common blood cell changes: leukocytosis, increased neutrophils, neutrophil-to-lymphocyte ratio (NLR) elevated, decreased lymphocytes, decreased eosinophils, maybe changes in other ratios like MLR, PLR? The question: common blood cell changes caused by elevated cortisol levels. So the main ones: leukocytosis, increased neutrophil count, increased neutrophil-to-lymphocyte ratio, decreased lymphocyte count, decreased eosinophil count. Let's check each snippet.\n\nSnippet 1: Leukocytosis frequently noted. Also other blood cell changes caused by direct and indirect cortisol effects. Not specific but implies leukocytosis.\n\nSnippet 2: leukocytosis, higher WBC, neutrophils, NLR.\n\nSnippet 3: higher WBC and neutrophils.\n\nSnippet 4: elevated WBC, neutrophils, NLR.\n\nSnippet 5: enumerates many metrics: leukocytes, neutrophils, lymphocytes, NLR, etc. Not specific but indicates changes.\n\nSnippet 6: immunosuppression with altered leucocyte counts.\n\nSnippet 7: higher NLR.\n\nSnippet 8: absolute neutrophil and lymphocyte counts, MLR and PLR differed.\n\nSnippet 9: immune cells correlate with hypercortisolism and differ among subtypes.\n\nSnippet 10: total leukocytes and neutrophils positively correlated with cortisol; lymphocytes and eosinophils negatively correlated.\n\nThus the common changes: increased leukocytes (WBC), increased neutrophils, increased NLR, decreased lymphocytes, decreased eosinophils. Possibly also changes in monocytes? Not explicitly mentioned. MLR (monocyte-to-lymphocyte ratio) and PLR (platelet-to-lymphocyte ratio) may also differ but not typical. So answer: Leukocytosis, neutrophilia, elevated neutrophil-to-lymphocyte ratio, lymphopenia, eosinopenia.\n\nWe need to output JSON: {\"exact_answer\": [[\"Leukocytosis\"], [\"Neutrophilia\"], [\"Elevated neutrophil-to-lymphocyte ratio\"], [\"Lymphopenia\"], [\"Eosinopenia\"]]} Use exact names from abstracts? The abstracts use \"leukocytosis\", \"neutrophils\", \"NLR\". For lymphopenia they mention negative correlation for lymphocytes, not \"lymphopenia\" but we can say \"decreased lymphocytes\". For eosinophils mention negative correlation for eosinophils: \"decreased eosinophils\". So use exact terms: \"leukocytosis\", \"neutrophilia\", \"elevated neutrophil-to-lymphocyte ratio (NLR)\", \"decreased lymphocytes\", \"decreased eosinophils\". Each as separate array. Let's do that.assistantfinal{\"exact_answer\":[[\"leukocytosis\"],[\"neutrophilia\"],[\"elevated neutrophil-to-lymphocyte ratio (NLR)\"],[\"decreased lymphocytes\"],[\"decreased eosinophils\"]]}"
+  },
+  "69a7f6ba85870e396d000020": {
+    "exact_answer": [
+      [
+        "human"
+      ],
+      [
+        "mouse"
+      ],
+      [
+        "bovine"
+      ],
+      [
+        "duck"
+      ]
+    ],
+    "valid": true,
+    "raw": "...\n\nWe have to answer: \"In which organisms is a PI4KIIalpha (PI4KII\u03b1) orthologue present?\" So we need organisms that have a PI4KII\u03b1 orthologue. The abstracts mention mammalian cells (human, mouse), bovine mammary epithelial cells, duck lines, etc. So organisms: mammals (human, mouse), bovine (cow), duck (Anas platyrhynchos? but just \"duck lines\" unspecified). Also maybe mention \"animal models\" etc. The question: \"In which organisms is a PI4KIIalpha (PI4KII\u03b1) orthologue present?\" We should list organisms that have orthologue.\n\nFrom snippet 1: mammalian cells \u2013 likely human, mouse, etc. Snippet 4: bovine mammary epithelial cells \u2013 cow. Snippet 6: duck lines \u2013 duck. Snippet 7: mouse models \u2013 mouse. Snippet 8: neurons of presymptomatic KO mice \u2013 mouse. Snippet 10: humans have two type II PI4Ks \u2013 human.\n\nThus organisms: human, mouse, bovine (cow), duck. Possibly also \"animal models\" could include other organisms, but not specified.\n\nThus final answer should list those organisms.\n\nWe should output JSON: {\"exact_answer\":[[\"human\"],[\"mouse\"],[\"bovine\"],[\"duck\"]]}\n\nBut we need to use exact names from abstracts: \"human\", \"mouse\", \"bovine mammary epithelial cells\" but that's not organism. \"bovine\" is the species. \"duck lines\" \u2013 \"duck\". So use \"human\", \"mouse\", \"bovine\", \"duck\".\n\nLet's produce output.assistantfinal{\"exact_answer\":[[\"human\"],[\"mouse\"],[\"bovine\"],[\"duck\"]]}"
+  },
+  "69a4ca8a85870e396d000006": {
+    "exact_answer": [
+      [
+        "baricitinib"
+      ],
+      [
+        "upadacitinib"
+      ],
+      [
+        "tofacitinib"
+      ],
+      [
+        "delgocitinib"
+      ],
+      [
+        "ruxolitinib cream"
+      ]
+    ],
+    "valid": true,
+    "raw": "\n\n\n\nWe need to list FDA approved Janus kinase inhibitors. From snippets: baricitinib, ritlecitinib? But only mention FDA approved? Let's examine.\n\nSnippet1: new medications baricitinib and ritlecitinib belong to JAK inhibitor family. Not specify FDA approval, but baricitinib is FDA approved for rheumatoid arthritis and others. Ritlecitinib? Not FDA approved? Might not.\n\nSnippet2: momelotinib and pacritinib. Not FDA approved? They are investigational? Not approved.\n\nSnippet3: upadacitinib and tofacitinib. Upadacitinib is FDA approved for rheumatologic diseases and Crohn's. Tofacitinib also FDA approved for rheumatoid arthritis, psoriatic arthritis, atopic dermatitis. So yes.\n\nSnippet4: Delgocitinib 2% cream (Anzupgo\u00ae) is first FDA-approved topical JAK inhibitor for hand eczema. So delgocitinib is FDA approved.\n\nSnippet5: Upadacitinib: first JAK inhibitor approved by FDA and EMA for Crohn's. So upadacitinib.\n\nSnippet6: Ruxolitinib cream: first topical JAK inhibitor approved in US for atopic dermatitis and vitiligo. So ruxolitinib cream is FDA approved.\n\nAlso baricitinib is FDA approved. Tofacitinib is FDA approved. Upadacitinib. Delgocitinib. Ruxolitinib cream. Also maybe other FDA approved JAK inhibitors: ruxolitinib (oral) is FDA approved for myelofibrosis, polycythemia vera. But not mentioned in snippets. However we need to list all FDA approved JAK inhibitors. Based on snippets we have: baricitinib, tofacitinib, upadacitinib, delgocitinib, ruxolitinib cream. Ruxolitinib oral not mentioned but likely. But question: \"Please list the FDA approved Janus kinase inhibitors\". We need to provide list of all FDA approved JAK inhibitors (not only topical). We can include baricitinib, tofacitinib, upadacitinib, ruxolitinib (oral), ruxolitinib cream, delgocitinib. However ruxolitinib (oral) is not in snippets but known. Should we include? The instruction: \"use exact names from the abstracts.\" So we cannot introduce new ones not in abstracts. So only those list: baricitinib, upadacitinib, tofacitinib, delgocitinib, ruxolitinib cream. Also ruxolitinib cream is in snippet.\n\nAlso snippet4: delgocitinib 2% cream (Anzupgo\u00ae). So include delgocitinib.\n\nSnippet6: ruxolitinib cream. Also ruxolitinib? but not specifically oral.\n\nSo final answer: array of arrays each entity.\n\nLet's produce JSON:\n\n{\n\"exact_answer\": [[\"baricitinib\"], [\"upadacitinib\"], [\"tofacitinib\"], [\"delgocitinib\"], [\"ruxolitinib cream\"]]\n}\n\nCheck if any other FDA approved JAK inhibitors in snippets: ritlecitinib? Not indicated as FDA approved. momelotinib, pacritinib not. So fine.\n\nReturn.assistantfinal{\"exact_answer\": [[\"baricitinib\"], [\"upadacitinib\"], [\"tofacitinib\"], [\"delgocitinib\"], [\"ruxolitinib cream\"]]}"
+  },
+  "69ab1e8885870e396d000051": {
+    "exact_answer": [
+      [
+        "Cushing disease"
+      ],
+      [
+        "ectopic ACTH syndrome"
+      ],
+      [
+        "adrenal Cushing syndrome"
+      ]
+    ],
+    "valid": true,
+    "raw": ". \n\nWe need subtypes of Cushing Syndrome. The subtypes: Cushing's disease (pituitary adenoma), ectopic ACTH syndrome (ectopic CS), adrenal Cushing syndrome (adrenal adenoma, hyperplasia, carcinoma). So subtypes: ACTH-dependent: Cushing disease (pituitary), ectopic ACTH syndrome; ACTH-independent: adrenal tumors (adenoma, hyperplasia, carcinoma). Maybe also subtypes: primary adrenal Cushing syndrome. The question: \"What are the subtypes of Cushing Syndrome?\" We should list subtypes: Cushing disease (pituitary), ectopic ACTH syndrome (ectopic CS), adrenal Cushing syndrome (adrenal adenoma, hyperplasia, carcinoma). Also mention ACTH-dependent vs ACTH-independent.\n\nThus answer: [\"Cushing disease (pituitary)\",\"ectopic ACTH syndrome (ectopic)\",\"adrenal Cushing syndrome (adrenal adenoma, hyperplasia, carcinoma)\"] but each entity separate. Use exact names. Entities: \"Cushing disease\", \"ectopic ACTH syndrome\", \"adrenal Cushing syndrome\". The question: subtypes of Cushing Syndrome. So list these three. Output JSON. Each array: [\"Cushing disease\"], etc. Let's do.\n\nassistantfinal{\"exact_answer\":[[\"Cushing disease\"],[\"ectopic ACTH syndrome\"],[\"adrenal Cushing syndrome\"]]}"
+  },
+  "69a8abfb85870e396d000039": {
+    "exact_answer": [
+      [
+        "thrombocytopenia"
+      ],
+      [
+        "anasarca"
+      ],
+      [
+        "fever"
+      ],
+      [
+        "reticulin fibrosis"
+      ],
+      [
+        "renal dysfunction"
+      ],
+      [
+        "organomegaly"
+      ],
+      [
+        "thrombocytopaenia"
+      ]
+    ],
+    "valid": true,
+    "raw": "We have.. ... ... ..... We need to answer: The symptoms of TAFRO syndrome? We gather: \u201c........\u2026\u2026..\u2026.........\u2026. \nWe need to produce JSON. The question: \"What are the symptoms of TAFRO syndrome?\" We need to list symptoms. From snippets: thrombocytopenia, anasarca, fever, reticulin fibrosis, renal dysfunction, organomegaly. Also mention maybe other symptoms? Let's scan all abstracts? Provided only snippets? The instruction: \"You will receive several abstracts and a list question asking you to enumerate all relevant entities.\" Only given 3 snippets. So we can gather all symptoms: thrombocytopenia, anasarca, fever, reticulin fibrosis, renal dysfunction, organomegaly. Also mention \"hypercytokinaemia\" not a symptom. \"Cytokine storm\" not a symptom. So answer includes these. Provide JSON.\n\nCheck duplicates: \"thrombocytopenia\" spelled both \"thrombocytopenia\" and \"thrombocytopaenia\" due to US/UK. Use exact names from abstracts. Should we list both variants? The instruction: \"Use exact names from the abstracts.\" That means we should use the names as they appear. In snippet 1: \"thrombocytopenia\". In snippet 2: \"Thrombocytopenia\". In snippet 3: \"thrombocytopaenia\". Use all? Probably yes. But we need to list each entity. But duplicates? Possibly we need to list all distinct but maybe duplicates considered separate? They are similar but spelled differently. Could list each as separate entity. But the answer expects list of symptoms. We can list them as they appear: \"thrombocytopenia\", \"anasarca\", \"fever\", \"reticulin fibrosis\", \"renal dysfunction\", \"organomegaly\", \"thrombocytopaenia\" maybe. But duplicates: \"Thrombocytopenia\" with capital T. But the snippet 2 used \"Thrombocytopenia\" at start of abbreviation. But still same symptom. I'd include \"Thrombocytopenia\" once. The instruction: \"Each entity must be wrapped in its own array.\" So we produce JSON: {\"exact_answer\": [[\"thrombocytopenia\"], [\"anasarca\"], [\"fever\"], [\"reticulin fibrosis\"], [\"renal dysfunction\"], [\"organomegaly\"], [\"thrombocytopaenia\"]]}.\n\nBut maybe they consider \"thrombocytopenia\" and \"thrombocytopaenia\" as same entity but spelled differently. Usually they'd treat them same. But to be safe, include both. Or maybe remove duplicates. The instruction: \"If unsure whether an entity qualifies, include it.\" But duplicates: not necessary. But we might want to include both. Let's produce:\n\n{\"exact_answer\": [[\"thrombocytopenia\"], [\"anasarca\"], [\"fever\"], [\"reticulin fibrosis\"], [\"renal dysfunction\"], [\"organomegaly\"], [\"thrombocytopaenia\"]]}.\n\nLet's output.assistantfinal{\"exact_answer\":[[\"thrombocytopenia\"],[\"anasarca\"],[\"fever\"],[\"reticulin fibrosis\"],[\"renal dysfunction\"],[\"organomegaly\"],[\"thrombocytopaenia\"]]}"
+  },
+  "69a7fbc485870e396d00002a": {
+    "exact_answer": [
+      [
+        "cancer"
+      ],
+      [
+        "Alzheimer's disease"
+      ]
+    ],
+    "valid": true,
+    "raw": "We..\u2013\n\n\n\nWe must list all relevant entities that answer question: \"What are the most common diseases caused by dysfunction of the ubiquitin system?\" So diseases associated with ubiquitin system dysfunction: from snippets: cancer (general), Alzheimer's disease (AD). Also maybe neurodegenerative diseases. But question: \"most common diseases caused by dysfunction of the ubiquitin system?\" Likely includes neurodegenerative diseases such as Alzheimer's, Parkinson's, Huntington's, ALS; cancers; autoinflammatory diseases? But from given snippets only AD and cancer. Could be other diseases mentioned? only AD and cancer. So answer arrays: [\"cancer\", \"Alzheimer's disease\"].\n\nReturn JSON. Need each entity in its own array. So:\n\n{\"exact_answer\": [[\"cancer\"], [\"Alzheimer's disease\"]]}\n\nLet's output.assistantfinal{\"exact_answer\": [[\"cancer\"], [\"Alzheimer's disease\"]]}"
+  },
+  "69a7fac085870e396d000027": {
+    "exact_answer": [
+      [
+        "Adeno-associated virus"
+      ],
+      [
+        "lentivirus"
+      ],
+      [
+        "adenovirus"
+      ],
+      [
+        "retrovirus"
+      ],
+      [
+        "solid lipid nanoparticle"
+      ],
+      [
+        "polymer nanoparticle"
+      ],
+      [
+        "dendrimer"
+      ],
+      [
+        "polymeric micelle"
+      ],
+      [
+        "liposome"
+      ]
+    ],
+    "valid": true,
+    "raw": "....]\n\nWe need to list most common vectors used in gene therapy. From snippets: viral vectors: lentiviruses, adeno-associated viruses, adenoviruses, retroviruses, etc. Non-viral: liposomal, solid lipid nanoparticles, polymer nanoparticles, dendrimers, polymeric micelles.\n\nSo answer: AAV, lentivirus, adenovirus, retrovirus, etc. Probably list each entity.\n\nWe need JSON exact_answer: array of arrays each containing entity names.\n\nLet's list: Adeno-associated virus (AAV), lentivirus, adenovirus, retrovirus, solid lipid nanoparticles, polymer nanoparticles, dendrimers, polymeric micelles, liposomal technology.\n\nAlso mention CRISPR? but vector is not. So final answer.assistantfinal{\"exact_answer\":[[\"Adeno-associated virus\"],[\"lentivirus\"],[\"adenovirus\"],[\"retrovirus\"],[\"solid lipid nanoparticle\"],[\"polymer nanoparticle\"],[\"dendrimer\"],[\"polymeric micelle\"],[\"liposome\"]]}"
+  },
+  "69a7f72985870e396d000022": {
+    "exact_answer": [
+      [
+        "perinuclear region"
+      ],
+      [
+        "juxtanuclear membrane"
+      ],
+      [
+        "trans-Golgi network"
+      ]
+    ],
+    "valid": true,
+    "raw": ".\n\nWe have to answer: What is the intracellular localization of PI4KIIalpha in human cells?\n\nWe need to find the intracellular localization. The snippets: \"juxtanuclear membrane pool\", \"perinuclear region\", \"trans-Golgi network (TGN) membrane connectivity\". Also \"intracellular vesicular trafficking\". We should list the localization: \"perinuclear region\", \"juxtanuclear membrane\", \"trans-Golgi network\". Also maybe \"endosomal compartments\" but not mentioned. Let's extract.\n\nFrom snippet 4: morphological changes to the juxtanuclear membrane pool of the enzyme. So localization: juxtanuclear membrane pool.\n\nFrom snippet 8: colocalization of tetraspanins and PI4KIIalpha detectable only in restricted areas of the perinuclear region. So perinuclear region. Also snippet 6: reduction in mobile fraction correlated with loss of TGN membrane connectivity. So TGN.\n\nThus answer: perinuclear region, juxtanuclear membrane, trans-Golgi network. Also maybe \"intracellular vesicular trafficking\" but not a location. So we output array.\n\nJSON: {\"exact_answer\": [[\"perinuclear region\"], [\"juxtanuclear membrane\"], [\"trans-Golgi network\"]]} Let's do that.assistantfinal{\"exact_answer\":[[\"perinuclear region\"],[\"juxtanuclear membrane\"],[\"trans-Golgi network\"]]}"
+  },
+  "69ac49a685870e396d00005f": {
+    "exact_answer": [
+      [
+        "general weakness"
+      ],
+      [
+        "anorexia"
+      ],
+      [
+        "arthralgia"
+      ],
+      [
+        "fever"
+      ],
+      [
+        "fatigue"
+      ],
+      [
+        "nausea"
+      ],
+      [
+        "vomiting"
+      ],
+      [
+        "abdominal pain"
+      ],
+      [
+        "myalgias"
+      ],
+      [
+        "weight loss"
+      ],
+      [
+        "salt craving"
+      ],
+      [
+        "Hyponatremia"
+      ],
+      [
+        "hyperkalemia"
+      ],
+      [
+        "hyperpigmented skin"
+      ],
+      [
+        "hyperpigmented mucus membranes"
+      ]
+    ],
+    "valid": true,
+    "raw": "We present [the] ..... For........\u2026... (\u2026....\u2026..\u2026\u2026.\u2026\u2026..?? \u201c\u2026\u2026\u2026\"\u2026..?.. \n\nWe need to answer question: \"What are the common symptoms of adrenal insufficiency?\" We need list of common symptoms. Provided snippets include symptoms: general weakness, anorexia, arthralgia, fever; fatigue, nausea, vomiting, abdominal pain, myalgias, weight loss, salt craving; hyponatremia, hyperkalemia; hyperpigmented skin and mucus membranes. Also other symptoms? The snippet 1 not listing symptoms. So we compile list of symptoms.\n\nThe requirement: Output JSON with exact_answer array of arrays each containing entity. So for each symptom, we need to produce an array: [\"general weakness\"], [\"anorexia\"], etc.\n\nWe need to ensure we extract all relevant entities. The question: \"What are the common symptoms of adrenal insufficiency?\" So the answer should list the common symptoms. We gather from snippet 2 and 4. Provide list: general weakness, anorexia, arthralgia, fever, fatigue, nausea, vomiting, abdominal pain, myalgias, weight loss, salt craving, hyponatremia, hyperkalemia, hyperpigmented skin, hyperpigmented mucus membranes. Also maybe \"salt craving\" is a symptom. Hyponatremia and hyperkalemia are lab findings but considered signs. We include them.\n\nLet's verify: Are there other symptoms? The snippet 3: not listing symptoms. So we keep those.\n\nNow produce JSON: {\"exact_answer\": [[\"general weakness\"], [\"anorexia\"], [\"arthralgia\"], [\"fever\"], [\"fatigue\"], [\"nausea\"], [\"vomiting\"], [\"abdominal pain\"], [\"myalgias\"], [\"weight loss\"], [\"salt craving\"], [\"hyponatremia\"], [\"hyperkalemia\"], [\"hyperpigmented skin\"], [\"hyperpigmented mucus membranes\"]]}.\n\nWe need to ensure each array contains one string. The instructions: Each entity must be wrapped in its own array. Use exact names from the abstracts. So we must keep case and punctuation as appear. The abstract snippet uses \"general weakness\", \"anorexia\", \"arthralgia\", \"fever\" (no punctuation). \"fatigue\", \"nausea\", \"vomiting\", \"abdominal pain\", \"myalgias\", \"weight loss\", \"salt craving\", \"Hyponatremia\" (capital H?), \"hyperkalemia\" (lowercase). In snippet 4, \"Hyponatremia\" and \"hyperkalemia\" appear with capital H? The snippet: \"Hyponatremia and hyperkalemia are common.\" So we should preserve case: \"Hyponatremia\" and \"hyperkalemia\". Also \"hyperpigmented skin\" and \"mucus membranes\" appear: \"hyperpigmented skin and mucus membranes\". Let's preserve as \"hyperpigmented skin\" and \"mucus membranes\". In snippet 4: \"hyperpigmented skin and mucus membranes\". The phrase \"hyperpigmented skin and mucus membranes\" indicates two separate symptoms: hyperpigmented skin and hyperpigmented mucus membranes. So we list \"hyperpigmented skin\" and \"hyperpigmented mucus membranes\". But the snippet says \"hyperpigmented skin and mucus membranes without treatment.\" So we can list \"hyperpigmented skin\" and \"hyperpigmented mucus membranes\". The phrase \"hyperpigmented mucus membranes\" is used. So we will include.\n\nThus final JSON. Let's produce.\n\nCheck duplicates: none. Provide final.assistantfinal{\"exact_answer\": [[\"general weakness\"], [\"anorexia\"], [\"arthralgia\"], [\"fever\"], [\"fatigue\"], [\"nausea\"], [\"vomiting\"], [\"abdominal pain\"], [\"myalgias\"], [\"weight loss\"], [\"salt craving\"], [\"Hyponatremia\"], [\"hyperkalemia\"], [\"hyperpigmented skin\"], [\"hyperpigmented mucus membranes\"]]}"
+  },
+  "69a7fc6785870e396d00002b": {
+    "exact_answer": [
+      [
+        "charge-charge interactions"
+      ],
+      [
+        "salting-out effect"
+      ],
+      [
+        "acidic pH"
+      ],
+      [
+        "conformational transition to molten globule"
+      ],
+      [
+        "ATP as a salt"
+      ],
+      [
+        "disruption of supersaturation"
+      ],
+      [
+        "metabolic stress"
+      ]
+    ],
+    "valid": true,
+    "raw": " \nWe need to enumerate all relevant entities that answer the question: \"What are the most common mechanisms leading to amyloid formation?\"\n\nWe need to scan all abstracts and list entity that could answer the question. Entities are likely mechanisms: e.g., charge-charge interactions, salting-out effect, acidic pH, ATP as salt, supersaturation, imbalance between production and clearance, metabolic stress, etc.\n\nWe should verify each collected entity: does it directly answer the question? The question: \"What are the most common mechanisms leading to amyloid formation?\" So mechanisms: e.g., charge-charge interactions, salting-out effect, conformational transitions, disruption of supersaturation, metabolic stress, imbalance between production and clearance. Are these considered mechanisms of amyloid formation? Let's check each snippet:\n\nSnippet 1: adenosine nucleotides used to investigate mechanism of amyloid formation of \u03b1-synuclein. Not a mechanism itself but says \"investigate mechanism\". Not included.\n\nSnippet 2: amyloid formation accelerated at two distinct concentration regions via charge-charge interactions and salting-out effect in Hofmeister series. These are mechanisms.\n\nSnippet 3: at acidic pH, ATP accelerated amyloid formation via charge-charge interaction. So acidic pH and charge-charge interaction.\n\nSnippet 4: ATP might induce conformational transitions from unfolded monomer to molten globule-like state. Conformational transition.\n\nSnippet 5: ATP functions as salt, stabilizing compact conformers, via intra- and intermolecular interactions. Also may disrupt supersaturated state above solubility. So supersaturation disruption.\n\nSnippet 6: imbalance between amyloid production and natural clearance may drive disease progression. This is a conceptual framework not a mechanism of amyloid formation, but it suggests pathology. However, question asks for mechanisms leading to amyloid formation, not clearance. So maybe not.\n\nSnippet 7: not relevant.\n\nSnippet 8: accumulation of IAPP associated with beta cell dysfunction, but not mechanism.\n\nSnippet 9: IAPP colocalised with insulin under metabolic stress. So metabolic stress leads to amyloid formation.\n\nSnippet 10: overexpression of Bri2 BRICHOS domain prevented amyloid formation. Not a mechanism.\n\nThus relevant mechanisms: charge-charge interactions, salting-out effect, acidic pH, conformational transition to molten globule, disruption of supersaturation, metabolic stress.\n\nAlso ATP as salt.\n\nBut we need to present list of entities: each mechanism.\n\nThus final answer: array of arrays with each entity: [\"charge-charge interactions\"], [\"salting-out effect\"], [\"acidic pH\"], [\"conformational transition to molten globule\"], [\"disruption of supersaturation\"], [\"metabolic stress\"].\n\nAlso \"ATP as salt\" maybe considered mechanism. But it's part of above.\n\nWe'll output JSON: {\"exact_answer\":[[\"charge-charge interactions\"],[\"salting-out effect\"],[\"acidic pH\"],[\"conformational transition to molten globule\"],[\"disruption of supersaturation\"],[\"metabolic stress\"]]}\nWe need to produce final JSON. Let's double-check.\n\nQuestion: \"What are the most common mechanisms leading to amyloid formation?\" So we list mechanisms. The ones identified above are used across multiple proteins. They are plausible.\n\nLet's ensure that all entities are names exactly as in abstracts. \"charge-charge interactions\" appears exactly. \"salting-out effect\" appears. \"acidic pH\" appears. \"conformational transition\" appears as \"conformational transitions\" but we can use \"conformational transitions\". \"supersaturated state\" or \"disrupting the supersaturated state above the thermodynamic solubility\" concept. We can phrase as \"supersaturation\". But to be safe use \"supersaturated state\". \"metabolic stress\" appears. Also \"ATP as a salt\" appears. But \"ATP as a salt\" is a mechanism. But it's a specific chemical. I'd include \"ATP as a salt\" as mechanism.\n\nLet's list:\n\n- charge-charge interactions\n- salting-out effect\n- acidic pH\n- conformational transition from unfolded monomeric state to molten globule-like state\n- ATP as a salt stabilizing compact conformers\n- disruption of supersaturated state above thermodynamic solubility\n- metabolic stress\n\nBut we might keep only core mechanisms: charge-charge interactions, salting-out effect, acidic pH, conformational transition, supersaturation, metabolic stress. \"ATP as a salt\" is a specific instance of charge-charge or ionic effect, but we can include.\n\nLet's produce final answer with each entity as separate array.\n\nThus JSON:\n\n{\"exact_answer\":[[\"charge-charge interactions\"],[\"salting-out effect\"],[\"acidic pH\"],[\"conformational transition to molten globule\"],[\"ATP as a salt\"],[\"disruption of supersaturation\"],[\"metabolic stress\"]]}assistantfinal{\"exact_answer\":[[\"charge-charge interactions\"],[\"salting-out effect\"],[\"acidic pH\"],[\"conformational transition to molten globule\"],[\"ATP as a salt\"],[\"disruption of supersaturation\"],[\"metabolic stress\"]]}"
+  },
+  "699ef80a85870e396d000003": {
+    "exact_answer": [
+      [
+        "Staphylococcus"
+      ],
+      [
+        "Micrococcus"
+      ],
+      [
+        "Kocuria"
+      ],
+      [
+        "Cutibacterium"
+      ],
+      [
+        "Corynebacterium"
+      ]
+    ],
+    "valid": true,
+    "raw": ".\n\nWe need to list most common bacteria in human skin microbiome. The snippets list many genera and species. We need \"most common bacteria\". The common ones: Staphylococcus (including epidermidis, capitis, hominis), Corynebacterium (including tuberculostearicum, bovis, axilliensis, jamesii, etc.), Cutibacterium, Micrococcus, Kocuria, Bacillus subtilis? Not as common. The question likely expects: Staphylococcus, Corynebacterium, Cutibacterium (formerly Propionibacterium), Micrococcus, Kocuria. Possibly Staphylococcus epidermidis and other Staph species. The snippet 4 lists core skin microbiome genera: Staphylococcus, Micrococcus, Kocuria, Cutibacterium, and Corynebacterium. So answer should include these five genera. The question: \"What are the most common bacteria in the human skin microbiome?\" Could also mention species: Staphylococcus epidermidis, Staphylococcus capitis, Staphylococcus hominis, Corynebacterium tuberculostearicum, Cutibacterium acnes (maybe not mentioned but known). But we should use exact names from abstracts. So list: Staphylococcus, Corynebacterium, Cutibacterium, Micrococcus, Kocuria. Maybe also Staphylococcus epidermidis, Staphylococcus capitis, Staphylococcus hominis, Corynebacterium tuberculostearicum. The question likely expects genera. The \"most common bacteria\" could be species names. The snippet 4 \"core skin microbiome genera\" is likely the answer. So answer: Staphylococcus, Micrococcus, Kocuria, Cutibacterium, Corynebacterium.\n\nThus produce JSON: {\"exact_answer\": [[\"Staphylococcus\"], [\"Micrococcus\"], [\"Kocuria\"], [\"Cutibacterium\"], [\"Corynebacterium\"]]}.\n\nCheck step 1: include all possible: Staphylococcus epidermidis, Streptococcus mitis, Streptococcus parasanguinis, Corynebacterium bovis, Staphylococcus capitis, Staphylococcus hominis, Micrococcus luteus, Corynebacterium tuberculostearicum, Bacillus subtilis, Kocuria, Cutibacterium, maybe others. Step 2: remove tangential: Streptococcus species and Bacillus subtilis less common; remove. So final list as above. Good.assistantfinal JSON{\"exact_answer\": [[\"Staphylococcus\"], [\"Micrococcus\"], [\"Kocuria\"], [\"Cutibacterium\"], [\"Corynebacterium\"]]}"
+  },
+  "69a4cc0a85870e396d000008": {
+    "exact_answer": [
+      [
+        "cytokine release syndrome"
+      ],
+      [
+        "CAR T-cell-related encephalopathy syndrome"
+      ]
+    ],
+    "valid": true,
+    "raw": " ......\n\nWe have to identify common side effects of Kymriah. Kymriah is a CAR T-cell therapy for B-cell acute lymphoblastic leukemia (B-ALL). Common side effects: Cytokine release syndrome (CRS), neurotoxicity (neurotoxicity, encephalopathy), infections, cytopenias, etc. Let's search for Kymriah side effects. \"Common side effects of Kymriah\" might include: cytokine release syndrome, neurotoxicity (CRES), infections, cytopenias, fever, hypotension, etc.\n\nWe need to list all relevant entities that could answer the question. Let's analyze snippet: \"Results from clinical trials indicate that anti-CD19 CAR T-cell therapies could successfully induce high response rates in B-ALL patients. However, related toxicities, such as cytokine release syndrome and CAR T-cell-related encephalopathy syndrome, may be severe or even fatal, ...\"\n\nSo these are side effects: cytokine release syndrome (CRS), CAR T-cell-related encephalopathy syndrome (CRES). Also other side effects: infections, fever, chills, hypotension, hypoxia, etc. But we only have snippet. We can include \"cytokine release syndrome\" and \"CAR T-cell-related encephalopathy syndrome\" as side effects. Also maybe \"anemia, neutropenia, thrombocytopenia\" but not in snippet.\n\nLet's search for other memory. Kymriah side effect list: \"CRS, neurotoxicity, infections, cytopenias, graft-versus-host disease (GVHD), etc.\" But we need to provide only if we can confirm from snippet or known literature. The snippet only says \"related toxicities, such as cytokine release syndrome and CAR T-cell-related encephalopathy syndrome\". So include those two.\n\nCheck if there are other side effects in snippet: \"may be severe or even fatal\" but no other side effects listed.\n\nThus answer: [\"cytokine release syndrome\", \"CAR T-cell-related encephalopathy syndrome\"].\n\nBut we need to output as JSON: {\"exact_answer\": [[\"cytokine release syndrome\"], [\"CAR T-cell-related encephalopathy syndrome\"]]}\n\nLet's verify if they are common side effects. In clinical trials for Kymriah, CRS is common; neurotoxicity (CRES) is also common. So yes.\n\nThus final answer.assistantfinal{\"exact_answer\": [[\"cytokine release syndrome\"], [\"CAR T-cell-related encephalopathy syndrome\"]]}"
+  },
+  "69a8001f85870e396d000033": {
+    "exact_answer": [
+      [
+        "regular physical activity"
+      ],
+      [
+        "exercise-induced reactive oxygen species (ROS)"
+      ],
+      [
+        "enriched environment (EE)"
+      ],
+      [
+        "gut microbiota modulation"
+      ],
+      [
+        "upregulation of Lactobacillus spp."
+      ]
+    ],
+    "valid": true,
+    "raw": " post\u2011csharp?....\u2026??..??\n\nWe need factors that trigger eustress responses. From snippets: regular physical activity, exercise-induced ROS, environmental eustress via enriched environment (EE), gut microbiota changes (Lactobacillus spp.), exercise-induced extracellular vesicles (EVs), etc. Also maybe redox signaling via ROS, NADPH oxidase, mitochondrial. So factors: physical exercise, enriched environment, gut microbiota changes, Lactobacillus spp., reactive oxygen species generation, extracellular vesicles. Also maybe Nrf2 activation? But question: Which factors trigger eustress responses in the body? So factors: regular physical activity, exercise-induced ROS, enriched environment, gut microbiota modulation, Lactobacillus spp. So list these. JSON.assistantfinal{\"exact_answer\": [[\"regular physical activity\"], [\"exercise-induced reactive oxygen species (ROS)\"], [\"enriched environment (EE)\"], [\"gut microbiota modulation\"], [\"upregulation of Lactobacillus spp.\"]]}"
+  },
+  "69a8acd085870e396d00003a": {
+    "exact_answer": [
+      [
+        "split-hand/split-foot malformation (SHFM)"
+      ],
+      [
+        "facial anomalies"
+      ],
+      [
+        "minor facial anomalies"
+      ],
+      [
+        "cleft lip/palate"
+      ],
+      [
+        "congenital heart defect (CHD)"
+      ],
+      [
+        "genital anomalies"
+      ],
+      [
+        "mental retardation"
+      ],
+      [
+        "intellectual disability"
+      ],
+      [
+        "growth retardation"
+      ],
+      [
+        "ectrodactyly"
+      ]
+    ],
+    "valid": true,
+    "raw": "We need to list hallmarks of ACFS. From snippets: hallmarks: split-hand/split-foot malformation (SHFM), facial anomalies, cleft lip/palate, congenital heart defect (CHD), genital anomalies, mental retardation/intellectual disability, growth retardation, ectrodactyly. Let's compile list.\n\nNeed each entity as array. Ensure exact names from abstracts. Use \"split-hand/split-foot malformation\" or \"split-hand and split-foot malformation\"? Provide consistent exact phrase from snippet. Use exact names: \"split-hand/split-foot malformation (SHFM)\", \"facial anomalies\", \"cleft lip/palate\", \"congenital heart defect (CHD)\", \"genital anomalies\", \"mental retardation\", \"intellectual disability\", \"growth retardation\", \"ectrodactyly\".\n\nBut some are overlapping synonyms. Which ones are hallmarks? Provide all unique. Provide as array each entity. Output JSON format: {\"exact_answer\": [[\"split-hand/split-foot malformation (SHFM)\"], [\"facial anomalies\"], [\"cleft lip/palate\"], [\"congenital heart defect (CHD)\"], [\"genital anomalies\"], [\"mental retardation\"], [\"intellectual disability\"], [\"growth retardation\"], [\"ectrodactyly\"] ]}\n\nBut mental retardation and intellectual disability similar; but include both? Might be redundant; but both appear. Provide both. Also \"minor facial anomalies\" maybe. Use phrase \"minor facial anomalies\" from snippet 3. But hallmarks include \"minor facial anomalies\". Provide.\n\nLet's output.assistantfinal{\"exact_answer\": [[\"split-hand/split-foot malformation (SHFM)\"], [\"facial anomalies\"], [\"minor facial anomalies\"], [\"cleft lip/palate\"], [\"congenital heart defect (CHD)\"], [\"genital anomalies\"], [\"mental retardation\"], [\"intellectual disability\"], [\"growth retardation\"], [\"ectrodactyly\"]]}"
+  }
+}

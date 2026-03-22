@@ -1,0 +1,212 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      "82-144/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"82-144/million\"]}\n```"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      "mesenchymal",
+      "mesenchymal (MES) subtype",
+      "mesenchymal-like (MES-like) tumor cells",
+      "MES-like cells",
+      "mesenchymal molecular subtype"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"mesenchymal\",\n    \"mesenchymal (MES) subtype\",\n    \"mesenchymal-like (MES-like) tumor cells\",\n    \"MES-like cells\",\n    \"mesenchymal molecular subtype\"\n  ]\n}\n```"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      "up to 20%",
+      "27.4%",
+      "5 and 20%",
+      "15% to 25%",
+      "3 and 46%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"up to 20%\", \"27.4%\", \"5 and 20%\", \"15% to 25%\", \"3 and 46%\"]}\n```"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      "aberrant lysosomal function",
+      "mutated gene",
+      "autofluorescent lipopigment accumulation",
+      "lysosomal storage disorders",
+      "pathogenic mutation in the progranulin gene (GRN)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"aberrant lysosomal function\",\n    \"mutated gene\",\n    \"autofluorescent lipopigment accumulation\",\n    \"lysosomal storage disorders\",\n    \"pathogenic mutation in the progranulin gene (GRN)\"\n  ]\n}\n```"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      "2 to 8 per million people annually",
+      "2 to 8 people per million annually",
+      "2-4 cases per million inhabitants per year",
+      "2-8 cases per million inhabitants per year"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"2 to 8 per million people annually\", \"2 to 8 people per million annually\", \"2-4 cases per million inhabitants per year\", \"2-8 cases per million inhabitants per year\"]}\n```"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      "Solar radiation",
+      "Solar ultraviolet (UV) radiation",
+      "solar UV radiation",
+      "Solar ultraviolet (UV) radiation",
+      "Ultraviolet radiation (UVR)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"Solar radiation\",\n    \"Solar ultraviolet (UV) radiation\",\n    \"solar UV radiation\",\n    \"Solar ultraviolet (UV) radiation\",\n    \"Ultraviolet radiation (UVR)\"\n  ]\n}\n```"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      "41%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"41%\"\n ]\n}\n```"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      "The trichoscope is used for ___.",
+      "diagnosis",
+      "diagnostic tool",
+      "early diagnosis",
+      "investigative tool",
+      "hair examination"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"The trichoscope is used for ___.\", \"diagnosis\", \"diagnostic tool\", \"early diagnosis\", \"investigative tool\", \"hair examination\"]}\n```"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      "The number of kinases that belong to the serine/arginine kinase family of the human kinome is ___",
+      "3",
+      "SRPK1",
+      "SRPK2",
+      "SRPK3"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"The number of kinases that belong to the serine/arginine kinase family of the human kinome is ___\", \"3\", \"SRPK1\", \"SRPK2\", \"SRPK3\"]}\n```"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      "B cells",
+      "CD19+ B cells",
+      "neoplastic B cells",
+      "B-cell chronic lymphocytic leukaemia cells",
+      "B-lymphocyte"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"B cells\",\n    \"CD19+ B cells\",\n    \"neoplastic B cells\",\n    \"B-cell chronic lymphocytic leukaemia cells\",\n    \"B-lymphocyte\"\n  ]\n}\n```"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      "30 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  \"30 months\"\n ]\n}\n```"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      "neuronal ceroid lipofuscinosis type 2 (CLN2)",
+      "CLN2",
+      "motor function loss in paediatric patients \u22653 years of age with CLN2",
+      "to slow the loss of ambulation in pediatric patients with CLN2",
+      "to slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"neuronal ceroid lipofuscinosis type 2 (CLN2)\",\n    \"CLN2\",\n    \"motor function loss in paediatric patients \\u22653 years of age with CLN2\",\n    \"to slow the loss of ambulation in pediatric patients with CLN2\",\n    \"to slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)\"\n  ]\n}\n```"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      "glucose",
+      "glutamine",
+      "lipids"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"glucose\",\n    \"glutamine\",\n    \"lipids\"\n  ]\n}\n```"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      "between 150-280/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"between 150-280/million\"]}\n```"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      "Parkinson's disease",
+      "Parkinson\u00b4s disease"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"Parkinson's disease\", \"Parkinson\u00b4s disease\"]}\n```"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      "34 months",
+      "2 years",
+      "24 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"34 months\",\n    \"2 years\",\n    \"24 months\"\n  ]\n}\n```"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      "hearing",
+      "sensorineural",
+      "deafness",
+      "tinnitus",
+      "dizziness"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"hearing\", \"sensorineural\", \"deafness\", \"tinnitus\", \"dizziness\"]}\n```"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      "psychosine"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"psychosine\"]}"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"14 months\"]}"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      "21.5%",
+      "approximately 40 %",
+      "40 %",
+      "11/28 cases"
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"21.5%\",\n    \"approximately 40 %\",\n    \"40 %\",\n    \"11/28 cases\"\n  ]\n}\n```"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      "38 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"38 months\"]}"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      "trans-sphenoidal surgery"
+    ],
+    "valid": true,
+    "raw": "{\n \"exact_answer\": [\"trans-sphenoidal surgery\"]\n}"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      "Cushing's syndrome is caused by excess ACTH secretion or by autonomous cortisol release from the adrenal cortex, while Cushing's disease is a pituitary source of excess ACTH within Cushing's syndrome.",
+      "Cushing's syndrome results from sustained pathologic hypercortisolism caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland (Cushing's disease, 70%) or elsewhere (15%), or by ACTH-independent cortisol secretion from adrenal tumors (15%)."
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    \"Cushing's syndrome is caused by excess ACTH secretion or by autonomous cortisol release from the adrenal cortex, while Cushing's disease is a pituitary source of excess ACTH within Cushing's syndrome.\",\n    \"Cushing's syndrome results from sustained pathologic hypercortisolism caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland (Cushing's disease, 70%) or elsewhere (15%), or by ACTH-independent cortisol secretion from adrenal tumors (15%).\"\n  ]\n}\n```"
+  }
+}

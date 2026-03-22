@@ -1,0 +1,806 @@
+{
+  "69a7fe5285870e396d000030": {
+    "exact_answer": [
+      [
+        "sister chromatid exchange"
+      ],
+      [
+        "DNA breakage"
+      ],
+      [
+        "thymine dimer"
+      ],
+      [
+        "(6-4) photoproduct"
+      ],
+      [
+        "interstrand and intrastrand DNA cross-links"
+      ],
+      [
+        "thymine-thymine cyclobutane dimer (T-T)"
+      ],
+      [
+        "thymine-thymine pyrimidine-pyrimidone (6-4) photoproduct (T (6-4) T)"
+      ],
+      [
+        "cyclobutane pyrimidine dimers (CPDs)"
+      ],
+      [
+        "DNA strand breaks"
+      ],
+      [
+        "DNA double strand breaks"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\"sister chromatid exchange\"],\n    [\"DNA breakage\"],\n    [\"thymine dimer\"],\n    [\"(6-4) photoproduct\"],\n    [\"interstrand and intrastrand DNA cross-links\"],\n    [\"thymine-thymine cyclobutane dimer (T-T)\"],\n    [\"thymine-thymine pyrimidine-pyrimidone (6-4) photoproduct (T (6-4) T)\"],\n    [\"cyclobutane pyrimidine dimers (CPDs)\"],\n    [\"DNA strand breaks\"],\n    [\"DNA double strand breaks\"]\n  ]\n}\n```"
+  },
+  "67ed4d9918b1e36f2e0000f6": {
+    "exact_answer": [
+      [
+        "schizophrenia"
+      ],
+      [
+        "bipolar disorder"
+      ],
+      [
+        "multiple drug abuse"
+      ],
+      [
+        "generalized anxiety disorder"
+      ],
+      [
+        "severe depression"
+      ],
+      [
+        "dementia"
+      ],
+      [
+        "mood disorders"
+      ],
+      [
+        "psychosis"
+      ],
+      [
+        "depression"
+      ],
+      [
+        "organic mental disorders"
+      ],
+      [
+        "disorders due to psychoactive substance use"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [[\"schizophrenia\"], [\"bipolar disorder\"], [\"multiple drug abuse\"], [\"generalized anxiety disorder\"], [\"severe depression\"], [\"dementia\"], [\"mood disorders\"], [\"psychosis\"], [\"depression\"], [\"organic mental disorders\"], [\"disorders due to psychoactive substance use\"]]}\n```"
+  },
+  "67d7fe4e18b1e36f2e000045": {
+    "exact_answer": [
+      [
+        "thiamine deficiency"
+      ],
+      [
+        "vitamin B1 deficiency"
+      ],
+      [
+        "folate"
+      ],
+      [
+        "vitamins B-6"
+      ],
+      [
+        "B-12"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\"thiamine deficiency\"],\n    [\"vitamin B1 deficiency\"],\n    [\"folate\"],\n    [\"vitamins B-6\"],\n    [\"B-12\"]\n  ]\n}\n```"
+  },
+  "69ac608a85870e396d000063": {
+    "exact_answer": [
+      [
+        "deficiency of all adrenocortical hormones"
+      ],
+      [
+        "low morning cortisol levels (<5 \u00b5g/dL)"
+      ],
+      [
+        "high corticotropin levels"
+      ],
+      [
+        "low DHEAS levels"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"deficiency of all adrenocortical hormones\"], [\"low morning cortisol levels (<5 \u00b5g/dL)\"], [\"high corticotropin levels\"], [\"low DHEAS levels\"]]}"
+  },
+  "69acbf7185870e396d00006f": {
+    "exact_answer": [
+      [
+        "predominantly visual symptoms at onset"
+      ],
+      [
+        "progressive vision loss prior to the onset of cognitive impairment"
+      ],
+      [
+        "blurred vision"
+      ],
+      [
+        "non-blurred vision visual symptoms at onset"
+      ],
+      [
+        "cortical blindness"
+      ],
+      [
+        "new-onset visual changes"
+      ],
+      [
+        "ataxia"
+      ],
+      [
+        "paranoia"
+      ],
+      [
+        "memory impairment"
+      ],
+      [
+        "visual hallucinations"
+      ],
+      [
+        "rapid loss of visual acuity"
+      ],
+      [
+        "declining visual fields"
+      ],
+      [
+        "homonymic hemianopsia"
+      ],
+      [
+        "aggression"
+      ],
+      [
+        "declining memory function"
+      ],
+      [
+        "physical degeneration"
+      ],
+      [
+        "prominent visual features early in its clinical course"
+      ],
+      [
+        "seizures"
+      ],
+      [
+        "focal motor seizures"
+      ],
+      [
+        "occipital lobe seizures"
+      ],
+      [
+        "visual symptoms preceding the appearance of other clinical manifestations"
+      ],
+      [
+        "progressive visual decline"
+      ],
+      [
+        "superimposed spells of visual dysfunction"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\n      \"predominantly visual symptoms at onset\"\n    ],\n    [\n      \"progressive vision loss prior to the onset of cognitive impairment\"\n    ],\n    [\n      \"blurred vision\"\n    ],\n    [\n      \"non-blurred vision visual symptoms at onset\"\n    ],\n    [\n      \"cortical blindness\"\n    ],\n    [\n      \"new-onset visual changes\"\n    ],\n    [\n      \"ataxia\"\n    ],\n    [\n      \"paranoia\"\n    ],\n    [\n      \"memory impairment\"\n    ],\n    [\n      \"visual hallucinations\"\n    ],\n    [\n      \"rapid loss of visual acuity\"\n    ],\n    [\n      \"declining visual fields\"\n    ],\n    [\n      \"homonymic hemianopsia\"\n    ],\n    [\n      \"aggression\"\n    ],\n    [\n      \"declining memory function\"\n    ],\n    [\n      \"physical degeneration\"\n    ],\n    [\n      \"prominent visual features early in its clinical course\"\n    ],\n    [\n      \"seizures\"\n    ],\n    [\n      \"focal motor seizures\"\n    ],\n    [\n      \"occipital lobe seizures\"\n    ],\n    [\n      \"visual symptoms preceding the appearance of other clinical manifestations\"\n    ],\n    [\n      \"progressive visual decline\"\n    ],\n    [\n      \"superimposed spells of visual dysfunction\"\n    ]\n  ]\n}\n```"
+  },
+  "69a7002085870e396d00001a": {
+    "exact_answer": [
+      [
+        "delivery to the incorrect patient"
+      ],
+      [
+        "privacy breaches"
+      ],
+      [
+        "Dosing errors"
+      ],
+      [
+        "wrong/improper drugs"
+      ],
+      [
+        "wrong infusion rate"
+      ],
+      [
+        "unauthorized medication"
+      ],
+      [
+        "wrong time"
+      ],
+      [
+        "documentation"
+      ],
+      [
+        "dose errors"
+      ],
+      [
+        "wrong dose error type"
+      ],
+      [
+        "wrong technique"
+      ],
+      [
+        "wrong route"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\n      \"delivery to the incorrect patient\"\n    ],\n    [\n      \"privacy breaches\"\n    ],\n    [\n      \"Dosing errors\"\n    ],\n    [\n      \"wrong/improper drugs\"\n    ],\n    [\n      \"wrong infusion rate\"\n    ],\n    [\n      \"unauthorized medication\"\n    ],\n    [\n      \"wrong time\"\n    ],\n    [\n      \"documentation\"\n    ],\n    [\n      \"dose errors\"\n    ],\n    [\n      \"wrong dose error type\"\n    ],\n    [\n      \"wrong technique\"\n    ],\n    [\n      \"wrong route\"\n    ]\n  ]\n}\n```"
+  },
+  "69a5df9a85870e396d000011": {
+    "exact_answer": [
+      [
+        "1 mg dexamethasone suppression"
+      ],
+      [
+        "urine free cortisol"
+      ],
+      [
+        "late night salivary cortisol"
+      ],
+      [
+        "overnight 1 mg dexamethasone suppression test (DST)"
+      ],
+      [
+        "urinary free cortisol (UFC) test"
+      ],
+      [
+        "late-night salivary cortisol (LSaC)"
+      ],
+      [
+        "1-mg dexamethasone suppression test (1-mg DST)"
+      ],
+      [
+        "late night salivary cortisol (LNSC)"
+      ],
+      [
+        "24 h urinary free cortisol (UFC)"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"1 mg dexamethasone suppression\"], [\"urine free cortisol\"], [\"late night salivary cortisol\"], [\"overnight 1 mg dexamethasone suppression test (DST)\"], [\"urinary free cortisol (UFC) test\"], [\"late-night salivary cortisol (LSaC)\"], [\"1-mg dexamethasone suppression test (1-mg DST)\"], [\"late night salivary cortisol (LNSC)\"], [\"24 h urinary free cortisol (UFC)\"]]}"
+  },
+  "69ac16e485870e396d000059": {
+    "exact_answer": [
+      [
+        "leukocytosis"
+      ],
+      [
+        "higher WBC"
+      ],
+      [
+        "neutrophils"
+      ],
+      [
+        "NLR"
+      ],
+      [
+        "absolute neutrophil and lymphocyte counts"
+      ],
+      [
+        "MLR"
+      ],
+      [
+        "PLR"
+      ],
+      [
+        "lymphocytes"
+      ],
+      [
+        "eosinophils"
+      ],
+      [
+        "relative lymphopenia"
+      ],
+      [
+        "TLC"
+      ],
+      [
+        "lymphocyte percentage"
+      ],
+      [
+        "neutrophil percentage"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\n  [\"leukocytosis\"],\n  [\"higher WBC\"],\n  [\"neutrophils\"],\n  [\"NLR\"],\n  [\"absolute neutrophil and lymphocyte counts\"],\n  [\"MLR\"],\n  [\"PLR\"],\n  [\"lymphocytes\"],\n  [\"eosinophils\"],\n  [\"relative lymphopenia\"],\n  [\"TLC\"],\n  [\"lymphocyte percentage\"],\n  [\"neutrophil percentage\"]\n]}\n```"
+  },
+  "69a7f6ba85870e396d000020": {
+    "exact_answer": [
+      [
+        "mammalian cells"
+      ],
+      [
+        "eukaryotic cells"
+      ],
+      [
+        "organisms"
+      ],
+      [
+        "human"
+      ],
+      [
+        "bovine mammary epithelial cells"
+      ],
+      [
+        "dairy cows"
+      ],
+      [
+        "Pekin ducks"
+      ],
+      [
+        "Mouse"
+      ],
+      [
+        "zebrafish larvae"
+      ],
+      [
+        "rat"
+      ],
+      [
+        "Drosophila"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"mammalian cells\"], [\"eukaryotic cells\"], [\"organisms\"], [\"human\"], [\"bovine mammary epithelial cells\"], [\"dairy cows\"], [\"Pekin ducks\"], [\"Mouse\"], [\"zebrafish larvae\"], [\"rat\"], [\"Drosophila\"]]}"
+  },
+  "69a4ca8a85870e396d000006": {
+    "exact_answer": [
+      [
+        "baricitinib"
+      ],
+      [
+        "ritlecitinib"
+      ],
+      [
+        "ruxolitinib"
+      ],
+      [
+        "upadacitinib"
+      ],
+      [
+        "delgocitinib"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"baricitinib\"], [\"ritlecitinib\"], [\"ruxolitinib\"], [\"upadacitinib\"], [\"delgocitinib\"]]}"
+  },
+  "69ab1e8885870e396d000051": {
+    "exact_answer": [
+      [
+        "corticotroph pituitary (Cushing's disease, CD)"
+      ],
+      [
+        "extra-pituitary (ectopic CS) tumours"
+      ],
+      [
+        "cortisol-secreting adrenal tumours or lesions (adrenal CS)"
+      ],
+      [
+        "Cushing disease (CD)"
+      ],
+      [
+        "unilateral adrenal adenoma"
+      ],
+      [
+        "adrenal CS from the remaining right adrenal gland"
+      ],
+      [
+        "pituitary tumors (Cushing disease)"
+      ],
+      [
+        "ectopic ACTH syndrome from nonpituitary neuroendocrine tumors"
+      ],
+      [
+        "autonomous cortisol production by adrenal adenomas, hyperplasia, or carcinomas"
+      ],
+      [
+        "ACTH-dependent forms"
+      ],
+      [
+        "ACTH-independent forms"
+      ],
+      [
+        "adrenal hypercortisolism"
+      ],
+      [
+        "mild autonomous cortisol secretion"
+      ],
+      [
+        "bilateral adrenal adenomas"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\"corticotroph pituitary (Cushing's disease, CD)\"],\n    [\"extra-pituitary (ectopic CS) tumours\"],\n    [\"cortisol-secreting adrenal tumours or lesions (adrenal CS)\"],\n    [\"Cushing disease (CD)\"],\n    [\"unilateral adrenal adenoma\"],\n    [\"adrenal CS from the remaining right adrenal gland\"],\n    [\"pituitary tumors (Cushing disease)\"],\n    [\"ectopic ACTH syndrome from nonpituitary neuroendocrine tumors\"],\n    [\"autonomous cortisol production by adrenal adenomas, hyperplasia, or carcinomas\"],\n    [\"ACTH-dependent forms\"],\n    [\"ACTH-independent forms\"],\n    [\"adrenal hypercortisolism\"],\n    [\"mild autonomous cortisol secretion\"],\n    [\"bilateral adrenal adenomas\"]\n  ]\n}\n```"
+  },
+  "69a8abfb85870e396d000039": {
+    "exact_answer": [
+      [
+        "thrombocytopenia"
+      ],
+      [
+        "anasarca"
+      ],
+      [
+        "fever"
+      ],
+      [
+        "reticulin fibrosis"
+      ],
+      [
+        "renal dysfunction"
+      ],
+      [
+        "organomegaly"
+      ],
+      [
+        "thrombocytopaenia"
+      ],
+      [
+        "fluid retention"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [[\"thrombocytopenia\"], [\"anasarca\"], [\"fever\"], [\"reticulin fibrosis\"], [\"renal dysfunction\"], [\"organomegaly\"], [\"thrombocytopaenia\"], [\"fluid retention\"]]}\n```"
+  },
+  "69a7fbc485870e396d00002a": {
+    "exact_answer": [
+      [
+        "cancer"
+      ],
+      [
+        "Alzheimer's disease"
+      ],
+      [
+        "Parkinson's disease"
+      ],
+      [
+        "Huntington disease"
+      ],
+      [
+        "amyotrophic lateral sclerosis"
+      ],
+      [
+        "neurodegenerative diseases"
+      ],
+      [
+        "neurodevelopmental diseases"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\n  [\"cancer\"],\n  [\"Alzheimer's disease\"],\n  [\"Parkinson's disease\"],\n  [\"Huntington disease\"],\n  [\"amyotrophic lateral sclerosis\"],\n  [\"neurodegenerative diseases\"],\n  [\"neurodevelopmental diseases\"]\n]}\n```"
+  },
+  "69a7fac085870e396d000027": {
+    "exact_answer": [
+      [
+        "lentiviruses"
+      ],
+      [
+        "adeno-associated viruses"
+      ],
+      [
+        "liposomal technology"
+      ],
+      [
+        "solid lipid nanoparticles"
+      ],
+      [
+        "polymer nanoparticles"
+      ],
+      [
+        "dendrimers"
+      ],
+      [
+        "polymeric micelles"
+      ],
+      [
+        "polymeric nanoparticles"
+      ],
+      [
+        "Adeno-associated virus"
+      ],
+      [
+        "adenoviruses"
+      ],
+      [
+        "retroviruses"
+      ],
+      [
+        "lentiviral vectors"
+      ],
+      [
+        "baculovirus"
+      ],
+      [
+        "Minicircle DNA"
+      ],
+      [
+        "herpes simplex virus (HSV)"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\n  [\"lentiviruses\"],\n  [\"adeno-associated viruses\"],\n  [\"liposomal technology\"],\n  [\"solid lipid nanoparticles\"],\n  [\"polymer nanoparticles\"],\n  [\"dendrimers\"],\n  [\"polymeric micelles\"],\n  [\"polymeric nanoparticles\"],\n  [\"Adeno-associated virus\"],\n  [\"adenoviruses\"],\n  [\"retroviruses\"],\n  [\"lentiviral vectors\"],\n  [\"baculovirus\"],\n  [\"Minicircle DNA\"],\n  [\"herpes simplex virus (HSV)\"]\n]}\n```"
+  },
+  "69a7f72985870e396d000022": {
+    "exact_answer": [
+      [
+        "trans-Golgi network"
+      ],
+      [
+        "perinuclear region"
+      ],
+      [
+        "exocytotic vesicles"
+      ],
+      [
+        "synapses"
+      ],
+      [
+        "Golgi complex"
+      ],
+      [
+        "endosomes"
+      ],
+      [
+        "LAMP-1-positive endosomes"
+      ],
+      [
+        "AP-3-positive organelles"
+      ],
+      [
+        "peripheral organelles"
+      ],
+      [
+        "peripheral membranes"
+      ],
+      [
+        "nerve terminals of mocha hippocampal mossy fibers"
+      ],
+      [
+        "Golgi"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\"trans-Golgi network\"],\n    [\"perinuclear region\"],\n    [\"exocytotic vesicles\"],\n    [\"synapses\"],\n    [\"Golgi complex\"],\n    [\"endosomes\"],\n    [\"LAMP-1-positive endosomes\"],\n    [\"AP-3-positive organelles\"],\n    [\"peripheral organelles\"],\n    [\"peripheral membranes\"],\n    [\"nerve terminals of mocha hippocampal mossy fibers\"],\n    [\"Golgi\"]\n  ]\n}\n```"
+  },
+  "69ac49a685870e396d00005f": {
+    "exact_answer": [
+      [
+        "general weakness"
+      ],
+      [
+        "anorexia"
+      ],
+      [
+        "arthralgia"
+      ],
+      [
+        "fever"
+      ],
+      [
+        "fatigue"
+      ],
+      [
+        "nausea"
+      ],
+      [
+        "vomiting"
+      ],
+      [
+        "abdominal pain"
+      ],
+      [
+        "myalgias"
+      ],
+      [
+        "weight loss"
+      ],
+      [
+        "salt craving"
+      ],
+      [
+        "hyperpigmented skin and mucus membranes"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\n      \"general weakness\"\n    ],\n    [\n      \"anorexia\"\n    ],\n    [\n      \"arthralgia\"\n    ],\n    [\n      \"fever\"\n    ],\n    [\n      \"fatigue\"\n    ],\n    [\n      \"nausea\"\n    ],\n    [\n      \"vomiting\"\n    ],\n    [\n      \"abdominal pain\"\n    ],\n    [\n      \"myalgias\"\n    ],\n    [\n      \"weight loss\"\n    ],\n    [\n      \"salt craving\"\n    ],\n    [\n      \"hyperpigmented skin and mucus membranes\"\n    ]\n  ]\n}\n```"
+  },
+  "69a7fc6785870e396d00002b": {
+    "exact_answer": [
+      [
+        "charge-charge interactions"
+      ],
+      [
+        "salting-out effect"
+      ],
+      [
+        "protein misfolding"
+      ],
+      [
+        "aggregation"
+      ],
+      [
+        "protein misfolding and aggregation"
+      ],
+      [
+        "structural determinants of its precursor (APP)"
+      ],
+      [
+        "regulating membrane protein dimerization"
+      ],
+      [
+        "cellular context"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n \"exact_answer\": [\n  [\"charge-charge interactions\"],\n  [\"salting-out effect\"],\n  [\"protein misfolding\"],\n  [\"aggregation\"],\n  [\"protein misfolding and aggregation\"],\n  [\"structural determinants of its precursor (APP)\"],\n  [\"regulating membrane protein dimerization\"],\n  [\"cellular context\"]\n ]\n}\n```"
+  },
+  "699ef80a85870e396d000003": {
+    "exact_answer": [
+      [
+        "Staphylococcus epidermidis"
+      ],
+      [
+        "Streptococcus mitis"
+      ],
+      [
+        "Streptococcus parasanguinis"
+      ],
+      [
+        "Streptococcus"
+      ],
+      [
+        "Staphylococcus"
+      ],
+      [
+        "Corynebacterium"
+      ],
+      [
+        "Corynebacterium bovis"
+      ],
+      [
+        "Staphylococcus capitis"
+      ],
+      [
+        "Staphylococcus hominis"
+      ],
+      [
+        "Micrococcus luteus"
+      ],
+      [
+        "Corynebacterium tuberculostearicum"
+      ],
+      [
+        "Kocuria"
+      ],
+      [
+        "Cutibacterium"
+      ],
+      [
+        "Bacillus subtilis"
+      ],
+      [
+        "Staphylococcus warneri"
+      ],
+      [
+        "Bacillus"
+      ],
+      [
+        "Cutibacterium acnes"
+      ],
+      [
+        "Neisseriaceae"
+      ],
+      [
+        "Corynebacterium kefirresidentii"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\n      \"Staphylococcus epidermidis\"\n    ],\n    [\n      \"Streptococcus mitis\"\n    ],\n    [\n      \"Streptococcus parasanguinis\"\n    ],\n    [\n      \"Streptococcus\"\n    ],\n    [\n      \"Staphylococcus\"\n    ],\n    [\n      \"Corynebacterium\"\n    ],\n    [\n      \"Corynebacterium bovis\"\n    ],\n    [\n      \"Staphylococcus capitis\"\n    ],\n    [\n      \"Staphylococcus hominis\"\n    ],\n    [\n      \"Micrococcus luteus\"\n    ],\n    [\n      \"Corynebacterium tuberculostearicum\"\n    ],\n    [\n      \"Kocuria\"\n    ],\n    [\n      \"Cutibacterium\"\n    ],\n    [\n      \"Bacillus subtilis\"\n    ],\n    [\n      \"Staphylococcus warneri\"\n    ],\n    [\n      \"Bacillus\"\n    ],\n    [\n      \"Cutibacterium acnes\"\n    ],\n    [\n      \"Neisseriaceae\"\n    ],\n    [\n      \"Corynebacterium kefirresidentii\"\n    ]\n  ]\n}\n```"
+  },
+  "69a4cc0a85870e396d000008": {
+    "exact_answer": [
+      [
+        "cytokine release syndrome"
+      ],
+      [
+        "CAR T-cell-related encephalopathy syndrome"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"cytokine release syndrome\"], [\"CAR T-cell-related encephalopathy syndrome\"]]}"
+  },
+  "69a8001f85870e396d000033": {
+    "exact_answer": [
+      [
+        "Redox signals"
+      ],
+      [
+        "mild pro-oxidant activity"
+      ],
+      [
+        "Environmental Enrichment (EE)"
+      ],
+      [
+        "multiple mild stimuli"
+      ],
+      [
+        "physical exercise"
+      ],
+      [
+        "cognitive challenges"
+      ],
+      [
+        "social engagement"
+      ],
+      [
+        "music"
+      ],
+      [
+        "moderate stimulation"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [[\"Redox signals\"], [\"mild pro-oxidant activity\"], [\"Environmental Enrichment (EE)\"], [\"multiple mild stimuli\"], [\"physical exercise\"], [\"cognitive challenges\"], [\"social engagement\"], [\"music\"], [\"moderate stimulation\"]]}\n```"
+  },
+  "69a8acd085870e396d00003a": {
+    "exact_answer": [
+      [
+        "split-hand/split-foot malformation (SHFM)"
+      ],
+      [
+        "facial anomalies"
+      ],
+      [
+        "cleft lip/palate"
+      ],
+      [
+        "congenital heart defect (CHD)"
+      ],
+      [
+        "genital anomalies"
+      ],
+      [
+        "mental retardation"
+      ],
+      [
+        "split-hand and split-foot malformation"
+      ],
+      [
+        "cleft lip and palate"
+      ],
+      [
+        "unusual face"
+      ],
+      [
+        "intellectual disability"
+      ],
+      [
+        "ectrodactyly"
+      ],
+      [
+        "minor facial anomalies"
+      ],
+      [
+        "genital abnormalities"
+      ],
+      [
+        "growth retardation"
+      ],
+      [
+        "mild scoliosis"
+      ],
+      [
+        "hemivertebrae"
+      ],
+      [
+        "subclinical hyperthyroidism"
+      ]
+    ],
+    "valid": true,
+    "raw": "```json\n{\n  \"exact_answer\": [\n    [\"split-hand/split-foot malformation (SHFM)\"],\n    [\"facial anomalies\"],\n    [\"cleft lip/palate\"],\n    [\"congenital heart defect (CHD)\"],\n    [\"genital anomalies\"],\n    [\"mental retardation\"],\n    [\"split-hand and split-foot malformation\"],\n    [\"cleft lip and palate\"],\n    [\"unusual face\"],\n    [\"intellectual disability\"],\n    [\"ectrodactyly\"],\n    [\"minor facial anomalies\"],\n    [\"genital abnormalities\"],\n    [\"growth retardation\"],\n    [\"mild scoliosis\"],\n    [\"hemivertebrae\"],\n    [\"subclinical hyperthyroidism\"]\n  ]\n}\n```"
+  }
+}

@@ -69,6 +69,30 @@ class VLLMBackend(BaseModelBackend):
         """Run inference on a single prompt (used by cloud backends)."""
         return self.generate_batch([prompt])[0]
 
+    def generate_chat(self, messages: list[dict]) -> str:
+        """Run inference using the model's chat template (system/user messages)."""
+        if self._llm is None:
+            raise RuntimeError("Model is not loaded. Call load() first.")
+        outputs = self._llm.chat(
+            messages=[messages],
+            sampling_params=self.sampling_params,
+            use_tqdm=False,
+        )
+        return outputs[0].outputs[0].text
+
+    def _truncate_prompt(self, prompt: str) -> str:
+        """Truncate prompt to fit within max_model_len - max_new_tokens."""
+        if self._llm is None:
+            return prompt
+        tokenizer = self._llm.get_tokenizer()
+        max_new_tokens = self.sampling_params.max_tokens or 16
+        max_input = self.max_model_len - max_new_tokens
+        ids = tokenizer.encode(prompt)
+        if len(ids) <= max_input:
+            return prompt
+        ids = ids[:max_input]
+        return tokenizer.decode(ids)
+
     def generate_batch(self, prompts: list[str]) -> list[str]:
         """
         Run inference on a batch of prompts at once.
@@ -80,6 +104,7 @@ class VLLMBackend(BaseModelBackend):
         if self._llm is None:
             raise RuntimeError("Model is not loaded. Call load() first.")
 
+        prompts = [self._truncate_prompt(p) for p in prompts]
         outputs = self._llm.generate(prompts, self.sampling_params)
 
         # Each output has a list of completions — we request only one per prompt

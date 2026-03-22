@@ -1,0 +1,87 @@
+{
+  "69a7f6fa85870e396d000021": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69ade3c185870e396d000073": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"yes\"}"
+  },
+  "69a7faa485870e396d000026": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\n  \"exact_answer\": \"yes\"\n}"
+  },
+  "69a86f1285870e396d000036": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69aacfcc85870e396d000040": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd8885870e396d00002d": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"yes\"}"
+  },
+  "69a66cb085870e396d000016": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69a8aeb485870e396d00003c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\n  \"exact_answer\": \"yes\"\n}"
+  },
+  "69a8adf785870e396d00003b": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69a7f7d385870e396d000025": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\n  \"exact_answer\": \"no\"\n}"
+  },
+  "69a669b585870e396d000014": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"yes\"}"
+  },
+  "67d975da18b1e36f2e000050": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"yes\"}"
+  },
+  "67e0043b18b1e36f2e000066": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd0785870e396d00002c": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\n  \"exact_answer\": \"no\"\n}"
+  },
+  "69a66b8085870e396d000015": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69aa28fb85870e396d00003f": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"no\"}"
+  },
+  "69a607be85870e396d000012": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "{\"exact_answer\": \"yes\"}"
+  }
+}

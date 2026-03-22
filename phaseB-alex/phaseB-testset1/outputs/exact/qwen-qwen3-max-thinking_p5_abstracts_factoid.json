@@ -1,0 +1,195 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      "82-144/million"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"82-144/million\"]}"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      "mesenchymal",
+      "mesenchymal (MES)",
+      "mesenchymal-like (MES-like)"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"mesenchymal\", \"mesenchymal (MES)\", \"mesenchymal-like (MES-like)\"]}"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      "27.4%",
+      "up to 20%",
+      "15% to 25%",
+      "between 5 and 20%",
+      "between 3 and 46%"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"27.4%\", \"up to 20%\", \"15% to 25%\", \"between 5 and 20%\", \"between 3 and 46%\"]}"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      "mutations in CLN7",
+      "mutations in CLN8",
+      "pathogenic mutation in the progranulin gene (GRN)",
+      "mutated gene (CLN1 to CLN14)",
+      "mitochondrial impairment"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"mutations in CLN7\", \"mutations in CLN8\", \"pathogenic mutation in the progranulin gene (GRN)\", \"mutated gene (CLN1 to CLN14)\", \"mitochondrial impairment\"]}"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      "2 to 8 per million people annually",
+      "2-4 cases per million inhabitants per year"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"2 to 8 per million people annually\", \"2-4 cases per million inhabitants per year\"]}"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      "solar ultraviolet (UV) radiation",
+      "solar radiation",
+      "UV radiation",
+      "UVR",
+      "ultraviolet (UV) radiation"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"solar ultraviolet (UV) radiation\", \"solar radiation\", \"UV radiation\", \"UVR\", \"ultraviolet (UV) radiation\"]}"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      "41%"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"41%\"]}"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      "diagnosis of hair and scalp disorders",
+      "diagnosis of alopecia areata",
+      "diagnosis of tinea capitis",
+      "diagnosis of androgenetic alopecia",
+      "diagnosis of trichotillomania"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"diagnosis of hair and scalp disorders\", \"diagnosis of alopecia areata\", \"diagnosis of tinea capitis\", \"diagnosis of androgenetic alopecia\", \"diagnosis of trichotillomania\"]}"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      "SRPK1",
+      "SRPK2",
+      "SRPK3"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"SRPK1\", \"SRPK2\", \"SRPK3\"]}"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      "B cells",
+      "B-lymphocyte",
+      "CD19+ B cells"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"B cells\", \"B-lymphocyte\", \"CD19+ B cells\"]}"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      "30 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"30 months\"]}"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      "to slow the loss of ambulation in pediatric patients with CLN2",
+      "treatment of motor function loss in paediatric patients \u22653 years of age with CLN2",
+      "slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"to slow the loss of ambulation in pediatric patients with CLN2\", \"treatment of motor function loss in paediatric patients \u22653 years of age with CLN2\", \"slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)\"]}"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      "glucose",
+      "glutamine",
+      "lactate",
+      "lipids",
+      "fructose"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"glucose\", \"glutamine\", \"lactate\", \"lipids\", \"fructose\"]}"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      "150-280/million"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"150-280/million\"]}"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      "Parkinson's disease"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"Parkinson's disease\"]}"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      "34 months",
+      "2 years",
+      "24 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"34 months\", \"2 years\", \"24 months\"]}"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      "hearing"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"hearing\"]}"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      "psychosine"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"psychosine\"]}"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"14 months\"]}"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      "40 %",
+      "21.5%"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"40 %\", \"21.5%\"]}"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      "38 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"38 months\"]}"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      "trans-sphenoidal surgery (TSS)"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"trans-sphenoidal surgery (TSS)\"]}"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      "Cushing's disease is a pituitary cause of Cushing's syndrome due to excess ACTH secretion from a pituitary tumor, whereas Cushing's syndrome encompasses all causes of hypercortisolism including pituitary (Cushing's disease), ectopic ACTH secretion, and adrenal tumors"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"Cushing's disease is a pituitary cause of Cushing's syndrome due to excess ACTH secretion from a pituitary tumor, whereas Cushing's syndrome encompasses all causes of hypercortisolism including pituitary (Cushing's disease), ectopic ACTH secretion, and adrenal tumors\"]}"
+  }
+}

@@ -35,6 +35,18 @@ def _normalise(text: str) -> str:
     return text
 
 
+def _gold_exact_to_normalised_set(gold_items: list) -> set[str]:
+    """Flatten exact_answer (flat or nested lists) to normalised strings."""
+    gold_set: set[str] = set()
+    for item in gold_items:
+        if isinstance(item, list):
+            for subitem in item:
+                gold_set.add(_normalise(str(subitem)))
+        else:
+            gold_set.add(_normalise(str(item)))
+    return gold_set
+
+
 def _rouge2_f1(prediction: str, references: list[str]) -> float:
     """
     Compute ROUGE-2 F1 between a predicted string and a list of reference strings.
@@ -176,9 +188,8 @@ def mrr_factoid(predictions: dict, ground_truth: list[dict]) -> dict:
         if qid not in predictions or not gold_items:
             continue
 
-        # Gold answers — normalise for comparison
-        # Factoid gold is a flat list like ["Bazex syndrome"]
-        gold_set = {_normalise(g) for g in gold_items}
+        # Gold may be flat ["Bazex syndrome"] or nested like list questions
+        gold_set = _gold_exact_to_normalised_set(gold_items)
 
         candidates = predictions[qid].get("exact_answer") or []
         if isinstance(candidates, str):
@@ -237,13 +248,7 @@ def mean_f1_list(predictions: dict, ground_truth: list[dict]) -> dict:
             continue
 
         # Gold is nested: [["EGF"], ["betacellulin"]] — flatten and normalise
-        gold_set = set()
-        for item in gold_items:
-            if isinstance(item, list):
-                for subitem in item:
-                    gold_set.add(_normalise(str(subitem)))
-            else:
-                gold_set.add(_normalise(str(item)))
+        gold_set = _gold_exact_to_normalised_set(gold_items)
 
         # Predictions can be nested or flat — flatten and normalise
         pred_items = predictions[qid].get("exact_answer") or []

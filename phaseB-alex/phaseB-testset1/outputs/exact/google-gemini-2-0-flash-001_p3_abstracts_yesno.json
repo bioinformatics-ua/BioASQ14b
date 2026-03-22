@@ -1,0 +1,87 @@
+{
+  "69a7f6fa85870e396d000021": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts discuss the characterization, function, and evolutionary conservation of PI4KII, highlighting its presence and importance in both Drosophila and mammals, and noting it belongs to a conserved family.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69ade3c185870e396d000073": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts describe successful reprogramming of tumor cells into dendritic cells in vivo, promoting antitumor immunity and tumor regression in mouse models.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7faa485870e396d000026": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that X-chromosome inactivation, a form of whole-chromosome silencing, occurs in somatic cells, can be cell-type specific, and can be affected by various factors, including somatic mutations and epigenetic alterations.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a86f1285870e396d000036": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts describe seborrheic dermatitis (SD) and seborrhea as inflammatory skin conditions affecting areas rich in sebaceous glands, and explore various treatments for these conditions.\n{\"exact_answer\": \"no\"}"
+  },
+  "69aacfcc85870e396d000040": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts indicate that rheumatic heart disease is a complication arising from acute rheumatic fever, which is triggered by Group A Streptococcus (GAS) infection.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd8885870e396d00002d": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively suggest that amyloid structures, traditionally associated with disease, can also serve functional roles in various biological systems, including bacteria, enamel development, and marine organisms, with these structures exhibiting diverse functions and regulated assembly pathways.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66cb085870e396d000016": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "Abstract 2: Germline mutations of PRKAR1A predispose to the multiple neoplasia syndrome Carney complex (CNC). We evaluated the prevalence and clinical characteristics of adrenocortical tumors (ACT) in CNC patients. We compared clinicopathological features of 16 ACTs in CNC patients with those of 62 sporadic ACTs. ACTs were identified in 11 of 55 CNC patients (20%). They were bilateral in 4 of 11 CNC patients. CNC-related ACTs occurred in younger patients than sporadic ACTs. CNC-related ACTs were more likely to be multiple, small, and pigmented than sporadic ACTs. The frequency of malignancy was similar in CNC-related and sporadic ACTs. Germline PRKAR1A mutations predispose to ACTs, which differ clinically and pathologically from sporadic ACTs.\nAbstract 3: Most adrenocortical carcinomas (ACCs) occur sporadically; however, approximately 15% of ACCs occur in the context of an inherited cancer predisposition syndrome. The most common of these is the Li-Fraumeni syndrome (LFS), caused by germline TP53 mutations. Other syndromes associated with ACC include Beckwith-Wiedemann syndrome, multiple endocrine neoplasia type 1 (MEN1), and Carney complex. Although the genetic drivers of sporadic ACC are poorly understood, recent studies have identified recurrent mutations in genes such as TP53, CTNNB1, and ZNRF3. Further research is needed to elucidate the genetic and epigenetic mechanisms underlying ACC development and to identify novel therapeutic targets.\nThe abstracts indicate that while adrenocortical secretory tumors can occur in hereditary syndromes, they are mostly sporadic.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a8aeb485870e396d00003c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that calcium dyshomeostasis and mitochondrial dysfunction are implicated in the pathogenesis and progression of Huntington's disease.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a8adf785870e396d00003b": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "Paracoccidioidomycosis is a systemic disease caused by the fungus Paracoccidioides brasiliensis and related species, with diagnosis and treatment challenges.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7f7d385870e396d000025": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts present conflicting evidence regarding the susceptibility of the inactive X chromosome (Xi) to DNA damage and repair, with some suggesting it is more vulnerable due to chromatin condensation or slower repair mechanisms, while others indicate similar or even higher damage levels but increased sensitivity to repair inhibition compared to the active X chromosome.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a669b585870e396d000014": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that Cushing's Syndrome, caused by either pituitary or adrenal tumors, is a recognized and studied endocrine disorder in dogs, with research focusing on diagnosis, treatment, risk factors, and molecular markers.\n{\"exact_answer\": \"yes\"}"
+  },
+  "67d975da18b1e36f2e000050": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts describe several zoonotic diseases, including Western equine encephalitis, spotted fever group rickettsioses, tularemia, and Crimean-Congo hemorrhagic fever, all of which affect humans.\n{\"exact_answer\": \"yes\"}"
+  },
+  "67e0043b18b1e36f2e000066": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts present evidence suggesting a potential link between Vitamin D levels and Alzheimer's disease, with some studies showing lower Vitamin D levels in AD patients and potential anti-inflammatory effects of Vitamin D in brain cells, but Mendelian randomization studies did not find a clear association between increased Vitamin D and improved cognitive performance.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd0785870e396d00002c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively discuss AlphaFold's success in protein structure prediction and explore its potential, along with other machine learning methods, in inverse protein folding to design sequences that fold into specific 3D structures.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66b8085870e396d000015": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively show that Cushing's syndrome (hyperadrenocorticism) is recognized in cats, though less frequently diagnosed than in dogs.\n{\"exact_answer\": \"yes\"}\n"
+  },
+  "69aa28fb85870e396d00003f": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "Heck's disease is caused by a virus, specifically human papilloma virus.\n{\"exact_answer\": \"no\"}\n"
+  },
+  "69a607be85870e396d000012": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that situs inversus totalis is a rare congenital condition where the organs are mirrored, generally without pathophysiological significance and compatible with life, though it can present diagnostic and surgical challenges, and may be associated with other conditions.\n{\"exact_answer\": \"yes\"}"
+  }
+}

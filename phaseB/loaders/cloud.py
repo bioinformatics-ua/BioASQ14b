@@ -111,6 +111,28 @@ class OpenRouterBackend(BaseModelBackend):
 
         return ""
 
+    def generate_chat(self, messages: list[dict]) -> str:
+        """Send a list of chat messages (system/user dicts) to OpenRouter."""
+        if self._client is None:
+            raise RuntimeError("Backend not loaded. Call load() first.")
+
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                response = self._client.chat.completions.create(
+                    model=self.model,
+                    max_tokens=self.max_tokens,
+                    temperature=self.temperature,
+                    messages=messages,
+                )
+                return response.choices[0].message.content or ""
+            except Exception as e:
+                if attempt == self.max_retries:
+                    print(f"OpenRouter API failed after {self.max_retries} attempts: {e}")
+                    return ""
+                print(f"OpenRouter API error (attempt {attempt}/{self.max_retries}): {e}")
+                time.sleep(self.retry_delay)
+        return ""
+
     def unload(self) -> None:
         """No-op for cloud backends — nothing to release."""
         self._client = None

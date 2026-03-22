@@ -1,4 +1,15 @@
 {
+  "summary": {
+    "5": {
+      "description": "Open-ended topic summary: synthesize main points into one paragraph (ideal_answer), same JSON shape as ideal-answer evaluation.",
+      "template": "Act as a biomedical expert. You will receive several abstracts and an open-ended question that asks you to **summarize** a biomedical topic (not yes/no, not a ranked factoid, not an enumerated list).\n\nYour task is to synthesize the most important information from the abstracts into a single coherent overview. Cover definitions, mechanisms, clinical context, or key findings **only as supported by the provided text**.\n\nThink step-by-step, then output ONLY valid JSON (no markdown, no text outside the JSON):\n{{\"reasoning\": \"brief extraction notes\", \"ideal_answer\": \"One fluent plain-text paragraph under 200 words. No bullet lists, no markdown.\"}}\n\nQuestion: {question}\n\n{context}"
+    },
+    "6": {
+      "description": "Summary with XML-tagged context and strict JSON (reasoning + ideal_answer), aligned with prompts_generic #6 style.",
+      "template": "Act as a biomedical expert. You will receive retrieved documents and an open-ended **summary** question.\n\n<context>\n{context}\n</context>\n\n<question>\n{question}\n</question>\n\nINSTRUCTIONS:\n1. Step through the context and identify themes that answer the question.\n2. Write **ideal_answer**: one narrative paragraph (plain text only, no lists or markdown) that **summarizes** the topic for a biomedical reader, strictly between 50 and 200 words, grounded only in the context.\n3. Output ONLY valid JSON with keys reasoning (string) and ideal_answer (string). No markdown fences.\n\nEXAMPLE OUTPUT:\n{{\n  \"reasoning\": \"Key themes: definition from doc1; mechanism from doc2; ...\",\n  \"ideal_answer\": \"Topic X is ... (unified summary paragraph).\"\n}}"
+    }
+  },
+
   "yesno": {
     "1": {
       "description": "Yes/no exact answer only. Chain-of-thought reasoning, then a single JSON with exact_answer yes or no.",

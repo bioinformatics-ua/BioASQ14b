@@ -1,4 +1,5 @@
 #!/bin/bash
+# THIS IS WHAT HAS BEEN SUBMITTED TO PHASE A+ BATCH 1
 set -e
 
 REPO_DIR="$(cd "$(dirname "$0")" && pwd)"

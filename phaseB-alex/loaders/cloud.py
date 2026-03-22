@@ -59,13 +59,15 @@ class OpenRouterBackend(BaseModelBackend):
         temperature: float = 0.0,
         max_retries: int = 3,
         retry_delay: float = 5.0,
+        request_delay: float = 0.0,
     ):
-        self.model       = model
-        self.max_tokens  = max_tokens
-        self.temperature = temperature
-        self.max_retries = max_retries
-        self.retry_delay = retry_delay
-        self._client     = None
+        self.model         = model
+        self.max_tokens    = max_tokens
+        self.temperature   = temperature
+        self.max_retries   = max_retries
+        self.retry_delay   = retry_delay
+        self.request_delay = request_delay
+        self._client       = None
 
     def load(self) -> None:
         """Initialise the OpenAI client pointed at OpenRouter."""
@@ -110,6 +112,14 @@ class OpenRouterBackend(BaseModelBackend):
                 time.sleep(self.retry_delay)
 
         return ""
+
+    def generate_batch(self, prompts: list[str]) -> list[str]:
+        results = []
+        for i, prompt in enumerate(prompts):
+            results.append(self.generate(prompt))
+            if self.request_delay > 0 and i < len(prompts) - 1:
+                time.sleep(self.request_delay)
+        return results
 
     def unload(self) -> None:
         """No-op for cloud backends — nothing to release."""

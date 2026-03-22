@@ -1,0 +1,87 @@
+{
+  "69a7f6fa85870e396d000021": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that PI4KII is a highly conserved enzyme family across species, including Drosophila melanogaster and mammals, with shared functional and structural features suggestive of evolutionary homology.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "69ade3c185870e396d000073": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that tumor cells can be reprogrammed in vivo into dendritic cells\u2014specifically type 1 conventional dendritic cells\u2014using defined transcription factors, leading to enhanced antitumor immunity and tumor regression in mouse models.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7faa485870e396d000026": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that X chromosome inactivation\u2014a form of whole-chromosome silencing\u2014occurs in female somatic cells to achieve dosage compensation and persists into adulthood in certain cell types.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "69a86f1285870e396d000036": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively describe seborrhea or seborrheic dermatitis as a skin condition involving sebaceous glands in areas such as the scalp, face, and body folds, with no mention of gastrointestinal involvement.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69aacfcc85870e396d000040": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that rheumatic heart disease is caused by an autoimmune response triggered by group A Streptococcus infection, not by Staphylococcus aureus.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd8885870e396d00002d": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that certain proteins can form non-pathological, functional amyloid structures that acquire new biological roles\u2014such as inducing cellular dormancy, supporting sperm maturation, or mediating host defense\u2014indicating that amyloid formation can confer novel functions beyond the protein's native state.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66cb085870e396d000016": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts indicate that adrenocortical secretory tumors in humans are primarily sporadic, though they can occasionally be associated with hereditary syndromes.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a8aeb485870e396d00003c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that calcium dyshomeostasis is implicated in the pathogenesis and progression of Huntington's disease, often in conjunction with mitochondrial dysfunction and mutant huntingtin protein effects.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "69a8adf785870e396d00003b": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that Paracoccidioidomycosis is a systemic mycosis caused by the dimorphic fungus Paracoccidioides brasiliensis and related species, endemic to Latin America.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a7f7d385870e396d000025": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that the inactive X chromosome, while highly condensed and epigenetically regulated by proteins like CIZ1 and SMCHD1 that contribute to genome stability and DNA repair, still undergoes a conserved DNA damage response and may require chromatin remodeling for efficient repair, suggesting it is not inherently less susceptible to genotoxic damage than the active X chromosome.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a669b585870e396d000014": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that Cushing's syndrome, also known as hypercortisolism, is a recognized and common endocrine disorder in dogs, with specific references to its spontaneous or naturally occurring forms and associated adrenal tumors.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "67d975da18b1e36f2e000050": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively describe multiple zoonotic diseases\u2014Crimean-Congo hemorrhagic fever, tularemia, Western equine encephalitis, and spotted fever group rickettsioses\u2014that are transmissible from animals to humans and can cause illness in human populations.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "67e0043b18b1e36f2e000066": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that vitamin D deficiency is associated with Alzheimer\u2019s disease and that vitamin D may exert neuroprotective effects and improve cognition through various biological mechanisms, though they primarily reference observational, epidemiological, and experimental evidence rather than conclusive clinical trial data demonstrating therapeutic cognitive improvement in Alzheimer\u2019s patients.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd0785870e396d00002c": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that while AlphaFold excels at predicting protein structures from amino acid sequences and has inspired applications in protein design, only one snippet explicitly mentions \"AlphaFold distillation for inverse protein design,\" suggesting limited or emerging capability for inverse folding rather than a standard or established use of AlphaFold for this purpose.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a66b8085870e396d000015": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that Cushing syndrome, also known as hyperadrenocorticism, occurs in cats, albeit less frequently diagnosed than in dogs.  \n{\"exact_answer\": \"yes\"}"
+  },
+  "69aa28fb85870e396d00003f": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that Heck's disease, also known as focal epithelial hyperplasia, is caused by a human papillomavirus, not a bacterium.  \n{\"exact_answer\": \"no\"}"
+  },
+  "69a607be85870e396d000012": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that situs inversus totalis is a rare anatomical variation involving complete mirror-image reversal of thoracic and abdominal organs, generally lacks pathophysiologic significance, does not reduce survival rates, and is compatible with normal life when not associated with other pathologies.  \n{\"exact_answer\": \"yes\"}"
+  }
+}

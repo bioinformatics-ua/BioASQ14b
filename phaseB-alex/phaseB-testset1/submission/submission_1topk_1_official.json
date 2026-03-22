@@ -1,0 +1,1248 @@
+{
+    "questions": [
+        {
+            "id": "69ac745885870e396d000065",
+            "type": "factoid",
+            "body": "What is the prevalence of primary adrenal insufficiency?",
+            "ideal_answer": "The prevalence of primary adrenal insufficiency is estimated at between 82 and 144 cases per million people. Auto-immunity is the most common cause in adults, while genetic causes, especially enzyme defects, are the most common cause in children. By comparison, secondary adrenal insufficiency has a higher estimated prevalence of 150-280 per million. Acute adrenal crisis occurs in both primary and secondary adrenal insufficiency at an incidence of approximately 6-8 per 100 patients per year in Europe, with a prospective study reporting 0.5 deaths per 100 patient-years from adrenal crisis. Long-term morbidity is not well established, though quality of life is consistently reported to be impaired in both physical and mental health components.",
+            "exact_answer": [
+                "82-144/million",
+                "between 82-144/million"
+            ]
+        },
+        {
+            "id": "69a8afae85870e396d00003d",
+            "type": "summary",
+            "body": "What is adductor canal syndrome?",
+            "ideal_answer": "Adductor canal syndrome, also known as adductor canal compression syndrome, is a rare non-atherosclerotic vascular disorder in which the superficial femoral artery is externally compressed as it passes through the adductor canal. The compression typically results from an anomalous musculotendinous band or hypertrophic musculature surrounding the structures within the canal. It predominantly affects young, athletic individuals—particularly runners and skiers—who are exposed to repetitive mechanical stress, though it can occur in middle-aged patients as well. Clinically, it presents with activity-related symptoms such as claudication, paresthesia, and sharp leg pain, which can progress to acute critical limb ischemia characterized by pain, pallor, pulselessness, paralysis, and poikilothermia. The chronic arterial compression predisposes to thrombosis, which may propagate distally and cause limb-threatening ischemia. Diagnosis is often delayed because symptoms overlap with more common causes of leg pain and because the condition is uncommon, particularly in young people without traditional cardiovascular risk factors. Treatment typically involves surgical exploration with division of the compressing band, thrombectomy, and sometimes bypass grafting. Early recognition is essential to prevent limb loss and long-term functional impairment.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a7fe5285870e396d000030",
+            "type": "list",
+            "body": "What are the main types of DNA damage induced by UV radiation?",
+            "ideal_answer": "UV radiation induces several main types of DNA damage. The most well-characterized are cyclobutane pyrimidine dimers (CPDs), specifically thymine-thymine cyclobutane dimers (T-T), which form when adjacent pyrimidine bases become covalently linked. A second major photoproduct is the (6-4) photoproduct, also called the thymine-thymine pyrimidine-pyrimidone (6-4) photoproduct (T(6-4)T), which is mutagenic and continues to accumulate with increasing UV irradiation. UV also induces interstrand and intrastrand DNA cross-links more broadly. Additionally, UV exposure generates DNA strand breaks, including both single- and double-strand breaks, which are early intermediates in the repair process and can severely impair cellular activities. Sister chromatid exchange is another form of UV-induced DNA damage observed particularly in preimplantation embryos. If left unrepaired, these lesions can block DNA replication and transcription, increase mutation rates, and contribute to conditions such as xeroderma pigmentosum and skin cancer.",
+            "exact_answer": [
+                [
+                    "cyclobutane pyrimidine dimers (CPDs)"
+                ],
+                [
+                    "thymine-thymine cyclobutane dimer (T-T)"
+                ],
+                [
+                    "(6-4) photoproduct"
+                ],
+                [
+                    "thymine-thymine pyrimidine-pyrimidone (6-4) photoproduct (T (6-4) T)"
+                ],
+                [
+                    "DNA strand breaks"
+                ],
+                [
+                    "interstrand DNA cross-links"
+                ],
+                [
+                    "intrastrand DNA cross-links"
+                ],
+                [
+                    "sister chromatid exchange"
+                ],
+                [
+                    "DNA breakage"
+                ]
+            ]
+        },
+        {
+            "id": "67ed4d9918b1e36f2e0000f6",
+            "type": "list",
+            "body": "What are indications of quetiapine?",
+            "ideal_answer": "Quetiapine is an atypical antipsychotic with several indications. Its approved and studied uses include schizophrenia, bipolar disorder, generalized anxiety disorder, severe depression, dementia, mood disorders, and psychosis. It is also frequently prescribed for multiple drug abuse (MDA), where it tends to be used at lower doses, particularly in younger male patients. Off-label use has been documented for organic mental disorders, disorders due to psychoactive substance use, and affective disorders. In one retrospective study, MDA was the most common indication, followed by psychosis and depression, while off-label prescribing data from German psychiatric hospitals highlighted quetiapine as one of the most frequently off-label prescribed drugs across several diagnostic categories.",
+            "exact_answer": [
+                [
+                    "schizophrenia"
+                ],
+                [
+                    "bipolar disorder"
+                ],
+                [
+                    "multiple drug abuse (MDA)"
+                ],
+                [
+                    "generalized anxiety disorder"
+                ],
+                [
+                    "severe depression"
+                ],
+                [
+                    "dementia"
+                ],
+                [
+                    "mood disorders"
+                ],
+                [
+                    "psychosis"
+                ],
+                [
+                    "organic mental disorders"
+                ],
+                [
+                    "disorders due to psychoactive substance use"
+                ],
+                [
+                    "affective disorders"
+                ]
+            ]
+        },
+        {
+            "id": "69adec7285870e396d000074",
+            "type": "factoid",
+            "body": "In GBM, which cell state is associated with the loss of Neurofibromin (NF1)?",
+            "ideal_answer": "Loss of Neurofibromin (NF1) in GBM is strongly associated with the mesenchymal cell state. Multiple lines of evidence support this: NF1 alterations are usually found in the mesenchymal molecular subtype of GBM, and NF1 loss promotes mesenchymal transformation through upregulation of the AP-1 transcription factor FOSL1, which controls the mesenchymal gene signature and stem cell properties. shRNA-mediated NF1 depletion in patient-derived glioma cells increases self-renewal, heightens invasion, and promotes mesenchymal subtype and epithelial-mesenchymal transition gene expression. Clinicopathologically, tumors with NF1 genetic loss express the mesenchymal marker podoplanin. At the single-cell level, single-nucleus RNA sequencing of NF1-mutant GBMs demonstrates that mesenchymal-like (MES-like) tumor cells are enriched for MEK activation signatures, and MEK inhibition selectively depletes these MES-like cells. Collectively, these findings establish that NF1 loss drives GBM cells toward the mesenchymal cell state through aberrant RAS/MAPK signaling.",
+            "exact_answer": [
+                "mesenchymal",
+                "mesenchymal-like (MES-like)",
+                "MES-like"
+            ]
+        },
+        {
+            "id": "69ac1e6885870e396d00005b",
+            "type": "factoid",
+            "body": "What the recurrence percentage for Cushing's Disease?",
+            "ideal_answer": "The recurrence rate for Cushing's Disease following transsphenoidal surgery varies across studies and depends on the duration of follow-up. Overall, recurrence rates range from 3% to 46%. Abstract 1 reports late recurrences in up to 20% of patients, with risk persisting even after 20 years of follow-up. Abstract 2 found a recurrence rate of 27.4% after a median follow-up of 38 months, with macroadenomas showing higher recurrence (45%) compared to microadenomas (19%). Abstract 3 cites published recurrence rates between 5% and 20%, with half occurring within 5 years and the remainder within or after 10 years post-surgery. Abstract 4 reports recurrence in 15% to 25% of patients depending on study and follow-up duration. Abstract 5 observed a particularly high recurrence rate of 65.6% among patients who achieved initial remission, attributable in part to a long mean follow-up of 14 years. Postoperative corticotroph insufficiency and low immediate post-operative cortisol concentrations are consistently identified as protective factors against recurrence, and lifelong monitoring is recommended for all patients.",
+            "exact_answer": [
+                "up to 20%",
+                "27.4%",
+                "between 5 and 20%",
+                "15% to 25%",
+                "between 3 and 46%"
+            ]
+        },
+        {
+            "id": "69acae9485870e396d00006b",
+            "type": "factoid",
+            "body": "What causes neuronal ceroid lipofuscinoses (NCLs)?",
+            "ideal_answer": "Neuronal ceroid lipofuscinoses (NCLs) are a group of rare, inherited lysosomal storage disorders caused by aberrant lysosomal function resulting from mutations in specific genes. NCLs span from CLN1 to CLN14, each linked to a particular mutated gene. For example, CLN7 and CLN8 are caused by pathogenic mutations confirmed by whole exome sequencing, while CLN11 is caused by a homozygous pathogenic mutation in the progranulin gene (GRN). These genetic defects lead to accumulation of autofluorescent ceroid lipopigment and progressive neurodegeneration. Mitochondrial impairment, including dysfunctional oxidative phosphorylation and altered mitochondrial membrane potential, has also been implicated in pathogenesis. The disorders are characterized by progressive neurological deterioration including seizures, cognitive decline, vision loss, and motor dysfunction.",
+            "exact_answer": [
+                "aberrant lysosomal function",
+                "mutations in particular genes",
+                "homozygous pathogenic mutation in the progranulin gene (GRN)"
+            ]
+        },
+        {
+            "id": "69a7f6fa85870e396d000021",
+            "type": "yesno",
+            "body": "Does the PI4KIIalpha of Drosophila melanogaster show homology with that of Homo sapiens?",
+            "ideal_answer": "Yes, the PI4KIIalpha of Drosophila melanogaster shows homology with that of Homo sapiens. Abstract 3 explicitly states that this novel class of phosphatidylinositol 4-kinases is highly conserved evolutionarily, ranging from yeast to humans, indicating that the Drosophila and human PI4KII enzymes share significant sequence and functional conservation. Abstract 1 further supports this by describing the expression and characterization of Drosophila PI4KII alongside the rat PI4KIIalpha, demonstrating that the PI4KII family extends beyond mammalian sources and that these enzymes share a conserved catalytic domain. Additionally, Abstract 2 identifies a sole Drosophila melanogaster PI4KII gene whose functions in membrane trafficking and lipid signaling parallel those described in mammalian systems, further underscoring the evolutionary conservation of this enzyme family across species including Homo sapiens.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "67d7fe4e18b1e36f2e000045",
+            "type": "list",
+            "body": "Vitamin deficiencies in severe alcoholism.",
+            "ideal_answer": "Severe alcoholism is associated with several key vitamin deficiencies, primarily due to malnutrition, poor dietary intake, and alcohol-induced metabolic disruptions. Thiamine (vitamin B1) deficiency is the most prominent, as alcohol abuse is its leading cause; it can manifest as Wernicke's encephalopathy, Wernicke-Korsakoff syndrome, or beriberi (dry or wet forms, including beriberi heart disease). Deficiencies in folate, vitamin B-6, and vitamin B-12 are also well documented in individuals with alcoholic liver disease, where these vitamins are essential for hepatic methionine metabolism. Chronic ethanol exposure disrupts this metabolism, and because malnutrition is a universal finding in alcoholic liver disease, the condition can be considered an induced nutritional disorder conditioned by alcohol abuse. Together, these vitamin deficiencies contribute significantly to neurological, cardiovascular, and hepatic complications seen in severe alcoholism.",
+            "exact_answer": [
+                [
+                    "thiamine"
+                ],
+                [
+                    "folate"
+                ],
+                [
+                    "vitamin B-6"
+                ],
+                [
+                    "vitamin B-12"
+                ]
+            ]
+        },
+        {
+            "id": "69ade3c185870e396d000073",
+            "type": "yesno",
+            "body": "Can tumor cells be reprogrammed into immune cells?",
+            "ideal_answer": "Yes, tumor cells can be reprogrammed into immune cells. Research has demonstrated that cancer cells can be converted in vivo into functional dendritic cells through adenoviral delivery of the transcription factors PU.1, IRF8, and BATF3. These reprogrammed tumor cells acquire the ability to present antigens as type 1 conventional dendritic cells, remodel the tumor microenvironment, recruit and expand polyclonal cytotoxic T cells, induce tumor regressions, and establish long-term systemic immunity in multiple mouse melanoma models. Importantly, in human tumor spheroids and xenografts, this reprogramming proceeded independently of immunosuppression, which typically limits conventional immunotherapy approaches. These findings open the door to potential human clinical trials of in vivo immune cell reprogramming as a novel cancer immunotherapy strategy.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69ac608a85870e396d000063",
+            "type": "list",
+            "body": "What are the typically biomedical characteristics of primary adrenal insufficiency?",
+            "ideal_answer": "Primary adrenal insufficiency is characterized by a deficiency of all adrenocortical hormones, distinguishing it from secondary and glucocorticoid-induced forms. Diagnostically, it typically presents with low early-morning serum cortisol levels (specifically less than 5 µg/dL), high corticotropin levels, and low dehydroepiandrosterone sulfate (DHEAS) levels. These biomedical characteristics reflect the destruction or dysfunction of the adrenal cortex itself, leading to loss of glucocorticoid, mineralocorticoid, and androgen production. In contrast, secondary and glucocorticoid-induced adrenal insufficiency typically show low or intermediate cortisol with low or low-normal corticotropin and DHEAS levels.",
+            "exact_answer": [
+                [
+                    "deficiency of all adrenocortical hormones"
+                ],
+                [
+                    "low morning cortisol levels (<5 µg/dL)"
+                ],
+                [
+                    "high corticotropin levels"
+                ],
+                [
+                    "low DHEAS levels"
+                ]
+            ]
+        },
+        {
+            "id": "69acbf7185870e396d00006f",
+            "type": "list",
+            "body": "Please list the common clinical characteristic of the Heidenhain variant of Creutzfeldt–Jakob disease (HvCJD)",
+            "ideal_answer": "The hallmark clinical characteristic of the Heidenhain variant of Creutzfeldt-Jakob disease (HvCJD) is the presence of prominent visual symptoms at disease onset, typically preceding cognitive impairment and other neurological deficits by weeks. These visual disturbances include blurred vision, progressive loss of visual acuity, decline in visual fields, homonymic hemianopsia, cortical blindness, and visual hallucinations. The isolated visual symptom phase has a median duration of approximately 30 days. As the disease progresses, patients develop cognitive decline, memory impairment, behavioral changes such as aggression and paranoia, and ataxia. The course is rapidly progressive and universally fatal, often within weeks to months of diagnosis. Seizures occur in a minority of cases (approximately 5.5%). Imaging typically shows DWI hyperintensities in the posterior cerebral cortices, particularly the occipital and occipito-parietal regions, and EEG may reveal periodic sharp wave complexes. CSF findings include elevated 14-3-3 protein and positive RT-QuIC, supporting the diagnosis.",
+            "exact_answer": [
+                [
+                    "predominantly visual symptoms at onset"
+                ],
+                [
+                    "progressive vision loss"
+                ],
+                [
+                    "blurred vision"
+                ],
+                [
+                    "loss of visual acuity"
+                ],
+                [
+                    "decline in visual fields"
+                ],
+                [
+                    "homonymic hemianopsia"
+                ],
+                [
+                    "cortical blindness"
+                ],
+                [
+                    "visual hallucinations"
+                ],
+                [
+                    "new-onset visual changes"
+                ],
+                [
+                    "visual symptoms preceding cognitive impairment"
+                ],
+                [
+                    "rapid progression"
+                ],
+                [
+                    "cognitive impairment"
+                ],
+                [
+                    "memory impairment"
+                ],
+                [
+                    "behavioral changes"
+                ],
+                [
+                    "aggression"
+                ],
+                [
+                    "ataxia"
+                ],
+                [
+                    "paranoia"
+                ],
+                [
+                    "seizures (uncommon, ~5.5%)"
+                ],
+                [
+                    "fatal outcome"
+                ]
+            ]
+        },
+        {
+            "id": "69a7faa485870e396d000026",
+            "type": "yesno",
+            "body": "Does whole-chromosome silencing occur in somatic cells?",
+            "ideal_answer": "Yes, whole-chromosome silencing occurs in somatic cells through a process called X chromosome inactivation (XCI), which ensures dosage compensation by silencing most genes on one of the two X chromosomes in female cells. Multiple lines of evidence confirm this: studies of somatic cell hybrids demonstrate that genes such as Zfx, Rps4, and Ube1x are expressed exclusively from the active mouse X chromosome, while Xist is expressed only from the inactive X. In adult human B cells, XIST is continuously required to silence X-linked immune genes such as TLR7 via histone deacetylation, demonstrating that XCI is actively maintained in differentiated somatic cells. Mosaic female mice carrying a Piga-null mutation show tissue-specific XCI effects in heart, lung, kidney, brain, and liver. X inactivation can even spread into autosomal material in X;autosome translocations in somatic cell hybrids. Cloned cattle exhibit aberrant XCI patterns in somatic organs, further confirming that XCI normally operates in somatic tissues. Together, these findings establish that whole-chromosome silencing is a fundamental and ongoing process in somatic cells across multiple species and cell types.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "67e2c98518b1e36f2e000096",
+            "type": "summary",
+            "body": "Are eating disorders common in male adolescents?",
+            "ideal_answer": "Eating disorders do occur in male adolescents, though their prevalence and severity are generally lower than in females. A cross-sectional study among college students in Sarawak found a disordered eating prevalence of 15.6% in males compared to 28.6% in females, with shared risk factors including perceived sociocultural pressure, drive for muscularity, and perfectionism affecting both sexes. Population-based Canadian data on hospitalizations from 2010 to 2022 showed that male children and youth had significantly lower rates of eating disorder hospitalizations (5.9 per 100,000) compared to females (66.7 per 100,000), with the average age of hospitalization being around 14.7 years. In Spain, eating disorders represented the second most common reason for psychiatric hospitalization in adolescents over a 22-year period, with a clear female predominance as part of a broader pattern of internalizing disorders. Notably, rates of eating disorder hospitalizations increased substantially during the COVID-19 pandemic across multiple countries. Despite the gender disparity, these findings confirm that eating disorders are a meaningful clinical concern in male adolescents and should not be overlooked in screening, prevention, and intervention programs targeting this population.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69abc5e285870e396d000056",
+            "type": "factoid",
+            "body": "What is the estimated incidence of endogenous Cushing's Syndrome in the human population?",
+            "ideal_answer": "The estimated incidence of endogenous Cushing's Syndrome ranges from 2 to 8 per million people annually, as reported in a major review. A more conservative estimate places the incidence at 2 to 4 cases per million inhabitants per year. Cushing's disease, caused by a corticotropin-secreting pituitary adenoma and representing the most frequent form of endogenous Cushing's syndrome, has an incidence of 1.2 to 2.4 cases per million inhabitants per year and is 3 to 8 times more common in women than in men. ACTH-independent Cushing's syndrome accounts for approximately 20% of endogenous cases, most frequently due to adrenal adenomas or carcinomas. Overall, endogenous Cushing's syndrome is considered a rare condition, and cases caused by ectopic ACTH secretion are thought to be underdiagnosed.",
+            "exact_answer": [
+                "2 to 8 per million people annually",
+                "2-4 cases per million inhabitants per year",
+                "1.2 to 2.4 cases per million inhabitants per year"
+            ]
+        },
+        {
+            "id": "69a7002085870e396d00001a",
+            "type": "list",
+            "body": "Please list the types of medication errors",
+            "ideal_answer": "Medication errors encompass a broad range of types identified across various healthcare settings. These include delivery to the incorrect patient and privacy breaches, which are common in community pharmacy home delivery. In pediatric and general clinical settings, dosing errors and wrong or improper drugs are frequently reported, along with wrong dose, wrong technique, and wrong route errors. In intensive care units, particularly among Iranian ICU nurses, the most common types are wrong infusion rate, unauthorized medication, and wrong time errors. Among nursing students during simulated medication administration, documentation errors and dose errors are most prevalent. Together, these categories reflect errors occurring across the full medication use process, from prescribing and dispensing to administration and delivery, and highlight the importance of targeted interventions at each stage to improve patient safety.",
+            "exact_answer": [
+                [
+                    "delivery to the incorrect patient"
+                ],
+                [
+                    "privacy breaches"
+                ],
+                [
+                    "dosing errors"
+                ],
+                [
+                    "wrong/improper drugs"
+                ],
+                [
+                    "wrong infusion rate"
+                ],
+                [
+                    "unauthorized medication"
+                ],
+                [
+                    "wrong time"
+                ],
+                [
+                    "documentation errors"
+                ],
+                [
+                    "dose errors"
+                ],
+                [
+                    "wrong dose"
+                ],
+                [
+                    "wrong technique"
+                ],
+                [
+                    "wrong route"
+                ]
+            ]
+        },
+        {
+            "id": "69a7fe1e85870e396d00002f",
+            "type": "factoid",
+            "body": "What is the most common genotoxic factor that humans are exposed to?",
+            "ideal_answer": "Solar ultraviolet (UV) radiation is the most common genotoxic factor that humans are exposed to. Multiple abstracts confirm that solar UV radiation, encompassing both UVB (280-320 nm) and UVA (320-400 nm) components, is a major environmental genotoxic agent. It induces DNA damage through direct mechanisms, such as the formation of cyclobutane pyrimidine dimers (CPDs) and pyrimidine (6-4) pyrimidone photoproducts, as well as indirect mechanisms including the generation of reactive oxygen species (e.g., singlet oxygen leading to 8-oxoguanine formation), immunosuppression, and inflammation. Solar UV radiation is linked to photocarcinogenesis and photoaging in humans, and is recognized as a genotoxic risk factor across multiple biological systems, from human skin to amphibian tadpoles. UVB is primarily responsible for direct DNA photoproduct formation, while UVA contributes through oxidative pathways. The widespread and unavoidable nature of solar UV exposure makes it the predominant genotoxic factor encountered by humans globally.",
+            "exact_answer": [
+                "solar UV radiation",
+                "ultraviolet radiation",
+                "UV radiation",
+                "solar radiation",
+                "UVR"
+            ]
+        },
+        {
+            "id": "69a5df9a85870e396d000011",
+            "type": "list",
+            "body": "What are the recommended screening tests to diagnose the presence of Cushing's Syndrome?",
+            "ideal_answer": "The recommended screening tests to diagnose Cushing's Syndrome, as outlined by the Endocrine Society's Clinical Practice Guidelines, are the 1 mg overnight dexamethasone suppression test (DST), late-night salivary cortisol (LNSC), and 24-hour urinary free cortisol (UFC). The 1 mg DST evaluates the normal feedback reaction of the hypothalamic-pituitary-adrenal axis; a morning serum cortisol level below 50 nmol/L can exclude Cushing's syndrome unless clinical suspicion remains high. Late-night salivary cortisol exploits the fact that cortisol normally reaches its nadir during sleep, a circadian rhythm that is disrupted in Cushing's syndrome, resulting in elevated nighttime cortisol levels measurable in saliva. The 24-hour UFC reflects integrated tissue exposure to free cortisol and is particularly useful in severe hypercortisolism and for monitoring treatment response. Each test has procedural limitations and potential sources of error, so the choice should be individualized based on patient characteristics and clinical context.",
+            "exact_answer": [
+                [
+                    "1 mg dexamethasone suppression test"
+                ],
+                [
+                    "late-night salivary cortisol"
+                ],
+                [
+                    "24-hour urinary free cortisol"
+                ]
+            ]
+        },
+        {
+            "id": "69a86f1285870e396d000036",
+            "type": "yesno",
+            "body": "Is Seborrhea a condition that affects the gastrointestinal tract?",
+            "ideal_answer": "Seborrhea is not a condition that affects the gastrointestinal tract. As described in the provided abstracts, seborrhea and seborrheic dermatitis are inflammatory skin conditions that affect sebaceous gland-rich areas of the body, such as the scalp, face, and body folds. Seborrhea specifically refers to oily skin resulting from excess sebum production. The etiology involves sebocyte activity, skin microbiome dysbiosis, and immune factors, and treatments are directed at the skin surface using topical antifungals, corticosteroids, and calcineurin inhibitors. There is no evidence in the literature suggesting any involvement of the gastrointestinal tract in seborrhea or seborrheic dermatitis.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "69a6cb2d85870e396d000019",
+            "type": "summary",
+            "body": "What impact could biosynthetic meat have on human health?",
+            "ideal_answer": "Biosynthetic or cultured meat has the potential to positively impact human health by enabling nutritional optimization through cellular engineering, including customized nutrient content and improved fatty acid profiles, such as a more favorable omega-6 to omega-3 ratio, which may benefit cardiovascular and metabolic health. By reducing reliance on conventional red and processed meat, it could help mitigate associated risks of chronic diseases such as cancer and cardiovascular conditions. However, significant challenges remain: current plant-based meat analogs often provide lower levels and reduced bioavailability of key nutrients like vitamin B12, heme iron, zinc, creatine, and long-chain omega-3 fatty acids unless specifically fortified. Cultured meat prototypes theoretically allow compositional optimization but are constrained by scarce empirical data, and no clinical trials have yet evaluated their health effects in humans. Potential nutritional, biological, and chemical risks associated with novel production processes must also be rigorously assessed. Consumer acceptance, particularly among younger generations, is partly driven by perceptions of adjustable nutrient content, underscoring the importance of transparent labeling and robust regulatory frameworks. Future progress will require integrating nutritional design into product development, validating bioavailability through human studies, and ensuring long-term safety before cultured meat can reliably support healthy and sustainable diets.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ac16e485870e396d000059",
+            "type": "list",
+            "body": "What are common blood cell changes caused by elevated cortisol levels?",
+            "ideal_answer": "Elevated cortisol levels, as seen in Cushing's syndrome, cause several characteristic blood cell changes. The most common findings include leukocytosis (increased total white blood cell count) and neutrophilia (increased neutrophils), both of which correlate positively with cortisol levels. Conversely, lymphopenia (decreased lymphocytes) and eosinopenia (decreased eosinophils) are frequently observed, reflecting cortisol's immunosuppressive effects. These shifts result in an elevated neutrophil-to-lymphocyte ratio (NLR), which is a useful inflammatory biomarker in hypercortisolism. Additional ratios such as the platelet-to-lymphocyte ratio (PLR) and monocyte-to-lymphocyte ratio (MLR) are also altered. Together, these changes reflect the direct and indirect effects of cortisol on immune cell trafficking and function, and they tend to partially normalize after surgical remission of Cushing's syndrome, though some abnormalities may persist.",
+            "exact_answer": [
+                [
+                    "Leukocytosis"
+                ],
+                [
+                    "Neutrophilia"
+                ],
+                [
+                    "Neutrophils"
+                ],
+                [
+                    "Lymphopenia"
+                ],
+                [
+                    "Lymphocytes"
+                ],
+                [
+                    "Eosinopenia"
+                ],
+                [
+                    "Eosinophils"
+                ],
+                [
+                    "Neutrophil-to-lymphocyte ratio"
+                ],
+                [
+                    "Platelet-to-lymphocyte ratio"
+                ],
+                [
+                    "Monocyte-to-lymphocyte ratio"
+                ],
+                [
+                    "Total leukocyte count"
+                ],
+                [
+                    "White blood cell count"
+                ]
+            ]
+        },
+        {
+            "id": "69aacfcc85870e396d000040",
+            "type": "yesno",
+            "body": "is Rheumatic heart disease caused by Staphylococcus Aureus?",
+            "ideal_answer": "Rheumatic heart disease is not caused by Staphylococcus aureus. It is caused by an abnormal autoimmune response triggered by Group A Streptococcus (GAS) infection. Following a GAS infection such as streptococcal pharyngitis, the immune system can mistakenly attack the body's own tissues through a process called molecular mimicry, leading to acute rheumatic fever (ARF). If ARF is not adequately treated or recurs, it can result in rheumatic heart disease (RHD), which is the leading cause of valvular heart disease globally. The condition primarily affects the heart valves, with mitral regurgitation being a common manifestation. Prevention focuses on prompt antibiotic treatment of GAS infections and long-term antibiotic prophylaxis to prevent recurrence. Vaccine development efforts are also directed at Group A Streptococcus to reduce the global burden of ARF and RHD. Staphylococcus aureus, while capable of causing other serious cardiac conditions such as infective endocarditis, is not implicated in the pathogenesis of rheumatic heart disease.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "69a7f6ba85870e396d000020",
+            "type": "list",
+            "body": "In which organisms is a PI4KIIalpha (PI4KIIα) orthologue present?",
+            "ideal_answer": "PI4KIIalpha (PI4KIIα) orthologues have been identified and studied across a range of organisms. In mammals, the enzyme has been characterized in humans (where PI4K2A variants cause neurodevelopmental disorders), rats (where the minimal catalytic domain was first defined), mice (where knockout models revealed roles in autophagic lysosome reformation and hereditary spastic paraplegia), dairy cows (bovine mammary epithelial cells, where PI4K2A regulates lipid synthesis), and Pekin ducks (where PI4K2A expression differs between DHAV-3-susceptible and resistant lines). Beyond mammals, a PI4KII orthologue has been expressed and functionally characterized in Drosophila, where its depletion severely reduces phosphatidylinositol 4-kinase activity. PI4K2A gene expression has also been monitored in zebrafish larvae in the context of neurodevelopmental toxicity studies. More broadly, PI4P synthesis by PI4K enzymes is recognized as an essential process across eukaryotic cells and organisms, consistent with the conservation of this kinase family throughout eukaryotes.",
+            "exact_answer": [
+                [
+                    "humans"
+                ],
+                [
+                    "rats"
+                ],
+                [
+                    "mice"
+                ],
+                [
+                    "Drosophila"
+                ],
+                [
+                    "zebrafish"
+                ],
+                [
+                    "dairy cows"
+                ],
+                [
+                    "Pekin ducks"
+                ],
+                [
+                    "eukaryotic cells and organisms"
+                ]
+            ]
+        },
+        {
+            "id": "69ad09eb85870e396d000071",
+            "type": "summary",
+            "body": "How often is hypertension present in patients with Cushing's Syndrome?",
+            "ideal_answer": "Hypertension is one of the most distinguishing features of endogenous Cushing's syndrome, present in approximately 80% of adult patients. In children and adolescents, the prevalence is lower but still substantial, affecting roughly 47–50% of pediatric cases. The development of hypertension in Cushing's syndrome is significantly correlated with the duration of hypercortisolism and arises from the interplay of multiple pathophysiological mechanisms, including increased plasma volume, elevated peripheral vascular resistance, and enhanced cardiac output. Glucocorticoids contribute to hypertension through their intrinsic mineralocorticoid activity, activation of the renin-angiotensin system, enhancement of vasoactive substances, suppression of vasodilatory systems, and central nervous system effects mediated via glucocorticoid and mineralocorticoid receptors. The primary therapeutic goal is surgical removal of the causative tumor, which typically leads to resolution or significant improvement of hypertension. However, some patients require pharmacological antihypertensive treatment perioperatively or may not achieve normotension after surgery. Preferred pharmacological options include mineralocorticoid receptor antagonists, angiotensin II blockers, and ACE inhibitors, while thiazides, furosemide, and calcium channel antagonists are generally less effective or should be avoided in this setting.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a4ca8a85870e396d000006",
+            "type": "list",
+            "body": "Please list the FDA approved Janus kinase inhibitors",
+            "ideal_answer": "Based on the provided abstracts, the FDA-approved Janus kinase (JAK) inhibitors include baricitinib and ritlecitinib, which are approved for treating severe alopecia areata. Delgocitinib 2% cream (Anzupgo) is the first FDA-approved topical JAK inhibitor for moderate-to-severe chronic hand eczema. Upadacitinib is the first JAK inhibitor approved by the FDA for moderate-to-severely active Crohn's disease. Ruxolitinib cream is approved for mild to moderate atopic dermatitis and nonsegmental vitiligo. Tofacitinib is an oral JAK inhibitor approved for rheumatoid arthritis, and its postmarketing study triggered class warnings for all JAK inhibitors. Momelotinib and pacritinib are JAK inhibitors used in the treatment of myelofibrosis, both of which have received FDA approval. Together, these agents represent the landscape of FDA-approved JAK inhibitors across a range of inflammatory, autoimmune, and hematologic conditions.",
+            "exact_answer": [
+                [
+                    "baricitinib"
+                ],
+                [
+                    "ritlecitinib"
+                ],
+                [
+                    "delgocitinib"
+                ],
+                [
+                    "upadacitinib"
+                ],
+                [
+                    "ruxolitinib"
+                ],
+                [
+                    "tofacitinib"
+                ],
+                [
+                    "momelotinib"
+                ],
+                [
+                    "pacritinib"
+                ]
+            ]
+        },
+        {
+            "id": "69a7455485870e396d00001b",
+            "type": "summary",
+            "body": "How does protein localization to lipid droplets occur?",
+            "ideal_answer": "Proteins localize to lipid droplets (LDs) through distinct mechanisms dictated by the unique phospholipid monolayer surface of LDs. Two primary pathways are recognized: the ERTOLD pathway and the CYTOLD pathway. The ERTOLD pathway mediates protein targeting from the endoplasmic reticulum (ER) to LDs, typically involving Class I proteins that contain membrane-embedded hydrophobic 'hairpin' motifs. These proteins access LDs either during LD biogenesis or via ER-LD membrane bridges that form after LD formation. The CYTOLD pathway facilitates direct targeting from the cytosol to the LD surface, involving Class II proteins that bind through amphipathic helices or other hydrophobic domains. Beyond these two major routes, some proteins require lipid modifications or protein-protein interactions to achieve LD localization; for example, dysferlin localizes to LDs through its C2 domain. The LD proteome is diverse and functionally important, encompassing proteins involved in lipid deposition, mobilization, and other cellular processes. Dysregulation of LD protein localization, such as the decreased binding of adipose triacylglycerol lipase (ATGL) and increased dysferlin observed in dysfunctional cardiac tissue, can be associated with pathological conditions like cardiomyopathy, underscoring the physiological significance of proper LD protein targeting.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ac767585870e396d000067",
+            "type": "summary",
+            "body": "How do glucocorticoid withdrawal syndrome's symptoms evolve over time after surgical remission of Cushing's Syndrome?",
+            "ideal_answer": "Following surgical remission of Cushing's Syndrome, glucocorticoid withdrawal syndrome (GWS) emerges as a prevalent and persistent complication driven by the rapid reduction in cortisol exposure and subsequent hypothalamic-pituitary-adrenal (HPA) axis suppression. The most common symptoms include myalgias, arthralgias, fatigue, weakness, sleep disturbance, and mood changes. While many of these symptoms persist throughout the early postoperative period, myalgias, arthralgias, and weakness notably worsen during weeks 5–12 after surgery. At 12 weeks, objective measures reveal that normative hand grip strength declines, whereas sit-to-stand test performance improves, reflecting competing influences of GWS and gradual recovery from hypercortisolism. Similarly, the Short-Form-36 Physical Component Summary score worsens at 12 weeks, while the disease-specific CushingQoL score improves, underscoring this dual dynamic. The baseline clinical severity of Cushing's Syndrome is a significant predictor of postoperative GWS symptom burden. Differentiating GWS from adrenal insufficiency or CS recurrence can be challenging and complicates glucocorticoid tapering decisions. Importantly, GWS symptoms generally portend a favorable prognosis and typically resolve as the HPA axis recovers, though some complications such as myopathy and neurocognitive dysfunction may persist long-term.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69acaf9185870e396d00006d",
+            "type": "summary",
+            "body": "Relative to intestinal disease, what are HETE and HODE",
+            "ideal_answer": "Hydroxyeicosatrienoic acids (HETE) and hydroxyoctadecadienoic acids (HODE) are biologically active lipid mediators that play important roles in intestinal disease. In inflammatory bowel diseases (IBD), specific HETE species including 5-HETE, 12-HETE, 15-HETE, and 16RS-HETE are linked to disease activity and duration, particularly in ulcerative colitis (UC). In UC patients, positive correlations have been established between calprotectin concentrations and levels of 5-HETE and 12-HETE, while 16RS-HETE is associated with UC activity and 15-HETE with disease duration. Patients with Crohn's disease also display elevated concentrations of these fatty acid metabolites, though without a direct correlation to calprotectin. Beyond IBD, HETE and HODE compounds are implicated in iron-deficiency-related intestinal pathology, where induction of arachidonate 12-lipoxygenase (Alox15) throughout the intestine leads to production of 12-HETE, 13-HODE, and related lipids that are essentially absent in healthy controls. This perturbation of intestinal lipid homeostasis may contribute to alterations in villus structure, cell proliferation, and membrane lipid composition. Overall, HETE and HODE serve as inflammatory lipid mediators whose levels reflect and potentially drive pathological processes in various intestinal conditions.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a7fd8885870e396d00002d",
+            "type": "yesno",
+            "body": "Can proteins acquire new functions after forming amyloid structures?",
+            "ideal_answer": "Yes, proteins can acquire new functions after forming amyloid structures. Multiple lines of evidence support this. Bacterial functional amyloids such as curli (CsgA) and FapC not only scaffold biofilms but also display intrinsic catalytic activity, expanding the biochemical repertoire of extracellular matrices beyond what the soluble proteins perform. Amelogenin transitions into functional amyloid nanoribbons that template apatite growth during enamel biomineralization, a role distinct from its monomeric state. The reproductive protein CRES assembles into structurally heterogeneous amyloid forms within the epididymal matrix to support host defense and sperm maturation, with DNA binding redirecting its oligomerization pathway and thus diversifying its functional repertoire. Marine adhesive proteins form amyloid-like structures that confer strong adhesion properties suited for ecological and biomimetic applications. Additionally, eukaryotic cells reversibly form functional amyloid bodies (A-bodies) under stress, inducing a protective dormancy state not associated with the soluble protein forms. Collectively, these examples demonstrate that the amyloid fold is not merely a pathological dead end but a versatile structural platform through which proteins gain new biochemical activities, regulatory roles, and physiological functions.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69ac725c85870e396d000064",
+            "type": "factoid",
+            "body": "How often do patients fail to self-administer hydrocortisone injections in cases of acute adrenal crisis?",
+            "ideal_answer": "According to a 2022 survey conducted through the National Adrenal Diseases Foundation, nearly half (41%) of patients with adrenal insufficiency were unable to self-administer an emergency glucocorticoid injection during an acute adrenal crisis. The primary barriers cited were the effects of the crisis-associated illness itself and confusion. Failed injections led to bad outcomes, including becoming sicker, requiring hospitalization, or death, in 36% of cases. These findings highlight that reliance solely on patient self-injection may result in worse outcomes, and that treating physicians should provide thorough patient education on injection technique, as well as guidance on seeking assistance during a crisis. The results also underscore the need for FDA approval of a glucocorticoid autoinjector and greater engagement with Emergency Medical Services and other healthcare professionals to improve management of adrenal crises.",
+            "exact_answer": [
+                "41%"
+            ]
+        },
+        {
+            "id": "69a86f0185870e396d000035",
+            "type": "factoid",
+            "body": "What is a trichoscope used for?",
+            "ideal_answer": "A trichoscope is a noninvasive diagnostic tool used for the diagnosis and follow-up of hair and scalp disorders. It allows recognition of morphologic structures not visible to the naked eye, enabling detailed examination of hair shafts and scalp features. Trichoscopy is used to diagnose conditions such as alopecia areata, tinea capitis, trichotillomania, and androgenetic alopecia by revealing distinct features like exclamation mark hairs, comma hairs, corkscrew hairs, yellow dots, and white dots. It facilitates early diagnosis of female androgenetic alopecia and assessment of disease severity. In pediatric patients, it serves as a rapid noninvasive tool to differentiate tinea capitis from alopecia areata. Additionally, trichoscopy can measure hair diameter to assess androgenetic alopecia severity and its association with conditions such as benign prostatic hyperplasia. The trichoscope also helps identify specific signs that act as prognostic markers in conditions like alopecia areata and trichotillomania, revolutionizing the diagnosis and management of hair disorders beyond what simple clinical inspection can achieve.",
+            "exact_answer": [
+                "the diagnosis and follow-up of hair and scalp disorders",
+                "evaluate the causes of focal non-cicatricial alopecia",
+                "hair examination",
+                "early diagnosis of androgenetic alopecia",
+                "decoding the underlying trichoscopic condition"
+            ]
+        },
+        {
+            "id": "69a6a75785870e396d000018",
+            "type": "factoid",
+            "body": "How many kinases belong to the serine/arginine kinase family of the human kinome?",
+            "ideal_answer": "The serine/arginine protein kinase (SRPK) family of the human kinome consists of three members: SRPK1, SRPK2, and SRPK3. SRPK1 and SRPK2 are well-established kinases that phosphorylate serine-arginine rich (SR) proteins to regulate pre-mRNA splicing, and both have been implicated in various cancers including melanoma, ovarian cancer, and nasopharyngeal carcinoma, as well as in hepatitis B virus capsid assembly. SRPK3 is less characterized but has been implicated in breast cancer, and selective chemical probes targeting SRPK3 have recently been developed to study its biological functions. All three family members share a conserved kinase domain and an SRPK-specific docking groove that mediates substrate recognition.",
+            "exact_answer": [
+                "3",
+                "SRPK1, SRPK2, SRPK3"
+            ]
+        },
+        {
+            "id": "69ab1e8885870e396d000051",
+            "type": "list",
+            "body": "What are the subtypes of Cushing Syndrome?",
+            "ideal_answer": "Cushing Syndrome subtypes are broadly divided into ACTH-dependent and ACTH-independent forms. ACTH-dependent CS includes Cushing's disease, caused by corticotroph pituitary tumors overproducing ACTH, and ectopic CS, resulting from nonpituitary neuroendocrine tumors that secrete ACTH. ACTH-independent CS encompasses adrenal CS, which involves autonomous cortisol production by adrenal adenomas, hyperplasia, or carcinomas. Additional recognized subtypes include functional non-neoplastic hypercortisolism, formerly known as pseudo-Cushing state, and mild autonomous cortisol secretion, often identified in the context of adrenal incidentalomas. These classifications guide differential diagnosis and inform management strategies, with surgical resection of the causative lesion remaining the first-line treatment across all subtypes.",
+            "exact_answer": [
+                [
+                    "ACTH-dependent CS"
+                ],
+                [
+                    "ACTH-independent CS"
+                ],
+                [
+                    "Cushing's disease"
+                ],
+                [
+                    "ectopic CS"
+                ],
+                [
+                    "adrenal CS"
+                ],
+                [
+                    "functional non-neoplastic hypercortisolism"
+                ],
+                [
+                    "mild autonomous cortisol secretion"
+                ]
+            ]
+        },
+        {
+            "id": "69a8abfb85870e396d000039",
+            "type": "list",
+            "body": "What are the symptoms of TAFRO syndrome?",
+            "ideal_answer": "TAFRO syndrome is a rare systemic inflammatory disorder whose name is an acronym derived from its cardinal symptoms. These include thrombocytopenia (low platelet count), anasarca (generalized fluid accumulation and edema), fever, reticulin fibrosis (fibrosis of bone marrow), renal dysfunction (kidney problems), and organomegaly (enlargement of organs such as the liver and spleen). The syndrome is associated with a cytokine storm and overlaps clinically with idiopathic multicentric Castleman disease. It can occur following infections such as COVID-19 or Epstein-Barr virus infection.",
+            "exact_answer": [
+                [
+                    "thrombocytopenia"
+                ],
+                [
+                    "anasarca"
+                ],
+                [
+                    "fever"
+                ],
+                [
+                    "reticulin fibrosis"
+                ],
+                [
+                    "renal dysfunction"
+                ],
+                [
+                    "organomegaly"
+                ]
+            ]
+        },
+        {
+            "id": "69a7fbc485870e396d00002a",
+            "type": "list",
+            "body": "What are the most common diseases caused by dysfunction of the ubiquitin system?",
+            "ideal_answer": "Dysfunction of the ubiquitin system is implicated in a range of serious human diseases. Cancer is linked to dysregulation of OTU deubiquitinases, which regulate proteasome-mediated protein degradation. Alzheimer's disease is associated with altered USP10 function affecting Tau pathology, as well as disrupted MLKL-USP7-UBA52 signaling that impairs ubiquitin homeostasis and autophagy in the brain. Parkinson's disease involves dysregulation of ubiquitin-mediated proteolysis pathways identified through transcriptomic and biomarker studies. Huntington's disease is connected to USP11 dysregulation affecting mutant huntingtin protein accumulation and mitochondrial dysfunction, as well as impaired SUMOylation and ubiquitination of misfolded huntingtin. Amyotrophic lateral sclerosis is associated with UBQLN2 dysfunction, a ubiquitin-proteasome system receptor, and with increased UFMylation in skeletal muscle. Together, these examples illustrate how perturbations in ubiquitin tagging, deubiquitinase activity, and related post-translational modification pathways contribute broadly to neurodegeneration and oncogenesis.",
+            "exact_answer": [
+                [
+                    "cancer"
+                ],
+                [
+                    "Alzheimer's disease"
+                ],
+                [
+                    "Parkinson's disease"
+                ],
+                [
+                    "Huntington's disease"
+                ],
+                [
+                    "amyotrophic lateral sclerosis"
+                ]
+            ]
+        },
+        {
+            "id": "69abbbb285870e396d000052",
+            "type": "summary",
+            "body": "What is the cortisol awakening response (CAR)?",
+            "ideal_answer": "The cortisol awakening response (CAR) is a rapid and robust increase in cortisol levels occurring within the first 30 to 45 minutes after morning awakening, representing a major component of the daily cortisol secretory pattern. In healthy individuals, this surge is regulated by an intricate dual-control system involving circadian, environmental, and neurocognitive processes, and is thought to serve important adaptive functions by preparing the organism for the challenges of the upcoming day. Specifically, the CAR is proposed to mobilize metabolic, immunological, and neurocognitive resources to meet activity-related demands, and to help counterregulate adverse emotional experiences from the prior day, acting through both rapid nongenomic and slower genomic pathways, including effects on circadian clock gene expression. Although a positive CAR—meaning cortisol rises after awakening—is the expected pattern, negative CAR values, where cortisol concentrations decrease after waking, are also observed and are not simply artifacts or errors. Research suggests that negative CAR values may reflect underlying health conditions or environmental exposures, such as elevated blood lead levels, and therefore carry potential biological and clinical relevance that warrants careful consideration rather than automatic exclusion from analyses.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a4cc6f85870e396d000009",
+            "type": "factoid",
+            "body": "What  type of  blood cell has  CD19 as a surface biomarker?",
+            "ideal_answer": "CD19 is a surface biomarker found on B cells (B lymphocytes). It is a transmembrane glycoprotein, also known as the B-lymphocyte antigen CD19, that serves as a B cell-specific surface marker. CD19 is expressed on the majority of neoplastic B cells and has emerged as an attractive biomarker and therapeutic target for B-cell malignancies such as chronic lymphocytic leukaemia. Studies investigating peroxisome biogenesis in human peripheral blood mononuclear cells specifically identify CD19+ B cells as a distinct population, further confirming CD19 as a defining surface marker of this cell type.",
+            "exact_answer": [
+                "B cells",
+                "B-lymphocyte"
+            ]
+        },
+        {
+            "id": "69a7fac085870e396d000027",
+            "type": "list",
+            "body": "What are the most common vectors used in gene therapy?",
+            "ideal_answer": "The most common vectors used in gene therapy include both viral and non-viral systems. Among viral vectors, adeno-associated viruses (AAV) are currently the leading platform, accounting for the majority of recent FDA-approved gene therapies due to their safety profile and broad tropism. Lentiviral vectors are widely used for their ability to accommodate larger gene inserts and provide semipermanent expression, particularly in oncology and neurological applications. Adenoviruses and retroviruses have long been prevalent in clinical settings due to their high transduction efficiency. Herpes simplex virus (HSV) and baculoviral vectors are explored in cancer trials and cardiovascular applications, respectively. On the non-viral side, liposomes and lipid nanoparticles are increasingly important delivery systems, offering high nucleic acid loading capacity and reduced immunogenicity concerns compared to viral vectors, though they require continued optimization for in vivo safety and efficacy.",
+            "exact_answer": [
+                [
+                    "adeno-associated virus (AAV)"
+                ],
+                [
+                    "lentiviral vectors"
+                ],
+                [
+                    "adenoviruses"
+                ],
+                [
+                    "retroviruses"
+                ],
+                [
+                    "herpes simplex virus (HSV)"
+                ],
+                [
+                    "baculoviral vectors"
+                ],
+                [
+                    "liposomes"
+                ],
+                [
+                    "nanoparticles"
+                ]
+            ]
+        },
+        {
+            "id": "69abbd6185870e396d000053",
+            "type": "factoid",
+            "body": "What is the time to diagnosis for adrenal Cushing's Syndrome?",
+            "ideal_answer": "According to a meta-analysis based on 5367 patients assessing time to diagnosis in Cushing's Syndrome, the mean time to diagnosis for adrenal Cushing's Syndrome was 30 months. This was intermediate compared to ectopic CS, which had the shortest time to diagnosis at 14 months, and pituitary CS, which had the longest at 38 months. The overall mean time to diagnosis across all subtypes of CS was 34 months. Notably, no significant differences in time to diagnosis were found based on gender, age (under or over 18 years), or year of diagnosis (before or after 2000).",
+            "exact_answer": [
+                "30 months"
+            ]
+        },
+        {
+            "id": "69acaef085870e396d00006c",
+            "type": "factoid",
+            "body": "What is the indication for Brineura?",
+            "ideal_answer": "Brineura (cerliponase alfa) is indicated to slow the loss of ambulation in pediatric patients with neuronal ceroid lipofuscinosis type 2 (CLN2). CLN2 is a pediatric neurodegenerative lysosomal storage disorder caused by biallelic mutations in the TPP1 gene, characterized by progressive motor function impairment, language deficiencies, seizures, ataxia, blindness, and early death. Cerliponase alfa is administered via intracerebroventricular infusion every two weeks and has been shown to reduce the progression of functional decline. It received its first global approval in the USA for the treatment of motor function loss in pediatric patients aged 3 years and older with CLN2, and subsequently received approval in the EU for CLN2 in patients of all ages.",
+            "exact_answer": [
+                "to slow the loss of ambulation in pediatric patients with CLN2",
+                "treatment of motor function loss in paediatric patients ≥3 years of age with CLN2",
+                "for CLN2 in all ages"
+            ]
+        },
+        {
+            "id": "69a7ff2785870e396d000031",
+            "type": "factoid",
+            "body": "What is the primary energy source for cancer cells?",
+            "ideal_answer": "Glucose is the primary energy source for cancer cells. Multiple studies confirm that cancer cells undergo metabolic reprogramming characterized by preferential aerobic glycolysis, known as the Warburg effect, in which glucose is consumed at high rates even in the presence of oxygen to produce energy and lactate. Glucose transporters such as GLUT1 and GLUT5 are upregulated in various cancers to facilitate increased glucose uptake. While glucose is the dominant fuel, cancer cells also exhibit metabolic plasticity allowing them to utilize alternative substrates including glutamine (the second most utilized energy source after glucose), lactate (which can be recycled as an alternative fuel via monocarboxylate transporters), lipids (serving both as energy and signaling molecules), and fructose (metabolized through GLUT5 overexpression). Nevertheless, glucose remains the most frequently cited and best-supported primary energy source, underpinning the rapid proliferation, survival, invasion, and migration of cancer cells across multiple cancer types.",
+            "exact_answer": [
+                "glucose",
+                "glutamine",
+                "lactate",
+                "lipids",
+                "fructose"
+            ]
+        },
+        {
+            "id": "69a66cb085870e396d000016",
+            "type": "yesno",
+            "body": "Are adrenocortical secretory tumors in humans mostly a hereditary disorder?",
+            "ideal_answer": "Adrenocortical secretory tumors in humans are mostly sporadic, not hereditary. According to the available evidence, while these tumors can occasionally belong to hereditary syndromes that predispose individuals to tumor development, the majority of cases arise sporadically without an inherited genetic basis. The abstract explicitly states that such tumors are 'mostly sporadic but can belong to hereditary syndromes predisposing to tumors,' making clear that hereditary forms represent the minority rather than the majority of cases.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "69a4cacf85870e396d000007",
+            "type": "summary",
+            "body": "Please describe alopecia areata.",
+            "ideal_answer": "Alopecia areata (AA) is an autoimmune disease characterized by nonscarring hair loss. Clinically, it presents as leukotrichia and/or alopecia without erythema, crusts, or excoriations, commonly affecting areas such as the face, dorsal cranium, and extremities. Histopathologically, AA is defined by bulbitis, with peribulbar cellular infiltrates primarily composed of lymphocytes, and often also including plasma cells, eosinophils, macrophages, and neutrophils. The condition can be associated with concurrent inflammatory conditions such as atopic dermatitis. Diagnosis is typically made clinically and supported by trichoscopy, though this technique requires specialized training; emerging deep learning models show promise in aiding both diagnosis and activity assessment, including distinguishing active, inactive, and regrowth phases. AA is considered a chronic, relapsing disease that frequently requires long-term treatment. Therapeutic options include immunosuppressive or immunomodulatory agents such as ciclosporin and oclacitinib, which can achieve partial or complete hair regrowth, though relapse is common upon dose reduction or discontinuation. Spontaneous remission can occur but is relatively uncommon. Overall, AA poses a significant management challenge due to its tendency to relapse and the need for ongoing therapy.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a7f72985870e396d000022",
+            "type": "list",
+            "body": "What is the intracellular localization of PI4KIIalpha in human cells?",
+            "ideal_answer": "PI4KIIalpha localizes to multiple intracellular compartments in human and mammalian cells. Its primary localization is at the trans-Golgi network (TGN), where it colocalizes with TGN markers and contributes to PI4P synthesis. It is also found in the broader Golgi complex and juxtanuclear/perinuclear membrane pools. PI4KIIalpha is present on AP-3-derived vesicles and LAMP-1-positive endosomes, linking it to endosomal trafficking toward lysosomes. In neuronal cells, it is concentrated at synapses and on synaptic vesicles. In secretory cells such as RBL-2H3 mast cells, it localizes to exocytotic vesicles. Additionally, PI4KIIalpha associates with peripheral organelles and peripheral membranes, lipid raft fractions, and can be detected at the cellular surface and within other intracellular compartments. Its tight membrane association is conferred by palmitoylation of a CCPCC motif, which is critical for targeting to the TGN and lipid rafts.",
+            "exact_answer": [
+                [
+                    "trans-Golgi network"
+                ],
+                [
+                    "juxtanuclear membrane pool"
+                ],
+                [
+                    "perinuclear region"
+                ],
+                [
+                    "Golgi complex"
+                ],
+                [
+                    "endosomes"
+                ],
+                [
+                    "LAMP-1-positive endosomes"
+                ],
+                [
+                    "AP-3-derived vesicles"
+                ],
+                [
+                    "synaptic vesicles"
+                ],
+                [
+                    "exocytotic vesicles"
+                ],
+                [
+                    "synapses"
+                ],
+                [
+                    "peripheral organelles"
+                ],
+                [
+                    "peripheral membranes"
+                ],
+                [
+                    "lipid rafts"
+                ],
+                [
+                    "cellular surface"
+                ],
+                [
+                    "intracellular compartments"
+                ]
+            ]
+        },
+        {
+            "id": "69ac747685870e396d000066",
+            "type": "factoid",
+            "body": "What is the prevalence of secondary adrenal insufficiency?",
+            "ideal_answer": "The prevalence of secondary adrenal insufficiency is estimated to be between 150 and 280 per million people. The most frequent cause is believed to be corticosteroid-induced insufficiency, although the clinical relevance of deficiency after cessation of glucocorticoid treatment remains widely debated. By comparison, primary adrenal insufficiency has a lower estimated prevalence of 82-144 per million. Both primary and secondary adrenal insufficiency are associated with acute adrenal crises occurring at approximately 6-8 per 100 patients per year in Europe, and alterations in quality of life in physical and mental health components have been demonstrated in both conditions.",
+            "exact_answer": [
+                "150-280/million",
+                "between 150-280/million"
+            ]
+        },
+        {
+            "id": "69acc29385870e396d000070",
+            "type": "factoid",
+            "body": "SynNeurGe classification system is associated with what disease?",
+            "ideal_answer": "The SynNeurGe classification system is associated with Parkinson's disease. It is a biologically based classification proposed to address the complexity and heterogeneity of Parkinson's disease by integrating three components: presence or absence of pathological α-synuclein (S) in tissues or CSF, evidence of neurodegeneration (N) defined by neuroimaging procedures, and documentation of pathogenic gene variants (G) that cause or strongly predispose to Parkinson's disease. These components are linked to a clinical component (C) defined by high-specificity or multiple lower-specificity clinical features. The system aims to facilitate both basic and clinical research and move the field toward precision medicine and disease-modifying therapies, with initial application recommended exclusively for research settings pending prospective validation.",
+            "exact_answer": [
+                "Parkinson's disease"
+            ]
+        },
+        {
+            "id": "69a8012b85870e396d000034",
+            "type": "summary",
+            "body": "How is the pathogenic prion protein formed from the normal prion protein?",
+            "ideal_answer": "The pathogenic prion protein (PrPSc) is formed from the normal cellular prion protein (PrPC) through a conformational conversion process. In the favored model, existing PrPSc acts as a template, directly interacting with endogenous PrPC and inducing it to misfold into the pathogenic conformation, thereby propagating the infectious agent. This templating mechanism is supported by the observation that antibodies binding cell-surface PrPC can inhibit PrPSc formation in a dose-dependent manner, and that blocking the PrPC-PrPSc interaction prevents prion replication. Neurometals such as copper, zinc, iron, and manganese, which normally bind to PrPC, are critical determinants of this conformational change and can influence PrPC stability and toxicity. Specific point mutations also modulate susceptibility: the E200K mutation promotes pathogenic conversion by disrupting key salt-bridge interactions and increasing structural disorder between helices, while the E219K mutation confers greater stability. Additionally, certain agents like suramin or copper can induce PrPC misfolding at the plasma membrane, triggering internalization and degradation of aberrant conformers. Once PrPSc accumulates, cellular quality-control pathways involving proteins such as p62/SQSTM1 attempt to clear aggregates through autophagy and the proteasome system, though these mechanisms are often insufficient to halt disease progression.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ab1c0285870e396d000050",
+            "type": "factoid",
+            "body": "What is the average delay in the diagnosis of Cushing's Syndrome?",
+            "ideal_answer": "The average delay in the diagnosis of Cushing's Syndrome is approximately 34 months (about 2 years and 10 months) based on a meta-analysis of 5367 patients. This delay varies by subtype: ectopic CS has the shortest delay at 14 months, adrenal CS at 30 months, and pituitary CS the longest at 38 months. A large European registry (ERCUSYN) of 1564 patients reported a delay of approximately 2 years between symptom onset and diagnosis, with many specialists missing the correct diagnosis. A surgical cohort study reported a median time to diagnosis of 24 months. A patient survey found that 49% of CS patients experienced a diagnostic delay exceeding 2 years. No significant differences in delay were found based on gender, age, or year of diagnosis (before or after 2000). This prolonged diagnostic delay is largely attributed to the overlap of CS symptoms with common conditions such as metabolic syndrome, obesity, osteoporosis, and depression, underscoring the need for improved diagnostic strategies to reduce the burden of disease.",
+            "exact_answer": [
+                "34 months",
+                "2 years",
+                "24 months",
+                "38 months"
+            ]
+        },
+        {
+            "id": "69a8ab8585870e396d000038",
+            "type": "factoid",
+            "body": "Which of the 5 senses does otospongiosis affect?",
+            "ideal_answer": "Otospongiosis (also known as otosclerosis) affects the sense of hearing. It is a primary osteodystrophy of the otic capsule of the inner ear and one of the leading causes of deafness in adults. The condition causes fixation of the stapes footplate, resulting in conductive hearing loss; cochlear involvement can also produce sensorineural or mixed hearing loss. Conservative treatments such as sodium fluoride and bisphosphonates aim to stabilize hearing thresholds and slow disease progression, while surgical treatment (stapedotomy) is the definitive intervention, achieving closure of the air-bone gap and improvement in hearing outcomes.",
+            "exact_answer": [
+                "hearing"
+            ]
+        },
+        {
+            "id": "69a7f79685870e396d000024",
+            "type": "summary",
+            "body": "How is terminal differentiation regulated?",
+            "ideal_answer": "Terminal differentiation is regulated through a coordinated interplay of transcriptional, epigenetic, and cell cycle mechanisms that enforce permanent cell cycle exit. Master transcription factors such as MyoD, NGN2, SOX11, and Ascl1 drive lineage specification and initiate withdrawal from the cell cycle, often through a rapid molecular switch operating exclusively in G1 that simultaneously triggers differentiation commitment and permanent cell cycle exit. Epigenetically, this process involves heterochromatin clustering and progressive reduction in chromatin accessibility at enhancers of key cell cycle regulators including Cyclin E, E2F1, and String, acting as a cell cycle-independent timer that limits responses to mitogenic signals. The retinoblastoma protein (RB) maintains the postmitotic state by repressing E2F transcription factors, while the DREAM complex suppresses cell cycle gene expression. Notably, heterochromatin clustering appears to be a consequence of cell cycle exit rather than a driver of differentiation per se. The cilium-centrosome axis further influences the choice between reversible quiescence and irreversible terminal differentiation. Although typically permanent, terminally differentiated cells retain latent proliferative potential, as demonstrated by adenoviral E1A-mediated cell cycle reactivation, highlighting that the postmitotic state requires active, ongoing molecular enforcement rather than simple loss of proliferative machinery.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ac49a685870e396d00005f",
+            "type": "list",
+            "body": "What are the common symptoms of adrenal insufficiency?",
+            "ideal_answer": "Common symptoms of adrenal insufficiency include general weakness, fatigue, anorexia, arthralgia, fever, nausea, vomiting, abdominal pain, myalgias, weight loss, and salt craving. Laboratory findings frequently reveal hyponatremia and hyperkalemia. Without treatment, patients often develop hyperpigmented skin and mucus membranes. In acute adrenal crisis, which is a medical emergency, symptoms can escalate to include hypotension, lethargy, tachycardia, and hypoglycemia. Symptoms typically develop slowly over several months and are related to alterations in salt and water balance caused by deficient production of mineralocorticoids, glucocorticoids, and adrenal androgens.",
+            "exact_answer": [
+                [
+                    "general weakness"
+                ],
+                [
+                    "fatigue"
+                ],
+                [
+                    "anorexia"
+                ],
+                [
+                    "arthralgia"
+                ],
+                [
+                    "fever"
+                ],
+                [
+                    "nausea"
+                ],
+                [
+                    "vomiting"
+                ],
+                [
+                    "abdominal pain"
+                ],
+                [
+                    "myalgias"
+                ],
+                [
+                    "weight loss"
+                ],
+                [
+                    "salt craving"
+                ],
+                [
+                    "hyponatremia"
+                ],
+                [
+                    "hyperkalemia"
+                ],
+                [
+                    "hyperpigmented skin"
+                ],
+                [
+                    "hyperpigmentation of mucus membranes"
+                ],
+                [
+                    "hypotension"
+                ],
+                [
+                    "lethargy"
+                ],
+                [
+                    "tachycardia"
+                ],
+                [
+                    "hypoglycemia"
+                ]
+            ]
+        },
+        {
+            "id": "69acb0c885870e396d00006e",
+            "type": "factoid",
+            "body": "Krabbe disease, also known as globoid-cell leukodystrophy is thought to results from what toxic metabolite?",
+            "ideal_answer": "Krabbe disease, also known as globoid cell leukodystrophy, is caused by a functional deficiency of the lysosomal enzyme galactocerebrosidase (GALC), which leads to the progressive accumulation of the toxic metabolite psychosine. Psychosine accumulation affects many different cellular pathways, leading to severe demyelination of both the central and peripheral nervous systems. Additionally, psychosine has been shown to potentiate inflammatory responses, including increased TNF-alpha production by peripheral blood mononuclear cells in Krabbe disease patients, further contributing to disease pathogenesis.",
+            "exact_answer": [
+                "psychosine"
+            ]
+        },
+        {
+            "id": "69a7491c85870e396d00001c",
+            "type": "summary",
+            "body": "How do cancer cells attack the cells of the immune system?",
+            "ideal_answer": "Cancer cells employ multiple strategies to attack and evade immune cells, particularly T cells. They can upregulate the PD-L1/PD-1 axis, whereby PD-L1 expressed on cancer cells binds PD-1 on T cells, inducing T-cell apoptosis or anergy. Cancer cells also promote M2 polarization of tumor-associated macrophages (TAMs) through pathways such as the ZEB1-MCSF-CCL18 axis or via extracellular vesicles carrying NEAT1, which ultimately drives CD8+ T-cell apoptosis. Proteins like SPOCK1 suppress CD8+ T-cell viability and promote immune evasion in lung cancer. In hepatocellular carcinoma, high cathepsin E (CTSE) expression drives release of des-gamma-carboxy prothrombin (DCP), which increases reactive oxygen species in T cells and causes their apoptosis. Extracellular galectin 4 secreted by pancreatic cancer cells binds CD3 on T cells, directly inducing their apoptosis. Cancer-derived exosomes can deliver microRNAs such as miR-24-3p into T cells, impairing T-cell survival and promoting regulatory T-cell development. Additionally, factors in cancer patient serum promote regulatory T-cell differentiation and T-cell exhaustion through cytokines like IL-4, IL-10, and TGF-beta. Together, these mechanisms create an immunosuppressive tumor microenvironment that protects cancer cells from immune destruction.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ac4ff785870e396d000061",
+            "type": "summary",
+            "body": "When and how does an Addisonian crisis manifest?",
+            "ideal_answer": "An Addisonian crisis, or acute adrenal crisis, is a life-threatening medical emergency that occurs when the body's demand for cortisol is not met, typically triggered by acute illness, gastrointestinal or other infection, fever, trauma, surgery, or significant physical or psychological stress in a patient with underlying adrenal insufficiency. It can also be precipitated by inadequate glucocorticoid supplementation or abrupt discontinuation of steroid therapy. Symptoms can develop within hours and include severe hypotension and hypovolemic shock that may be unresponsive to fluids or vasopressors, tachycardia, profound weakness, nausea and vomiting, abdominal pain, muscle and joint pain, drowsiness, altered mental status, hyponatremia, and hypoglycemia. In patients with primary adrenal insufficiency, hyperpigmentation and signs of chronic adrenal insufficiency such as salt craving may also be present. If the crisis is overlooked, diagnosed late, or treated with insufficient doses or by an inappropriate route, there is a considerable risk of death. Immediate treatment consists of intravenous or intramuscular hydrocortisone (100 mg bolus) followed by continuous infusion, along with intravenous fluid resuscitation and blood pressure support, until the precipitating cause resolves and oral replacement can be resumed.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a8aeb485870e396d00003c",
+            "type": "yesno",
+            "body": "Is Calcium dyshomeostasis  assoiciated with Huntington's disease?",
+            "ideal_answer": "Yes, calcium dyshomeostasis is associated with Huntington's disease. Multiple lines of evidence support this connection. Huntington's disease is caused by an expanded CAG repeat in the huntingtin gene, and the resulting mutant protein disrupts neuronal calcium homeostasis, particularly in striatal neurons. Research shows a positive feedback loop between calcium dyshomeostasis and huntingtin protein aggregation, which escalates over time and contributes to neuronal loss. Mitochondrial calcium dyshomeostasis is specifically implicated, as mitochondria play a key role in buffering intracellular calcium, and their dysfunction in Huntington's disease further impairs calcium regulation. Additionally, endoplasmic reticulum dysfunction, impaired calcium buffering, glutamate excitotoxicity, and alterations in calcium entry routes into neurons all contribute to the overall calcium dyshomeostasis observed in the disease. These disturbances in calcium homeostasis are considered important factors linking the huntingtin mutation to the onset and progression of Huntington's disease, making calcium signaling pathways a significant area of interest for therapeutic strategies targeting this disorder.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69a7fc6785870e396d00002b",
+            "type": "list",
+            "body": "What are the most common mechanisms leading to amyloid formation?",
+            "ideal_answer": "Amyloid formation arises through several interconnected mechanisms. At the molecular level, charge-charge interactions and the salting-out effect (Hofmeister series) can accelerate aggregation, while molecules like ATP may disrupt the supersaturated state above thermodynamic solubility to trigger fibril formation. Conformational transitions, such as shifts to a molten globule-like intermediate state, prime proteins for aggregation. Protein misfolding and aggregation are central processes, with nucleation-driven fibril growth being a hallmark of ordered amyloid assembly. Membrane protein dimerization, as seen with the amyloid precursor protein APP, influences amyloid peptide production and subsequent aggregation into fibrils and oligomers. Genetic mutations and single nucleotide polymorphisms can predispose specific proteins to amyloid formation. At the systemic level, an imbalance between in vivo amyloid production and natural clearance mechanisms drives disease progression. Environmental factors such as metabolic stress can also promote amyloid deposition, as observed with IAPP in pancreatic beta cells. Together, these mechanisms spanning molecular interactions, protein conformational dynamics, genetic predisposition, and homeostatic imbalance underpin amyloid formation across a wide range of diseases.",
+            "exact_answer": [
+                [
+                    "charge-charge interactions"
+                ],
+                [
+                    "salting-out effect"
+                ],
+                [
+                    "disrupting the supersaturated state above the thermodynamic solubility"
+                ],
+                [
+                    "imbalance between amyloid production and natural clearance"
+                ],
+                [
+                    "protein misfolding and aggregation"
+                ],
+                [
+                    "membrane protein dimerization"
+                ],
+                [
+                    "nucleation-driven fibril growth"
+                ],
+                [
+                    "conformational transition to molten globule-like state"
+                ],
+                [
+                    "genetic mutations"
+                ],
+                [
+                    "metabolic stress"
+                ]
+            ]
+        },
+        {
+            "id": "69ac5fd085870e396d000062",
+            "type": "summary",
+            "body": "How is acute adrenal crisis treated?",
+            "ideal_answer": "Acute adrenal crisis is a life-threatening medical emergency requiring immediate intervention. The cornerstone of treatment is prompt administration of high-dose parenteral glucocorticoids, typically intravenous hydrocortisone at 10–15 times physiological doses. If intravenous access cannot be rapidly established, intramuscular hydrocortisone should be given without delay; prednisolone or methylprednisolone are acceptable alternatives if hydrocortisone is unavailable. Alongside glucocorticoid replacement, aggressive intravenous fluid resuscitation is essential to address hypotension and dehydration, and electrolyte abnormalities such as hyponatremia and hyperkalemia, as well as hypoglycemia, must be identified and corrected. Blood pressure support may also be required. Prevention and long-term management center on patient education: individuals with adrenal insufficiency should be instructed on stress dosing—increasing glucocorticoid doses during illness, trauma, surgery, or other physical stress—and trained in self-administering injectable glucocorticoids. Patients should carry a steroid dependency alert card and wear a medical alert bracelet. However, studies show that nearly half of patients are unable to self-inject during a crisis due to illness-related confusion and weakness, highlighting the importance of caregiver training, engagement with emergency medical services, and development of easier-to-use delivery devices such as autoinjectors.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a8adf785870e396d00003b",
+            "type": "yesno",
+            "body": "is Paracoccidioidomycosis caused by a parasite?",
+            "ideal_answer": "Paracoccidioidomycosis is not caused by a parasite. It is a systemic mycosis, meaning it is a fungal disease. The causative agent is Paracoccidioides brasiliensis and related species (Paracoccidioides spp.), which are dimorphic fungi endemic to Latin America. Multiple abstracts explicitly describe the disease as a fungal infection: Abstract 1 calls it a neglected tropical fungal disease, Abstract 2 describes growth of Paracoccidioides brasiliensis on culture with yeast observed on pathology, and Abstract 3 identifies the causative organism as the dimorphic fungus Paracoccidioides brasiliensis. Fungi and parasites are distinct biological categories, and Paracoccidioides belongs firmly to the kingdom Fungi, not to the parasitic organisms such as protozoa or helminths.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "699ef80a85870e396d000003",
+            "type": "list",
+            "body": "What are the most common bacteria in the human skin microbiome?",
+            "ideal_answer": "The most common bacteria in the human skin microbiome span several genera and species. Staphylococcus is a dominant genus, with Staphylococcus epidermidis being the most ubiquitous skin commensal. Streptococcus species, including S. mitis and S. parasanguinis, are also found in high relative abundance. Corynebacterium, particularly Corynebacterium tuberculostearicum, represents another major component of the skin microbiome and is among the most prevalent genera identified across body sites. Cutibacterium, especially Cutibacterium acnes, is a predominant member particularly on sebaceous skin areas such as the face. Micrococcus and Kocuria are also recognized as core skin microbiome genera. The Neisseriaceae family has been identified as a predominant part of the facial skin microbiome in some studies. Together, these taxa form the core bacterial community of healthy human skin, with their relative abundances varying by body site, individual, and environmental factors.",
+            "exact_answer": [
+                [
+                    "Staphylococcus"
+                ],
+                [
+                    "Staphylococcus epidermidis"
+                ],
+                [
+                    "Streptococcus"
+                ],
+                [
+                    "Streptococcus mitis"
+                ],
+                [
+                    "Streptococcus parasanguinis"
+                ],
+                [
+                    "Corynebacterium"
+                ],
+                [
+                    "Corynebacterium tuberculostearicum"
+                ],
+                [
+                    "Cutibacterium"
+                ],
+                [
+                    "Cutibacterium acnes"
+                ],
+                [
+                    "Micrococcus"
+                ],
+                [
+                    "Kocuria"
+                ],
+                [
+                    "Neisseriaceae"
+                ]
+            ]
+        },
+        {
+            "id": "69abc0a585870e396d000055",
+            "type": "factoid",
+            "body": "What is the mean time to diagnosis for ectopic Cushing's Syndrome?",
+            "ideal_answer": "According to a meta-analysis based on 5367 patients, the mean time to diagnosis for ectopic Cushing's Syndrome is 14 months. This is notably shorter than the other subtypes: adrenal Cushing's Syndrome has a mean time to diagnosis of 30 months, and pituitary Cushing's Syndrome has the longest at 38 months. The overall mean time to diagnosis across all subtypes of Cushing's Syndrome is 34 months. No significant differences in time to diagnosis were found based on gender, age (under or over 18 years), or year of diagnosis (before or after 2000).",
+            "exact_answer": [
+                "14 months"
+            ]
+        },
+        {
+            "id": "67e1488918b1e36f2e000072",
+            "type": "summary",
+            "body": "What is the realtionship between survivin and nasopharyngeal cancer?",
+            "ideal_answer": "Survivin is significantly overexpressed in nasopharyngeal carcinoma (NPC) tissues compared to normal nasopharyngeal or chronic nasopharyngitis tissues, and this elevated expression is strongly associated with poor patient prognosis. Meta-analysis of 26 studies encompassing over 2,000 patients confirmed that high survivin expression correlates with reduced overall survival, increased lymph node metastasis, local recurrence, distant metastasis, and higher clinical staging. Survivin functions as an independent risk factor for unfavorable outcomes in NPC and is considered a valuable biomarker for predicting disease malignancy and prognosis. Its expression is positively correlated with that of β-catenin and TCF-4, suggesting involvement of the Wnt signaling pathway in NPC progression. Mechanistically, survivin overexpression promotes tumor cell proliferation, and experimental suppression of survivin via shRNA in NPC cell lines distinctly inhibits proliferation, highlighting its functional role in disease onset and development. Beyond prognosis, survivin also shows diagnostic utility: autoantibodies against survivin are elevated in NPC patients, and a panel combining survivin autoantibodies with Cyclin B1, NY-ESO-1, and IMP3 achieves an AUC of 0.779 for NPC detection, suggesting potential as an early diagnostic tool.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a7f7d385870e396d000025",
+            "type": "yesno",
+            "body": "Is the inactive X chromosome (Barr body) less susceptible to genotoxic damage or mutations than the active X chromosome?",
+            "ideal_answer": "The inactive X chromosome (Barr body) is not less susceptible to genotoxic damage or mutations than the active X chromosome. Studies using X-irradiation of human lymphocytes show that both the active and inactive X chromosomes exhibit similar radiosensitivity, with a comparable number of breaks induced in each (Abstract 8). While repair of UV-induced damage is slower in inactive X-chromosomal genes compared to active housekeeping genes (Abstracts 6 and 7), this reflects differences in repair efficiency rather than reduced susceptibility to initial damage. In fact, repair inhibition studies suggest the inactive X chromosome may be more vulnerable to the consequences of unrepaired breaks, as aberrations involving it increase more after repair inhibition (Abstract 8). Additionally, DNA damage from dysfunctional telomeres disrupts the epigenetic stability of the inactive X chromosome, causing reactivation of silenced genes (Abstract 4). The conserved DNA damage response at the Xi, including chromatin relaxation and relocation of damage sites, confirms it participates fully in damage responses (Abstract 3). Thus, the heterochromatic state of the Xi does not protect it from genotoxic insult; if anything, slower repair may make it more prone to accumulating mutations.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "69ac49c685870e396d000060",
+            "type": "summary",
+            "body": "What are the causes of the different categories of adrenal insufficiency?",
+            "ideal_answer": "Adrenal insufficiency, defined by inadequate cortisol production, is categorized into three forms based on etiology. Primary adrenal insufficiency results from direct failure of the adrenal gland itself, most commonly due to autoimmune destruction (as in Addison's disease), but also caused by congenital adrenal hyperplasia, infections such as tuberculosis or fungal diseases, pharmacological inhibition (e.g., high-dose azole antifungals), or surgical removal of adrenal cortical tissue. This form involves deficiency of all adrenocortical hormones, including mineralocorticoids and androgens in addition to glucocorticoids. Secondary adrenal insufficiency arises from hypothalamic-pituitary pathologies that reduce ACTH stimulation of the adrenal glands, with causes including pituitary tumors, hemorrhage, inflammatory or infiltrative conditions such as hypophysitis, sarcoidosis, or hemochromatosis, as well as surgery, radiation therapy, or medications that suppress corticotropin production such as opioids. Glucocorticoid-induced adrenal insufficiency, the most common form, results from exogenous administration of supraphysiological doses of glucocorticoids, which suppress the hypothalamic-pituitary-adrenal axis; it is typically suspected when patients taper or discontinue such therapy. Each category has distinct hormonal profiles and requires tailored diagnostic and management approaches.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69a4cc0a85870e396d000008",
+            "type": "list",
+            "body": "Please list the common side effects of Kymriah",
+            "ideal_answer": "Based on the provided context, the common side effects associated with Kymriah (tisagenlecleucel), an anti-CD19 CAR T-cell therapy, include cytokine release syndrome (CRS) and CAR T-cell-related encephalopathy syndrome (CRES). These toxicities can be severe or even fatal, and their careful management is considered vital in patients undergoing this treatment for relapsed or refractory B-cell acute lymphoblastic leukemia.",
+            "exact_answer": [
+                [
+                    "cytokine release syndrome"
+                ],
+                [
+                    "CAR T-cell-related encephalopathy syndrome"
+                ]
+            ]
+        },
+        {
+            "id": "69a8001f85870e396d000033",
+            "type": "list",
+            "body": "Which factors trigger eustress responses in the body?",
+            "ideal_answer": "Eustress responses in the body are triggered by a range of factors. Regular physical exercise generates reactive oxygen species (ROS) that modulate redox-sensitive signaling pathways, promoting adaptive responses in skeletal muscle and beyond. Environmental enrichment, which provides enhanced sensory, cognitive, motor, and social stimulation, functions as a hormetic stimulus that induces neuroplasticity, neurotrophic factor expression, and stress resilience. Specific phytochemicals such as luteolin activate the Nrf2-Keap1 pathway, contributing to oxidative eustress and redox balance. Preconditioning with small doses of stressful stimuli and mild pro-oxidant activity mobilizes antioxidant defense mechanisms, supporting optimal redox homeostasis. In humans, analogous enrichments including physical exercise, cognitive challenges, social engagement, and music facilitate neuroplasticity and promote stress resilience through hormetic biphasic dose-response mechanisms, where moderate stimulation produces beneficial outcomes that can become detrimental with excessive exposure.",
+            "exact_answer": [
+                [
+                    "reactive oxygen species (ROS)"
+                ],
+                [
+                    "physical exercise"
+                ],
+                [
+                    "environmental enrichment (EE)"
+                ],
+                [
+                    "luteolin"
+                ],
+                [
+                    "mild pro-oxidant activity"
+                ],
+                [
+                    "cognitive challenges"
+                ],
+                [
+                    "social engagement"
+                ],
+                [
+                    "music"
+                ],
+                [
+                    "small doses of stressful stimuli"
+                ]
+            ]
+        },
+        {
+            "id": "69a669b585870e396d000014",
+            "type": "yesno",
+            "body": "Is Cushing Syndrome present in canine populations?",
+            "ideal_answer": "Yes, Cushing's syndrome is present in canine populations. It is described as a common endocrine disorder in dogs, also known as naturally occurring hypercortisolism. Epidemiological data from UK primary-care veterinary practices estimate a 1-year period prevalence of 0.17% and an annual incidence of 0.06% among dogs under veterinary care. The condition is caused primarily by ACTH-producing pituitary adenomas (pituitary-dependent hypercortisolism, accounting for 80-85% of cases) or by adrenocortical tumors (15-20% of cases). Certain breeds are at higher risk, including Bichon frises, Border terriers, and Miniature schnauzers, while Golden retrievers and Labrador retrievers appear more protected. Increasing age and bodyweight above the breed-sex mean are also associated with higher odds of diagnosis. Machine learning tools have been developed to assist in its diagnosis, and multiple treatment options exist, including surgical intervention, radiotherapy, and pharmacotherapy with agents such as trilostane or mitotane.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "67d975da18b1e36f2e000050",
+            "type": "yesno",
+            "body": "Does a zoonosis affect humans?",
+            "ideal_answer": "Yes, zoonoses affect humans. A zoonosis is by definition a disease transmissible from animals to humans. The abstracts provide multiple concrete examples. Western equine encephalitis is described as a zoonotic disease in which humans are accidental hosts, capable of causing meningoencephalitis, particularly in children. Spotted fever group rickettsioses caused by Rickettsia species pose a significant zoonotic threat to public health. Tularemia is a nationally notifiable zoonosis in the United States that caused 2,462 reported human cases between 2011 and 2022, with a case fatality rate that can exceed 2% depending on the strain. Crimean-Congo hemorrhagic fever is a tick-borne zoonotic disease present across many African countries, with serologic evidence of human exposure documented in northern Tanzania, linked to livestock-rearing activities. Together, these examples confirm that zoonotic diseases can and do affect humans, sometimes causing severe illness and death.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69a7f75385870e396d000023",
+            "type": "summary",
+            "body": "How do larval salivary glands differ from adult salivary glands in Drosophila melanogaster?",
+            "ideal_answer": "The larval salivary gland in Drosophila melanogaster is a simple epithelial tubular organ specialized for high-level protein synthesis and secretion. It functions both as an exocrine organ, secreting glue proteins that attach the forming pupa to a solid surface, and as an endocrine organ, releasing the peptide Sgsf into the hemolymph to regulate systemic growth by modulating insulin-like peptide secretion and mTOR signaling. In contrast, adult salivary glands are derived from imaginal tissues and persist after metamorphosis. The larval glands are not retained during the larval-to-adult transition; instead, they undergo programmed cell death involving growth arrest, autophagy, crinophagy of excess secretory granules, and caspase-dependent apoptosis. This degradation is triggered by the steroid hormone 20-hydroxyecdysone, which induces the transcription factor E93 to promote expression of pro-apoptotic RHG genes (reaper, hid, and grim). The gene l(2)gl also influences the timing of histolysis in a dose-dependent manner. Cytoskeletal rearrangements in microtubule and actin networks accompany these cell death processes. Thus, larval salivary glands are transient, multifunctional secretory organs that are systematically eliminated at metamorphosis, whereas adult salivary glands are stable structures that differentiate from imaginal precursors.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ac409485870e396d00005d",
+            "type": "factoid",
+            "body": "How often is leukocytosis present in patients with Cushing's Syndrome?",
+            "ideal_answer": "Leukocytosis is a frequent finding in patients with Cushing's Syndrome, though its reported prevalence varies by study. A smaller study of 26 patients with Cushing's disease found elevated white blood cell counts in approximately 40% of cases (11/28 events), with mean baseline WBC of 10,500 cells/µl dropping significantly after treatment. A larger nationwide retrospective cohort study of 297 patients with Cushing's Syndrome reported leukocytosis in 21.5% of patients at baseline, compared to 8.9% in matched controls. Both studies confirmed significantly higher WBC counts, neutrophil counts, and neutrophil-to-lymphocyte ratios in Cushing's Syndrome patients compared to controls, reflecting direct glucocorticoid effects on white blood cells. Post-surgical remission led to significant decreases in WBC and neutrophil counts, though levels did not fully normalize in all patients. Notably, baseline leukocytosis was associated with a lower remission rate in Cushing's disease patients (36.7% vs. 63.9% in those with normal WBC).",
+            "exact_answer": [
+                "approximately 40%",
+                "21.5%"
+            ]
+        },
+        {
+            "id": "69a8acd085870e396d00003a",
+            "type": "list",
+            "body": "What are the hallmarks of Acro-cardio-facial syndrome (ACFS)",
+            "ideal_answer": "Acro-cardio-facial syndrome (ACFS) is a rare genetic disorder with a broad constellation of congenital anomalies. The core hallmarks include split-hand/split-foot malformation (ectrodactyly), cleft lip/palate, congenital heart defects, facial anomalies, and genital anomalies. Intellectual disability (mental retardation) and growth retardation are also consistent features. Additional findings that may expand the phenotypic spectrum include mild scoliosis and hemivertebrae. An autosomal recessive inheritance pattern has been suggested based on parental consanguinity and recurrence in siblings, though some evidence points to a microdeletion of chromosome 6q21-q22.3 as a possible cause in certain cases. Prognosis is generally poor, with many affected individuals not surviving the first days or months of life.",
+            "exact_answer": [
+                [
+                    "split-hand/split-foot malformation (SHFM)"
+                ],
+                [
+                    "ectrodactyly"
+                ],
+                [
+                    "cleft lip/palate"
+                ],
+                [
+                    "congenital heart defect (CHD)"
+                ],
+                [
+                    "facial anomalies"
+                ],
+                [
+                    "genital anomalies"
+                ],
+                [
+                    "mental retardation"
+                ],
+                [
+                    "intellectual disability"
+                ],
+                [
+                    "growth retardation"
+                ],
+                [
+                    "scoliosis"
+                ],
+                [
+                    "hemivertebrae"
+                ]
+            ]
+        },
+        {
+            "id": "69a7f62f85870e396d00001d",
+            "type": "summary",
+            "body": "What are the effects of D-amino acids on human health?",
+            "ideal_answer": "D-amino acids exert wide-ranging effects on human health across neurological, metabolic, oncological, renal, and infectious disease domains. In the brain, D-serine, D-aspartate, and D-alanine interact with NMDA and metabotropic glutamate receptors, and their reduced levels are associated with schizophrenia and neurodegenerative diseases such as Alzheimer's disease, making them both pathophysiological contributors and potential therapeutic targets. D-amino acids also serve as promising biomarkers for chronic kidney disease, malignancy, and infectious diseases, offering more accurate and less invasive diagnostic approaches than conventional markers like creatinine. From dietary sources, D-amino acids accumulate in tissues and influence lipid metabolism, glycerophospholipid pathways, and neurotransmission through choline metabolism. In oncology, D-amino acid oxidase combined with D-amino acid supplementation suppresses hepatocellular carcinoma growth and can reverse sorafenib resistance. D-amino acids also demonstrate antimicrobial and antibiofilm properties against pathogens such as Pseudomonas aeruginosa, particularly relevant in cystic fibrosis-related lung infections, and show promise as natural food preservatives due to their activity against foodborne pathogens. Collectively, these findings highlight D-amino acids as multifunctional molecules with significant therapeutic and diagnostic potential across diverse areas of human health.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69abbf7f85870e396d000054",
+            "type": "factoid",
+            "body": "What is the mean time to diagnosis for pituitary Chushing's Syndrome?",
+            "ideal_answer": "Based on a meta-analysis of 5367 patients with Cushing's syndrome, the mean time to diagnosis for pituitary Cushing's syndrome (Cushing's disease) is 38 months. This is longer than the overall mean time to diagnosis for all Cushing's syndrome subtypes combined, which is 34 months. Among the subtypes, ectopic Cushing's syndrome had the shortest time to diagnosis at 14 months, adrenal Cushing's syndrome at 30 months, and pituitary Cushing's syndrome at 38 months, with statistically significant differences between subtypes (P < .001). Notably, patients with pituitary Cushing's syndrome in Germany had an even longer time to diagnosis compared to other countries. No significant differences in time to diagnosis were found based on gender, age (under or over 18 years), or year of diagnosis (before or after 2000). The prolonged diagnostic delay is attributed to the overlap of Cushing's syndrome signs and symptoms with common conditions such as metabolic syndrome, obesity, osteoporosis, and depression.",
+            "exact_answer": [
+                "38 months",
+                "34 months"
+            ]
+        },
+        {
+            "id": "67e0043b18b1e36f2e000066",
+            "type": "yesno",
+            "body": "Has Vitamin D therapy been shown to improve cognitive function in Alzheimers disease?",
+            "ideal_answer": "While observational studies suggest an association between higher vitamin D levels and improved cognition, and lower vitamin D levels have been linked to Alzheimer's disease, more rigorous Mendelian Randomization analyses found no clear causal evidence that vitamin D supplementation improves cognitive function in Alzheimer's disease. The MR study, designed to reduce confounding bias, showed null effects of genetically estimated vitamin D levels on cognitive performance measures including PACC scores in the general population and in those over 60. Cross-sectional data confirm that AD patients have lower vitamin D levels compared to those without dementia, but this association does not establish that therapy improves cognition. Mechanistic and experimental studies suggest vitamin D may have neuroprotective and anti-inflammatory roles through various cellular pathways, and some reviews propose calcitriol as a potentially beneficial supplement, but these remain theoretical. Overall, the current evidence does not support a demonstrated improvement in cognitive function from vitamin D therapy in Alzheimer's disease, and further rigorous clinical trials are needed before such a conclusion can be drawn.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "69a7fd0785870e396d00002c",
+            "type": "yesno",
+            "body": "Can AlphaFold be used in a reverse manner to predict a possible amino acid sequence from a desired protein structure (inverse protein folding)?",
+            "ideal_answer": "Yes, AlphaFold can be used in a reverse manner to predict amino acid sequences from a desired protein structure, a task known as inverse protein folding. While AlphaFold itself is a forward-folding model that predicts structure from sequence, its capabilities have been harnessed to support inverse folding in several ways. One approach uses knowledge distillation of AlphaFold's confidence metrics (such as pTM or pLDDT scores) to create faster, end-to-end differentiable models that serve as structural consistency regularizers during inverse folding model training, yielding improvements in sequence recovery and protein diversity. Tools like SeqPredNN predict amino acid sequences expected to fold into specified structures and then use AlphaFold to validate the predicted folds, achieving a median TM-score of 0.638 against crystal structures. More broadly, the field of inverse protein folding has advanced significantly alongside AlphaFold, with methods like ProRefiner and physics-informed neural networks also tackling the problem of designing sequences compatible with given backbone structures. Thus, while AlphaFold is not natively an inverse folding tool, it plays a central role in enabling and validating inverse protein folding approaches.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69a66b8085870e396d000015",
+            "type": "yesno",
+            "body": "Is Cushing syndrome present in feline populations?",
+            "ideal_answer": "Yes, Cushing's syndrome (hyperadrenocorticism) is present in feline populations. Although it is diagnosed far less frequently in cats than in dogs, its incidence in cats is thought to be similar to that in humans. Feline hyperadrenocorticism has distinct clinical features, including unregulated diabetes mellitus and severe skin atrophy, which are unique to cats. Other signs shared with dogs include a potbellied appearance, polydipsia, polyuria, and increased susceptibility to infections. Clinicians must be aware that diagnostic tests for feline hyperadrenocorticism differ from those used in dogs, and treatment can be challenging. Overall, feline adrenal disorders, including Cushing's syndrome, are becoming increasingly recognized in veterinary medicine.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69aa28fb85870e396d00003f",
+            "type": "yesno",
+            "body": "Is Heck's disease caused by a bacterium?",
+            "ideal_answer": "Heck's disease is not caused by a bacterium. It is caused by the human papillomavirus (HPV), a virus. Also known as focal epithelial hyperplasia (FEH), the condition involves HPV-induced proliferation of epithelial cells that produces asymptomatic lesions in the oral mucosa. It is more prevalent among children and within families, and while the lesions are generally self-limiting, they can progress or cause aesthetic and functional discomfort, making early diagnosis important.",
+            "exact_answer": "no"
+        },
+        {
+            "id": "69a607be85870e396d000012",
+            "type": "yesno",
+            "body": "Is situs inversus totalis compatible with life?",
+            "ideal_answer": "Yes, situs inversus totalis (SIT) is compatible with life. Multiple case reports and reviews confirm that patients with SIT do not have a decreased survival rate compared to the general population, as the condition generally carries no pathophysiological significance on its own. It is a rare congenital anomaly occurring in approximately 1 in 8,000 to 1 in 25,000 live births, inherited in an autosomal recessive pattern, and is often discovered incidentally when patients seek care for unrelated medical issues. Patients can live normal lives, as illustrated by cases including a 93-year-old woman and elderly patients undergoing cancer surgery. The main concerns arise when SIT is associated with other conditions such as primary ciliary dyskinesia, which can lead to respiratory complications, or when patients require surgical intervention, as the mirror-image anatomy can challenge clinical diagnosis and operative planning. Nonetheless, with proper radiological evaluation and careful surgical preparation, patients with SIT can safely undergo procedures ranging from gastrostomy to colectomy. Clinicians are advised to be aware of this condition and counsel affected patients that it is compatible with a normal lifespan.",
+            "exact_answer": "yes"
+        },
+        {
+            "id": "69ac203585870e396d00005c",
+            "type": "factoid",
+            "body": "What is the treatment of choice for Cushing's Disease?",
+            "ideal_answer": "The treatment of choice for Cushing's disease is trans-sphenoidal surgery (TSS). While TSS is the preferred initial treatment, it is not always curative and carries a notable risk of recurrence, with published recurrence rates varying between 5 and 20%. Approximately half of recurrences appear within 5 years post-surgery and the remaining half within or even after 10 years. A low or undetectable cortisol level in the immediate post-operative period is regarded as the best criterion of remission, though it does not accurately predict long-term outcomes. Current guidelines recommend that every patient in remission be monitored for possible recurrence using methods such as late night salivary cortisol, dexamethasone suppression testing, and urinary free cortisol measurement.",
+            "exact_answer": [
+                "trans-sphenoidal surgery"
+            ]
+        },
+        {
+            "id": "69a7f66785870e396d00001e",
+            "type": "summary",
+            "body": "Why do men die earlier than women?",
+            "ideal_answer": "Men generally die earlier than women, a pattern observed globally across many sexually reproducing species. Multiple biological factors contribute to this disparity. Men exhibit faster telomere shortening and shorter telomere lengths than women, even from birth, which is associated with accelerated biological aging, increased arterial stiffness, and greater cardiovascular risk. Sex steroids play an important role; testosterone, a key driver of male reproductive success, is associated with poorer survival, while estrogens may confer protective effects in women. Metabolic differences also contribute, as females show greater plasticity in response to dietary restriction and nutrient-sensing pathways, and sex-specific genes such as UGT2B11 regulate lipid metabolism in ways that favor female longevity. At the population level, men experience higher rates of external mortality in younger adulthood and greater smoking-related and cardiovascular disease mortality in older age. Men also display greater lifespan variation, reflecting broader inequalities in length of life. Together, these findings suggest that the male-female longevity gap arises from a complex interplay of genetic, hormonal, cellular, and behavioral factors, and that understanding the cross-regulation of steroid hormone and nutrient-sensing pathways may be especially important for explaining sex differences in aging and lifespan.",
+            "exact_answer": ""
+        },
+        {
+            "id": "69ac80fc85870e396d000069",
+            "type": "factoid",
+            "body": "What is the difference between Cushing Syndrome and Cushing Disease?",
+            "ideal_answer": "Cushing's syndrome refers to the general condition of sustained pathologic hypercortisolism, which can arise from multiple causes: excessive ACTH secretion by pituitary tumors (Cushing's disease, ~70% of cases), ectopic ACTH secretion from tumors elsewhere (~15%), or ACTH-independent cortisol secretion from adrenal tumors (~15%). Cushing's disease is therefore a specific subtype of Cushing's syndrome in which the hypercortisolism is driven by a pituitary tumor producing excess ACTH. In clinical practice, differentiating a pituitary source of excess ACTH (Cushing's disease) from an ectopic source is accomplished by imaging the pituitary and sampling ACTH in the venous drainage of the pituitary (bilateral inferior petrosal sinus sampling). The prognosis is better for Cushing's disease and benign adrenal causes of Cushing's syndrome than for adrenocortical cancer and malignant ACTH-producing tumors.",
+            "exact_answer": [
+                "Cushing's disease is a specific subtype of Cushing's syndrome caused by a pituitary tumor secreting excess ACTH",
+                "Cushing's syndrome is the general condition of sustained pathologic hypercortisolism from any cause",
+                "Cushing's disease accounts for approximately 70% of Cushing's syndrome cases"
+            ]
+        }
+    ]
+}

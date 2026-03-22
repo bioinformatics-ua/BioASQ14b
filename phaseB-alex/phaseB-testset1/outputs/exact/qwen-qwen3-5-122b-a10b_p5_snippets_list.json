@@ -1,0 +1,497 @@
+{
+  "69a7fe5285870e396d000030": {
+    "exact_answer": [
+      [
+        "sister chromatid exchange"
+      ],
+      [
+        "DNA breakage"
+      ],
+      [
+        "interstrand and intrastrand DNA cross-links"
+      ],
+      [
+        "thymine-thymine cyclobutane dimer (T-T)"
+      ],
+      [
+        "thymine-thymine pyrimidine-pyrimidone (6-4) photoproduct (T (6-4) T)"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"sister chromatid exchange\"], [\"DNA breakage\"], [\"interstrand and intrastrand DNA cross-links\"], [\"thymine-thymine cyclobutane dimer (T-T)\"], [\"thymine-thymine pyrimidine-pyrimidone (6-4) photoproduct (T (6-4) T)\"]]}"
+  },
+  "67ed4d9918b1e36f2e0000f6": {
+    "exact_answer": [
+      [
+        "schizophrenia"
+      ],
+      [
+        "bipolar disorder"
+      ],
+      [
+        "multiple drug abuse (MDA)"
+      ],
+      [
+        "generalized anxiety disorder"
+      ],
+      [
+        "severe depression"
+      ],
+      [
+        "dementia"
+      ],
+      [
+        "mood disorders"
+      ],
+      [
+        "organic mental disorders"
+      ],
+      [
+        "disorders due to psychoactive substance use"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"schizophrenia\"], [\"bipolar disorder\"], [\"multiple drug abuse (MDA)\"], [\"generalized anxiety disorder\"], [\"severe depression\"], [\"dementia\"], [\"mood disorders\"], [\"organic mental disorders\"], [\"disorders due to psychoactive substance use\"]]}"
+  },
+  "67d7fe4e18b1e36f2e000045": {
+    "exact_answer": [
+      [
+        "thiamine deficiency"
+      ],
+      [
+        "Thiamin deficiency"
+      ],
+      [
+        "vitamin B1 deficiency"
+      ],
+      [
+        "folate"
+      ],
+      [
+        "vitamins B-6"
+      ],
+      [
+        "vitamins B-12"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"thiamine deficiency\"], [\"Thiamin deficiency\"], [\"vitamin B1 deficiency\"], [\"folate\"], [\"vitamins B-6\"], [\"vitamins B-12\"]]}"
+  },
+  "69ac608a85870e396d000063": {
+    "exact_answer": [
+      [
+        "low morning cortisol levels (<5 \u00b5g/dL)"
+      ],
+      [
+        "high corticotropin levels"
+      ],
+      [
+        "low DHEAS levels"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"low morning cortisol levels (<5 \u00b5g/dL)\"], [\"high corticotropin levels\"], [\"low DHEAS levels\"]]}"
+  },
+  "69acbf7185870e396d00006f": {
+    "exact_answer": [
+      [
+        "predominantly visual symptoms at onset"
+      ],
+      [
+        "Blurred vision"
+      ],
+      [
+        "loss of visual acuity"
+      ],
+      [
+        "decline in visual fields"
+      ],
+      [
+        "prominent visual features early in its clinical course"
+      ],
+      [
+        "visual symptoms preceding the appearance of other clinical manifestations"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"predominantly visual symptoms at onset\"], [\"Blurred vision\"], [\"loss of visual acuity\"], [\"decline in visual fields\"], [\"prominent visual features early in its clinical course\"], [\"visual symptoms preceding the appearance of other clinical manifestations\"]]}"
+  },
+  "69a7002085870e396d00001a": {
+    "exact_answer": [
+      [
+        "delivery to the incorrect patient"
+      ],
+      [
+        "Dosing errors"
+      ],
+      [
+        "wrong/improper drugs"
+      ],
+      [
+        "wrong infusion rate"
+      ],
+      [
+        "unauthorized medication"
+      ],
+      [
+        "wrong time"
+      ],
+      [
+        "documentation"
+      ],
+      [
+        "dose errors"
+      ],
+      [
+        "wrong dose error type"
+      ],
+      [
+        "wrong technique"
+      ],
+      [
+        "wrong route"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"delivery to the incorrect patient\"], [\"Dosing errors\"], [\"wrong/improper drugs\"], [\"wrong infusion rate\"], [\"unauthorized medication\"], [\"wrong time\"], [\"documentation\"], [\"dose errors\"], [\"wrong dose error type\"], [\"wrong technique\"], [\"wrong route\"]]}"
+  },
+  "69a5df9a85870e396d000011": {
+    "exact_answer": [
+      [
+        "1-mg dexamethasone suppression test (1-mg DST)"
+      ],
+      [
+        "late night salivary cortisol (LNSC)"
+      ],
+      [
+        "24 h urinary free cortisol (UFC)"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"1-mg dexamethasone suppression test (1-mg DST)\"], [\"late night salivary cortisol (LNSC)\"], [\"24 h urinary free cortisol (UFC)\"]]}"
+  },
+  "69ac16e485870e396d000059": {
+    "exact_answer": [
+      [
+        "Leukocytosis"
+      ],
+      [
+        "WBC"
+      ],
+      [
+        "neutrophils"
+      ],
+      [
+        "NLR"
+      ],
+      [
+        "lymphocytes"
+      ],
+      [
+        "eosinophils"
+      ],
+      [
+        "Total leukocytes"
+      ],
+      [
+        "MLR"
+      ],
+      [
+        "PLR"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Leukocytosis\"], [\"WBC\"], [\"neutrophils\"], [\"NLR\"], [\"lymphocytes\"], [\"eosinophils\"], [\"Total leukocytes\"], [\"MLR\"], [\"PLR\"]]}"
+  },
+  "69a7f6ba85870e396d000020": {
+    "exact_answer": [
+      [
+        "Humans"
+      ],
+      [
+        "human"
+      ],
+      [
+        "Mouse"
+      ],
+      [
+        "mice"
+      ],
+      [
+        "bovine"
+      ],
+      [
+        "duck"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Humans\"], [\"human\"], [\"Mouse\"], [\"mice\"], [\"bovine\"], [\"duck\"]]}"
+  },
+  "69a4ca8a85870e396d000006": {
+    "exact_answer": [
+      [
+        "Delgocitinib"
+      ],
+      [
+        "Upadacitinib"
+      ],
+      [
+        "Ruxolitinib"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Delgocitinib\"], [\"Upadacitinib\"], [\"Ruxolitinib\"]]}"
+  },
+  "69ab1e8885870e396d000051": {
+    "exact_answer": [
+      [
+        "Cushing's disease"
+      ],
+      [
+        "ectopic CS"
+      ],
+      [
+        "adrenal CS"
+      ],
+      [
+        "adrenocorticotropic hormone (ACTH)-dependent"
+      ],
+      [
+        "ACTH-independent"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Cushing's disease\"], [\"ectopic CS\"], [\"adrenal CS\"], [\"adrenocorticotropic hormone (ACTH)-dependent\"], [\"ACTH-independent\"]]}"
+  },
+  "69a8abfb85870e396d000039": {
+    "exact_answer": [
+      [
+        "thrombocytopenia"
+      ],
+      [
+        "anasarca"
+      ],
+      [
+        "fever"
+      ],
+      [
+        "reticulin fibrosis"
+      ],
+      [
+        "renal dysfunction"
+      ],
+      [
+        "organomegaly"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"thrombocytopenia\"], [\"anasarca\"], [\"fever\"], [\"reticulin fibrosis\"], [\"renal dysfunction\"], [\"organomegaly\"]]}"
+  },
+  "69a7fbc485870e396d00002a": {
+    "exact_answer": [
+      [
+        "cancer"
+      ],
+      [
+        "Alzheimer's disease"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"cancer\"], [\"Alzheimer's disease\"]]}"
+  },
+  "69a7fac085870e396d000027": {
+    "exact_answer": [
+      [
+        "lentiviruses"
+      ],
+      [
+        "adeno-associated viruses"
+      ],
+      [
+        "adenoviruses"
+      ],
+      [
+        "retroviruses"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"lentiviruses\"], [\"adeno-associated viruses\"], [\"adenoviruses\"], [\"retroviruses\"]]}"
+  },
+  "69a7f72985870e396d000022": {
+    "exact_answer": [
+      [
+        "juxtanuclear membrane pool"
+      ],
+      [
+        "perinuclear region"
+      ],
+      [
+        "trans-Golgi network (TGN)"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"juxtanuclear membrane pool\"], [\"perinuclear region\"], [\"trans-Golgi network (TGN)\"]]}"
+  },
+  "69ac49a685870e396d00005f": {
+    "exact_answer": [
+      [
+        "general weakness"
+      ],
+      [
+        "anorexia"
+      ],
+      [
+        "arthralgia"
+      ],
+      [
+        "fever"
+      ],
+      [
+        "fatigue"
+      ],
+      [
+        "nausea"
+      ],
+      [
+        "vomiting"
+      ],
+      [
+        "abdominal pain"
+      ],
+      [
+        "myalgias"
+      ],
+      [
+        "weight loss"
+      ],
+      [
+        "salt craving"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"general weakness\"], [\"anorexia\"], [\"arthralgia\"], [\"fever\"], [\"fatigue\"], [\"nausea\"], [\"vomiting\"], [\"abdominal pain\"], [\"myalgias\"], [\"weight loss\"], [\"salt craving\"]]}"
+  },
+  "69a7fc6785870e396d00002b": {
+    "exact_answer": [
+      [
+        "charge-charge interactions"
+      ],
+      [
+        "salting-out effect in the Hofmeister series"
+      ],
+      [
+        "conformational transitions from the unfolded monomeric state to a molten globule-like state"
+      ],
+      [
+        "intra- and intermolecular interactions"
+      ],
+      [
+        "disrupting the supersaturated state above the thermodynamic solubility"
+      ],
+      [
+        "metabolic stress"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"charge-charge interactions\"], [\"salting-out effect in the Hofmeister series\"], [\"conformational transitions from the unfolded monomeric state to a molten globule-like state\"], [\"intra- and intermolecular interactions\"], [\"disrupting the supersaturated state above the thermodynamic solubility\"], [\"metabolic stress\"]]}"
+  },
+  "699ef80a85870e396d000003": {
+    "exact_answer": [
+      [
+        "Streptococcus"
+      ],
+      [
+        "Staphylococcus"
+      ],
+      [
+        "Corynebacterium"
+      ],
+      [
+        "Staphylococcus epidermidis"
+      ],
+      [
+        "Streptococcus mitis"
+      ],
+      [
+        "Corynebacterium bovis"
+      ],
+      [
+        "Streptococcus parasanguinis"
+      ],
+      [
+        "Micrococcus"
+      ],
+      [
+        "Kocuria"
+      ],
+      [
+        "Cutibacterium"
+      ],
+      [
+        "Corynebacterium tuberculostearicum"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Streptococcus\"], [\"Staphylococcus\"], [\"Corynebacterium\"], [\"Staphylococcus epidermidis\"], [\"Streptococcus mitis\"], [\"Corynebacterium bovis\"], [\"Streptococcus parasanguinis\"], [\"Micrococcus\"], [\"Kocuria\"], [\"Cutibacterium\"], [\"Corynebacterium tuberculostearicum\"]]}"
+  },
+  "69a4cc0a85870e396d000008": {
+    "exact_answer": [
+      [
+        "cytokine release syndrome"
+      ],
+      [
+        "CAR T-cell-related encephalopathy syndrome"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"cytokine release syndrome\"], [\"CAR T-cell-related encephalopathy syndrome\"]]}"
+  },
+  "69a8001f85870e396d000033": {
+    "exact_answer": [
+      [
+        "Regular physical activity"
+      ],
+      [
+        "enriched environment (EE)"
+      ],
+      [
+        "reactive oxygen species (ROS)"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Regular physical activity\"], [\"enriched environment (EE)\"], [\"reactive oxygen species (ROS)\"]]}"
+  },
+  "69a8acd085870e396d00003a": {
+    "exact_answer": [
+      [
+        "split-hand/split-foot malformation (SHFM)"
+      ],
+      [
+        "facial anomalies"
+      ],
+      [
+        "cleft lip/palate"
+      ],
+      [
+        "congenital heart defect (CHD)"
+      ],
+      [
+        "genital anomalies"
+      ],
+      [
+        "mental retardation"
+      ],
+      [
+        "growth retardation"
+      ],
+      [
+        "ectrodactyly"
+      ],
+      [
+        "intellectual disability"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"split-hand/split-foot malformation (SHFM)\"], [\"facial anomalies\"], [\"cleft lip/palate\"], [\"congenital heart defect (CHD)\"], [\"genital anomalies\"], [\"mental retardation\"], [\"growth retardation\"], [\"ectrodactyly\"], [\"intellectual disability\"]]}"
+  }
+}

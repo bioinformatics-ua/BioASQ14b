@@ -1,0 +1,87 @@
+{
+  "69a7f6fa85870e396d000021": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts describe the identification, characterization, and evolutionary conservation of PI4KII, including its presence and importance in both Drosophila and mammals, as part of a conserved family.\n{\"exact_answer\": \"yes\"}\n"
+  },
+  "69ade3c185870e396d000073": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively show that tumor cells can be reprogrammed in vivo into dendritic cells, which then promote antitumor immunity, remodel the tumor microenvironment, and induce tumor regressions.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7faa485870e396d000026": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively describe X chromosome inactivation (XCI) as a mechanism for dosage compensation in female cells, its establishment by XIST, its ongoing role in silencing genes in somatic cells like B cells, its potential relevance in regenerative medicine, and its impact on mosaic expression of X-linked genes in various tissues, with some tissues showing selection for cells with active wild-type alleles.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a86f1285870e396d000036": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively describe seborrhea and seborrheic dermatitis as inflammatory skin conditions affecting areas rich in sebaceous glands.\n{\"exact_answer\": \"no\"}\n"
+  },
+  "69aacfcc85870e396d000040": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The provided abstracts collectively show that Rheumatic heart disease is caused by an autoimmune response to Group A Streptococcus (GAS) infection.\n{\"exact_answer\": \"no\"}\n"
+  },
+  "69a7fd8885870e396d00002d": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively suggest that amyloid structures, previously considered only pathological, are now recognized as functional protein assemblies involved in various physiological processes, including stress response, host defense, and sperm maturation, with their assembly and function potentially regulated by factors like nucleic acids.\n{\"exact_answer\": \"yes\"}\n"
+  },
+  "69a66cb085870e396d000016": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "Adrenocortical secretory tumors can be both sporadic and linked to hereditary tumor syndromes.\n{\"exact_answer\": \"no\"}\n"
+  },
+  "69a8aeb485870e396d00003c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The provided abstracts collectively suggest that calcium dyshomeostasis, along with mitochondrial dysfunction and protein aggregation, plays a significant role in the pathogenesis and progression of Huntington's disease.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a8adf785870e396d00003b": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The provided abstracts consistently describe Paracoccidioidomycosis as a mycosis (fungal infection) caused by the fungus Paracoccidioides.\n{\"exact_answer\": \"no\"}\n"
+  },
+  "69a7f7d385870e396d000025": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts suggest that proteins like CIZ1 and SMCHD1 are involved in maintaining the structure and stability of the inactive X chromosome, protecting it from DNA damage and facilitating DNA repair.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a669b585870e396d000014": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that hypercortisolism, also known as Cushing's syndrome, is a spontaneous and common endocrine disorder in dogs, sometimes caused by adrenal tumors.\n{\"exact_answer\": \"yes\"}\n"
+  },
+  "67d975da18b1e36f2e000050": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively show that Crimean-Congo hemorrhagic fever, tularemia, western equine encephalitis, and spotted fever group rickettsioses are zoonotic diseases that affect humans.\n{\"exact_answer\": \"yes\"}\n"
+  },
+  "67e0043b18b1e36f2e000066": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively suggest a link between Vitamin D deficiency and Alzheimer's disease, with Vitamin D supplementation potentially improving cognitive function and providing neuroprotective effects through various mechanisms.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7fd0785870e396d00002c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts highlight AlphaFold's success in protein structure prediction, its applications in variant effect prediction and functional annotation, its limitations in predicting intrinsically disordered regions, and its potential use in inverse protein design.\n{\"exact_answer\": \"yes\"}\n"
+  },
+  "69a66b8085870e396d000015": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts suggest that Cushing's syndrome, also known as hyperadrenocorticism, does occur in cats, although it is less frequently diagnosed than in dogs.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69aa28fb85870e396d00003f": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that Heck's disease is caused by a virus, specifically human papillomavirus.\n{\"exact_answer\": \"no\"}\n"
+  },
+  "69a607be85870e396d000012": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "Situs inversus totalis is a rare anatomical variation involving the complete reversal of thoracic and abdominal organs, generally without pathophysiological significance or decreased survival rates, and is compatible with a normal life, although it may present diagnostic or surgical challenges.\n{\"exact_answer\": \"yes\"}"
+  }
+}

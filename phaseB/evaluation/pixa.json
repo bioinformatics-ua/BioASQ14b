@@ -1,0 +1,39 @@
+{
+  "mode": "all",
+  "predictions_file": "../dev/sweep_outputs/submission1-0.64_hydrated/claude-opus-4.6_abstracts_10_6.json",
+  "golden_file": "../../data/val_data/13B1_golden_documents.jsonl",
+  "backend": "local",
+  "judge_model": "unsloth/Qwen3.5-35B-A3B-GGUF",
+  "n_total": 0,
+  "n_valid": 0,
+  "metrics": {
+    "rouge2_ideal": {
+      "per_question": {},
+      "mean": 0.0
+    },
+    "yesno": {
+      "f1_yes": 0.0,
+      "f1_no": 0.0,
+      "macro_f1": 0.0,
+      "n_scored": 0
+    },
+    "factoid": {
+      "mrr": 0.0,
+      "strict_acc": 0.0,
+      "lenient_acc": 0.0,
+      "n_scored": 0
+    },
+    "list": {
+      "mean_f1": 0.0,
+      "n_scored": 0
+    }
+  },
+  "judge_means": {
+    "correctness": 0.0,
+    "faithfulness": 0.0,
+    "completeness": 0.0,
+    "overall": 0.0,
+    "n": 0.0
+  },
+  "per_question_judge": {}
+}

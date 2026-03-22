@@ -1,0 +1,87 @@
+{
+  "69a7f6fa85870e396d000021": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that Type II phosphatidylinositol 4-kinases constitute an evolutionarily conserved family found in Drosophila melanogaster and mammals, including humans.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69ade3c185870e396d000073": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively describe a method where tumor cells are reprogrammed in vivo into dendritic cells to elicit antitumor immunity and tumor regression in mouse models.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7faa485870e396d000026": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that X chromosome inactivation, involving the silencing of most genes on one X chromosome, is a mechanism established in development that persists and influences cell function in adult somatic tissues.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a86f1285870e396d000036": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively describe Seborrhea and Seborrheic dermatitis as inflammatory conditions or complaints related to the skin and sebaceous glands.\n{\"exact_answer\": \"no\"}"
+  },
+  "69aacfcc85870e396d000040": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The provided abstracts collectively indicate that Rheumatic heart disease results from an abnormal immune response to group A Streptococcus infection instead of Staphylococcus Aureus.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd8885870e396d00002d": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively describe functional amyloid aggregates formed by proteins that perform specific physiological roles such as stress protection and sperm maturation.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66cb085870e396d000016": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The provided text indicates that adrenocortical secretory tumors are primarily sporadic in nature, although they may occasionally occur within hereditary syndromes.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a8aeb485870e396d00003c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The provided abstracts collectively indicate that calcium dyshomeostasis is a significant pathological factor implicated in the pathogenesis and progression of Huntington's disease.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a8adf785870e396d00003b": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively describe Paracoccidioidomycosis as a systemic fungal disease caused by dimorphic fungi endemic to Latin America.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7f7d385870e396d000025": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that the inactive X chromosome employs specific proteins such as CIZ1 and SMCHD1 to maintain chromatin structure and facilitate DNA repair, thereby guarding against genome instability.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a669b585870e396d000014": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively discuss the presence of hypercortisolism, identified as Cushing's syndrome, in canine populations.\n{\"exact_answer\": \"yes\"}"
+  },
+  "67d975da18b1e36f2e000050": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The provided texts identify various diseases as zoonoses and indicate that they impact human populations either by infecting humans as hosts or posing public health threats.\n{\"exact_answer\": \"yes\"}"
+  },
+  "67e0043b18b1e36f2e000066": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively suggest that vitamin D deficiency is linked to Alzheimer's disease and indicate that supplementation is associated with improved cognitive function and may offer neuroprotective therapeutic benefits.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7fd0785870e396d00002c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively show that AlphaFold is primarily used for structure prediction but includes references to protein design applications and inverse folding techniques like distillation.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66b8085870e396d000015": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The provided abstracts identify hyperadrenocorticism, synonymous with Cushing's syndrome, as a condition occurring within feline populations.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69aa28fb85870e396d00003f": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstract states that Heck's disease is induced by the human papilloma virus.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a607be85870e396d000012": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively describe situs inversus totalis as a rare anatomical variation involving organ reversal that generally lacks pathophysiological significance and does not result in a decreased survival rate.\n{\"exact_answer\": \"yes\"}"
+  }
+}

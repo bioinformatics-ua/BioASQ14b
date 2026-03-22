@@ -1,0 +1,87 @@
+{
+  "69a7f6fa85870e396d000021": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate the existence of a highly conserved family of PI4KII enzymes across various species, including Drosophila and mammals, suggesting evolutionary conservation.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69ade3c185870e396d000073": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts describe experimental approaches where tumor cells are reprogrammed into dendritic cells, leading to anti-tumor immunity and tumor regression in models.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a7faa485870e396d000026": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that X chromosome inactivation, a form of whole-chromosome silencing, occurs and is maintained in various somatic cells, although its patterns can be complex, sometimes unstable, and vary between cell types and species.\n\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a86f1285870e396d000036": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts indicate that seborrhea, or seborrheic dermatitis, is a common inflammatory skin condition primarily affecting sebaceous gland-rich areas of the skin, and one abstract specifically refers to \"facial skin sebum\" in the context of seborrhea.\n{\"exact_answer\": \"no\"}"
+  },
+  "69aacfcc85870e396d000040": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively show that Rheumatic heart disease (RHD) is a complication arising from acute rheumatic fever (ARF), which is triggered by an autoimmune response to Group A Streptococcus (GAS) infection.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd8885870e396d00002d": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that proteins forming amyloid structures can serve various physiological roles, including scaffolding, enzymatic activity, and adhesion, and that their assembly and resulting structures can be modulated to achieve functional diversity.\n\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66cb085870e396d000016": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts indicate that adrenocortical secretory tumors are mostly sporadic, though they can be part of hereditary syndromes.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a8aeb485870e396d00003c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that calcium dyshomeostasis, particularly mitochondrial calcium dyshomeostasis, is implicated as an important factor in the pathogenesis and progression of Huntington's disease.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a8adf785870e396d00003b": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts consistently describe Paracoccidioidomycosis as a systemic fungal disease caused by species of the fungus *Paracoccidioides*.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7f7d385870e396d000025": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that the inactive X chromosome (Xi) exhibits differences in DNA damage repair mechanisms and rates compared to active genes and other genomic regions, with some abstracts suggesting slower repair for certain lesion types in the Xi, while others indicate similar radiosensitivity but differential repair processing or susceptibility to epigenetic instability.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a669b585870e396d000014": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively demonstrate that Cushing's syndrome is a recognized and studied endocrine disorder in dogs, with discussions on its diagnosis, prevalence, risk factors, and treatment.\n\n{\"exact_answer\": \"yes\"}"
+  },
+  "67d975da18b1e36f2e000050": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts describe several zoonotic diseases, including Western equine encephalitis, tularemia, and Crimean-Congo hemorrhagic fever, which are shown to affect humans, and also discuss the isolation of a rickettsial strain from ticks on a wild hedgehog, posing a potential zoonotic threat.\n{\"exact_answer\": \"yes\"}"
+  },
+  "67e0043b18b1e36f2e000066": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "While observational studies and mechanistic insights suggest a potential neuroprotective role for Vitamin D in Alzheimer's disease, and some indicate lower Vitamin D levels in AD patients, a Mendelian randomization study found no clear evidence that increased Vitamin D concentrations improve cognitive performance.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a7fd0785870e396d00002c": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts collectively indicate that while AlphaFold itself is a forward folding model predicting structure from sequence, methods are being developed to use its principles or components, such as confidence metrics, in an inverse manner for protein design, or to use other neural networks to predict sequence from structure, thereby addressing the inverse protein folding problem.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69a66b8085870e396d000015": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts discuss the recognition, clinical signs, and comparative aspects of hyperadrenocorticism (Cushing's syndrome) in cats.\n{\"exact_answer\": \"yes\"}"
+  },
+  "69aa28fb85870e396d00003f": {
+    "exact_answer": "no",
+    "valid": true,
+    "raw": "The abstracts indicate that Heck's disease is induced by the human papilloma virus.\n{\"exact_answer\": \"no\"}"
+  },
+  "69a607be85870e396d000012": {
+    "exact_answer": "yes",
+    "valid": true,
+    "raw": "The abstracts consistently indicate that situs inversus totalis itself does not decrease survival rate and is compatible with life, though it can complicate medical diagnoses and surgical procedures.\n{\"exact_answer\": \"yes\"}"
+  }
+}

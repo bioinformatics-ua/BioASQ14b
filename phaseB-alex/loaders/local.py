@@ -28,6 +28,7 @@ class VLLMBackend(BaseModelBackend):
         tensor_parallel_size: int = 1,
         gpu_memory_utilization: float = 0.90,
         max_model_len: int = 8192,
+        enforce_eager: bool = False,
     ):
         # Path to the model weights on disk — set this in the Slurm script
         self.model_path = model_path
@@ -49,6 +50,8 @@ class VLLMBackend(BaseModelBackend):
         # Maximum context length in tokens.
         self.max_model_len = max_model_len
 
+        self.enforce_eager = enforce_eager
+
         # Holds the vLLM engine after load() is called
         self._llm: LLM | None = None
 
@@ -60,7 +63,7 @@ class VLLMBackend(BaseModelBackend):
             tensor_parallel_size=self.tensor_parallel_size,
             gpu_memory_utilization=self.gpu_memory_utilization,
             max_model_len=self.max_model_len,
-            enforce_eager=True,  # skip torch.compile — avoids needing Python dev headers
+            enforce_eager=self.enforce_eager,
         )
         print("Model loaded.")
 

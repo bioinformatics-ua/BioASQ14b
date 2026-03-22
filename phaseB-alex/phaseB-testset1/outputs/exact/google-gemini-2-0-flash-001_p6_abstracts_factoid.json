@@ -1,0 +1,203 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      "between 82-144/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"between 82-144/million\"]}\n```"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      "mesenchymal (MES) subtype",
+      "mesenchymal subtype",
+      "mesenchymal molecular subtype",
+      "mesenchymal-like (MES-like) tumor cells",
+      "MES-like cells"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"mesenchymal (MES) subtype\", \"mesenchymal subtype\", \"mesenchymal molecular subtype\", \"mesenchymal-like (MES-like) tumor cells\", \"MES-like cells\"]}\n```"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      "27.4%",
+      "between 3 and 46%",
+      "between 5 and 20%",
+      "15% to 25%",
+      "up to 20%"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"27.4%\", \"between 3 and 46%\", \"between 5 and 20%\", \"15% to 25%\", \"up to 20%\"]}\n```"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      "aberrant lysosomal function",
+      "inherited lysosomal storage disorders",
+      "a particular mutated gene",
+      "accumulation of autofluorescent ceroid lipopigment"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"aberrant lysosomal function\", \"inherited lysosomal storage disorders\", \"a particular mutated gene\", \"accumulation of autofluorescent ceroid lipopigment\"]}\n```"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      "2 to 8 per million people annually",
+      "2-4 cases per million inhabitants per year",
+      "1.2 and 2.4 cases per million inhabitants per year"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"2 to 8 per million people annually\", \"2-4 cases per million inhabitants per year\", \"1.2 and 2.4 cases per million inhabitants per year\"]}\n```"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      "Solar radiation",
+      "ultraviolet radiation",
+      "UV radiation"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"Solar radiation\", \"ultraviolet radiation\", \"UV radiation\"]}\n```"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      "Nearly half (41%)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"Nearly half (41%)\"]}\n```"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      "the diagnosis and follow-up of hair and scalp disorders",
+      "the early diagnosis of the disease",
+      "rapid diagnosis of tinea capitis and alopecia areata in pediatric patients"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"the diagnosis and follow-up of hair and scalp disorders\", \"the early diagnosis of the disease\", \"rapid diagnosis of tinea capitis and alopecia areata in pediatric patients\"]}\n```"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      "The serine arginine protein kinases (SRPKs) are a family of kinases",
+      "Members of the serine-arginine protein kinase (SRPK) family, SRPK1 and SRPK2",
+      "serine/arginine protein kinases 1 and 2 (SRPK1 and SRPK2)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"The serine arginine protein kinases (SRPKs) are a family of kinases\", \"Members of the serine-arginine protein kinase (SRPK) family, SRPK1 and SRPK2\", \"serine/arginine protein kinases 1 and 2 (SRPK1 and SRPK2)\"]}\n```"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      "B cells",
+      "B-cell"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"B cells\", \"B-cell\"]}\n```"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      "30 months",
+      "34 months",
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"30 months\", \"34 months\", \"14 months\"]}\n```"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      "to slow the loss of ambulation in pediatric patients with CLN2",
+      "for use in patients with neuronal ceroid lipofuscinosis type 2 (CLN2)",
+      "for the treatment of motor function loss in paediatric patients \u22653 years of age with CLN2",
+      "for CLN2 in all ages",
+      "to slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"to slow the loss of ambulation in pediatric patients with CLN2\", \"for use in patients with neuronal ceroid lipofuscinosis type 2 (CLN2)\", \"for the treatment of motor function loss in paediatric patients \u22653 years of age with CLN2\", \"for CLN2 in all ages\", \"to slow the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2 (CLN2)\"]}\n```"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      "glucose",
+      "glutamine",
+      "lipids",
+      "amino acids",
+      "lactate"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"glucose\", \"glutamine\", \"lipids\", \"amino acids\", \"lactate\"]}\n```"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      "150-280/million"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"150-280/million\"]}\n```"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      "Parkinson's disease"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"Parkinson's disease\"]}\n```"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      "34 months",
+      "2\u2009years",
+      "24 months",
+      "over 2 years"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"34 months\", \"2\u2009years\", \"24 months\", \"over 2 years\"]}\n```"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      "hearing"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"hearing\"]}\n```"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      "psychosine",
+      "psychosine",
+      "psychosine"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"psychosine\", \"psychosine\", \"psychosine\"]}\n```"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"14 months\"]}\n```"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      "approximately 40 % of cases",
+      "21.5% of patients with CS"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"approximately 40 % of cases\", \"21.5% of patients with CS\"]}\n```"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      "38 months",
+      "34 months",
+      "14 months",
+      "30 months"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"38 months\", \"34 months\", \"14 months\", \"30 months\"]}\n```"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      "trans-sphenoidal surgery (TSS)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"trans-sphenoidal surgery (TSS)\"]}\n```"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      "Differentiating a pituitary source of excess ACTH (Cushing's disease) from an ectopic source is accomplished by imaging the pituitary and sampling for ACTH in the venous drainage of the pituitary.",
+      "Cushing's syndrome results from sustained pathologic hypercortisolism caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland (Cushing's disease, 70%) or elsewhere (15%), or by ACTH-independent cortisol secretion from adrenal tumors (15%)"
+    ],
+    "valid": true,
+    "raw": "```json\n{\"exact_answer\": [\"Differentiating a pituitary source of excess ACTH (Cushing's disease) from an ectopic source is accomplished by imaging the pituitary and sampling for ACTH in the venous drainage of the pituitary.\", \"Cushing's syndrome results from sustained pathologic hypercortisolism caused by excessive corticotropin (ACTH) secretion by tumors in the pituitary gland (Cushing's disease, 70%) or elsewhere (15%), or by ACTH-independent cortisol secretion from adrenal tumors (15%)\"]}\n```"
+  }
+}

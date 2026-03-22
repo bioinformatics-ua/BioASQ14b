@@ -43,6 +43,16 @@ class BaseModelBackend(ABC):
         """
         ...
 
+    def generate_chat(self, messages: list[dict]) -> str:
+        """
+        Generate a response from a list of chat messages (system/user/assistant dicts).
+
+        Default implementation concatenates messages into a single prompt and
+        calls generate(). Backends that support native chat APIs should override this.
+        """
+        text = "\n\n".join(m["content"] for m in messages)
+        return self.generate(text)
+
     def generate_batch(self, prompts: list[str]) -> list[str]:
         """
         Generate responses for a list of prompts.

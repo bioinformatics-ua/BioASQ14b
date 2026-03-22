@@ -1,0 +1,200 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      "82-144/million",
+      "150-280/million"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"82-144/million\", \"150-280/million\"]}"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      "mesenchymal",
+      "mesenchymal-like (MES-like)",
+      "MES subtype"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"mesenchymal\", \"mesenchymal-like (MES-like)\", \"MES subtype\"]}"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      "27.4%",
+      "15% to 25%",
+      "up to 20%",
+      "5 and 20%",
+      "3 and 46%"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"27.4%\", \"15% to 25%\", \"up to 20%\", \"5 and 20%\", \"3 and 46%\"]}"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      "mutations in CLN genes",
+      "aberrant lysosomal function",
+      "autofluorescent lipopigment accumulation",
+      "mitochondrial impairment",
+      "pathogenic mutations"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"mutations in CLN genes\", \"aberrant lysosomal function\", \"autofluorescent lipopigment accumulation\", \"mitochondrial impairment\", \"pathogenic mutations\"]}"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      "2 to 8 per million people annually",
+      "2-4 cases per million inhabitants per year",
+      "2 to 8 people per million annually"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"2 to 8 per million people annually\", \"2-4 cases per million inhabitants per year\", \"2 to 8 people per million annually\"]}"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      "solar UV radiation",
+      "ultraviolet (UV) radiation",
+      "solar radiation"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"solar UV radiation\", \"ultraviolet (UV) radiation\", \"solar radiation\"]}"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      "41%",
+      "nearly half"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"41%\", \"nearly half\"]}"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      "diagnosis of hair and scalp disorders",
+      "early diagnosis of androgenetic alopecia",
+      "diagnosis of tinea capitis and alopecia areata",
+      "hair examination",
+      "diagnosis of hair disorders"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"diagnosis of hair and scalp disorders\", \"early diagnosis of androgenetic alopecia\", \"diagnosis of tinea capitis and alopecia areata\", \"hair examination\", \"diagnosis of hair disorders\"]}"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      "3",
+      "SRPK1, SRPK2, and SRPK3"
+    ],
+    "valid": true,
+    "raw": "The question asks: \"How many kinases belong to the serine/arginine kinase family of the human kinome?\"\n\nFill-in-the-blank: \"The number of kinases that belong to the serine/arginine kinase family of the human kinome is ___.\"\n\nFrom the abstracts, the SRPK family members mentioned are SRPK1, SRPK2, and SRPK3 (Abstract 3: \"The serine arginine protein kinases (SRPKs) are a family of kinases whose irregular function is implicated in cancer and viral infections. While the roles of SRPK1 and SRPK2 in disease are well established, much less is known about SRPK3.\"). This indicates 3 members are known, with SRPK3 being less studied. The abstracts consistently reference these three members.\n\n```json\n{\"exact_answer\": [\"3\", \"SRPK1, SRPK2, and SRPK3\"]}\n```"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      "B cells",
+      "B-lymphocyte",
+      "neoplastic B cells"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"B cells\", \"B-lymphocyte\", \"neoplastic B cells\"]}"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      "30 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"30 months\"]}"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      "slowing the loss of ambulation in pediatric patients with CLN2",
+      "neuronal ceroid lipofuscinosis type 2",
+      "treatment of motor function loss in paediatric patients \u22653 years of age with CLN2",
+      "slowing the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2",
+      "CLN2"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"slowing the loss of ambulation in pediatric patients with CLN2\", \"neuronal ceroid lipofuscinosis type 2\", \"treatment of motor function loss in paediatric patients \u22653 years of age with CLN2\", \"slowing the progression of milestone deterioration in neuronal ceroid lipofuscinosis type 2\", \"CLN2\"]}"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      "glucose",
+      "glutamine",
+      "lactate"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"glucose\", \"glutamine\", \"lactate\"]}"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      "150-280/million",
+      "82-144/million"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"150-280/million\", \"82-144/million\"]}"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      "Parkinson's disease"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"Parkinson's disease\"]}"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      "34 months",
+      "2 years",
+      "24 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"34 months\", \"2 years\", \"24 months\"]}"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      "hearing"
+    ],
+    "valid": true,
+    "raw": "The fill-in-the-blank: \"Otospongiosis affects the sense of ___.\"\n\nFrom the abstracts, otospongiosis (otosclerosis) is described as causing hearing loss, deafness, tinnitus, and vestibular symptoms \u2014 all related to **hearing** (and to some extent balance, but primarily hearing).\n\n```json\n{\"exact_answer\": [\"hearing\"]}\n```"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      "psychosine"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"psychosine\"]}"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      "14 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"14 months\"]}"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      "40%",
+      "21.5%",
+      "approximately 40%"
+    ],
+    "valid": true,
+    "raw": "The question asks how often leukocytosis is present in patients with Cushing's Syndrome. Rewritten: \"The frequency of leukocytosis in patients with Cushing's Syndrome is ___.\"\n\nAbstract 1 states leukocytosis was present in \"11/28 cases (40%)\" in Cushing's disease.\nAbstract 2 states \"leukocytosis was observed in 21.5% of patients with CS.\"\n\n```json\n{\"exact_answer\": [\"40%\", \"21.5%\", \"approximately 40%\"]}\n```"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      "38 months"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"38 months\"]}"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      "trans-sphenoidal surgery",
+      "TSS"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"trans-sphenoidal surgery\", \"TSS\"]}"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      "Cushing Disease is specifically caused by a pituitary tumor secreting excess ACTH, while Cushing Syndrome is the broader condition of hypercortisolism from any cause",
+      "Cushing's disease refers to a pituitary source of excess ACTH, whereas Cushing's syndrome encompasses all causes of endogenous hypercortisolism including ectopic ACTH and adrenal tumors",
+      "Cushing's disease is the pituitary form accounting for 70% of cases, while Cushing's syndrome includes pituitary, ectopic ACTH, and adrenal causes"
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [\"Cushing Disease is specifically caused by a pituitary tumor secreting excess ACTH, while Cushing Syndrome is the broader condition of hypercortisolism from any cause\", \"Cushing's disease refers to a pituitary source of excess ACTH, whereas Cushing's syndrome encompasses all causes of endogenous hypercortisolism including ectopic ACTH and adrenal tumors\", \"Cushing's disease is the pituitary form accounting for 70% of cases, while Cushing's syndrome includes pituitary, ectopic ACTH, and adrenal causes\"]}"
+  }
+}

@@ -1,0 +1,293 @@
+{
+  "69ac745885870e396d000065": {
+    "exact_answer": [
+      [
+        "82-144/million"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"82-144/million\"]]}"
+  },
+  "69adec7285870e396d000074": {
+    "exact_answer": [
+      [
+        "mesenchymal"
+      ],
+      [
+        "MES"
+      ],
+      [
+        "mesenchymal-like"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"mesenchymal\"], [\"MES\"], [\"mesenchymal-like\"]]}"
+  },
+  "69ac1e6885870e396d00005b": {
+    "exact_answer": [
+      [
+        "27.4%"
+      ],
+      [
+        "15% to 25%"
+      ],
+      [
+        "5% to 20%"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"27.4%\"], [\"15% to 25%\"], [\"5% to 20%\"]]}"
+  },
+  "69acae9485870e396d00006b": {
+    "exact_answer": [
+      [
+        "inherited lysosomal storage disorders"
+      ],
+      [
+        "aberrant lysosomal function"
+      ],
+      [
+        "autofluorescent lipopigment accumulation"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"inherited lysosomal storage disorders\"], [\"aberrant lysosomal function\"], [\"autofluorescent lipopigment accumulation\"]]}"
+  },
+  "69abc5e285870e396d000056": {
+    "exact_answer": [
+      [
+        "2-4 per million per year"
+      ],
+      [
+        "0.7-2.4 per million per year"
+      ],
+      [
+        "2-8 per million per year"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"2-4 per million per year\"], [\"0.7-2.4 per million per year\"], [\"2-8 per million per year\"]]}"
+  },
+  "69a7fe1e85870e396d00002f": {
+    "exact_answer": [
+      [
+        "solar UV radiation"
+      ],
+      [
+        "Solar ultraviolet (UV) radiation"
+      ],
+      [
+        "UVB"
+      ],
+      [
+        "solar radiation"
+      ],
+      [
+        "UV light"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"solar UV radiation\"], [\"Solar ultraviolet (UV) radiation\"], [\"UVB\"], [\"solar radiation\"], [\"UV light\"]]}"
+  },
+  "69ac725c85870e396d000064": {
+    "exact_answer": [
+      [
+        "41%"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"41%\"]]}"
+  },
+  "69a86f0185870e396d000035": {
+    "exact_answer": [
+      [
+        "diagnosis and follow-up of hair and scalp disorders"
+      ],
+      [
+        "early diagnosis of androgenetic alopecia"
+      ],
+      [
+        "detect more details of patchy hair loss"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"diagnosis and follow-up of hair and scalp disorders\"], [\"early diagnosis of androgenetic alopecia\"], [\"detect more details of patchy hair loss\"]]}"
+  },
+  "69a6a75785870e396d000018": {
+    "exact_answer": [
+      [
+        "3"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"3\"]]}"
+  },
+  "69a4cc6f85870e396d000009": {
+    "exact_answer": [
+      [
+        "B cells"
+      ],
+      [
+        "B cell"
+      ],
+      [
+        "B-lymphocyte"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"B cells\"], [\"B cell\"], [\"B-lymphocyte\"]]}"
+  },
+  "69abbd6185870e396d000053": {
+    "exact_answer": [
+      [
+        "30 months"
+      ],
+      [
+        "3 years"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"30 months\"], [\"3 years\"]]}"
+  },
+  "69acaef085870e396d00006c": {
+    "exact_answer": [
+      [
+        "to slow the loss of ambulation in pediatric patients with CLN2"
+      ],
+      [
+        "neuronal ceroid lipofuscinosis type 2 (CLN2)"
+      ],
+      [
+        "CLN2"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"to slow the loss of ambulation in pediatric patients with CLN2\"], [\"neuronal ceroid lipofuscinosis type 2 (CLN2)\"], [\"CLN2\"]]}"
+  },
+  "69a7ff2785870e396d000031": {
+    "exact_answer": [
+      [
+        "glucose"
+      ],
+      [
+        "glutamine"
+      ],
+      [
+        "glycolysis"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"glucose\"], [\"glutamine\"], [\"glycolysis\"]]}"
+  },
+  "69ac747685870e396d000066": {
+    "exact_answer": [
+      [
+        "150-280/million"
+      ],
+      [
+        "150-280/million"
+      ],
+      [
+        "150-280/million"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"150-280/million\"], [\"150-280/million\"], [\"150-280/million\"]]}"
+  },
+  "69acc29385870e396d000070": {
+    "exact_answer": [
+      [
+        "Parkinson's disease"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Parkinson's disease\"]]}"
+  },
+  "69ab1c0285870e396d000050": {
+    "exact_answer": [
+      [
+        "34 months"
+      ],
+      [
+        "2 years"
+      ],
+      [
+        "24 months"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"34 months\"], [\"2 years\"], [\"24 months\"]]}"
+  },
+  "69a8ab8585870e396d000038": {
+    "exact_answer": [
+      [
+        "hearing"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"hearing\"]]}"
+  },
+  "69acb0c885870e396d00006e": {
+    "exact_answer": [
+      [
+        "psychosine"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"psychosine\"]]}"
+  },
+  "69abc0a585870e396d000055": {
+    "exact_answer": [
+      [
+        "14 months"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"14 months\"]]}"
+  },
+  "69ac409485870e396d00005d": {
+    "exact_answer": [
+      [
+        "40%"
+      ],
+      [
+        "21.5%"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"40%\"], [\"21.5%\"]]}"
+  },
+  "69abbf7f85870e396d000054": {
+    "exact_answer": [
+      [
+        "38 months"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"38 months\"]]}"
+  },
+  "69ac203585870e396d00005c": {
+    "exact_answer": [
+      [
+        "trans-sphenoidal surgery (TSS)"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"trans-sphenoidal surgery (TSS)\"]]}"
+  },
+  "69ac80fc85870e396d000069": {
+    "exact_answer": [
+      [
+        "Cushing's disease is a pituitary source of excess ACTH, while Cushing's syndrome includes all causes of hypercortisolism including ectopic ACTH and adrenal tumors"
+      ],
+      [
+        "Cushing's disease is caused by excessive ACTH secretion by tumors in the pituitary gland, whereas Cushing's syndrome can also result from ectopic ACTH secretion or ACTH-independent adrenal tumors"
+      ],
+      [
+        "Cushing's disease refers to a pituitary source of excess ACTH, whereas Cushing's syndrome encompasses all causes of endogenous hypercortisolism"
+      ]
+    ],
+    "valid": true,
+    "raw": "{\"exact_answer\": [[\"Cushing's disease is a pituitary source of excess ACTH, while Cushing's syndrome includes all causes of hypercortisolism including ectopic ACTH and adrenal tumors\"], [\"Cushing's disease is caused by excessive ACTH secretion by tumors in the pituitary gland, whereas Cushing's syndrome can also result from ectopic ACTH secretion or ACTH-independent adrenal tumors\"], [\"Cushing's disease refers to a pituitary source of excess ACTH, whereas Cushing's syndrome encompasses all causes of endogenous hypercortisolism\"]]}"
+  }
+}
