@@ -7,11 +7,13 @@ Replaces all scattered ``json.load``, ``orjson.loads``, and raw
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 from pathlib import Path
-from typing import TypeVar, overload
+from typing import TYPE_CHECKING, TypeVar, overload
 
 import msgspec
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 T = TypeVar("T")
 
@@ -25,25 +27,25 @@ _json_decoder: msgspec.json.Decoder[object] = msgspec.json.Decoder()
 
 
 @overload
-def load_json(path: str | Path, *, type: type[T]) -> T: ...
+def load_json[T](path: str | Path, *, type: type[T]) -> T: ...
 @overload
 def load_json(path: str | Path) -> object: ...
 
 
-def load_json(path: str | Path, *, type: type[T] | None = None) -> T | object:
+def load_json[T](path: str | Path, *, type_: type[T] | None = None) -> T | object:
     """Load a JSON file, optionally decoding into a typed *msgspec* struct.
 
     Parameters
     ----------
     path:
         Filesystem path to the JSON file.
-    type:
+    type_:
         If provided, decode into this ``msgspec.Struct`` (or other type).
         Otherwise return a plain Python object (dict / list).
     """
     raw: bytes = Path(path).read_bytes()
-    if type is not None:
-        return msgspec.json.decode(raw, type=type)
+    if type_ is not None:
+        return msgspec.json.decode(raw, type=type_)
     return msgspec.json.decode(raw)
 
 
@@ -74,13 +76,13 @@ def save_json(data: object, path: str | Path, *, indent: bool = False) -> None:
 
 
 @overload
-def load_jsonl(path: str | Path, *, type: type[T]) -> list[T]: ...
+def load_jsonl[T](path: str | Path, *, type: type[T]) -> list[T]: ...
 @overload
 def load_jsonl(path: str | Path) -> list[object]: ...
 
 
-def load_jsonl(
-    path: str | Path, *, type: type[T] | None = None
+def load_jsonl[T](
+    path: str | Path, *, type_: type[T] | None = None
 ) -> list[T] | list[object]:
     """Load a JSONL file (one JSON object per line).
 
@@ -88,7 +90,7 @@ def load_jsonl(
     ----------
     path:
         Filesystem path to the JSONL file.
-    type:
+    type_:
         If provided, decode each line into this type.
     """
     results: list[object] = []
@@ -97,7 +99,7 @@ def load_jsonl(
             stripped: bytes = line.strip()
             if not stripped:
                 continue
-            if type is not None:
+            if type_ is not None:
                 results.append(msgspec.json.decode(stripped, type=type))
             else:
                 results.append(msgspec.json.decode(stripped))

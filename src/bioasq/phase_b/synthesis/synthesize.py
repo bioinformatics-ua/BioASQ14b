@@ -19,9 +19,12 @@ import math
 import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
-from bioasq.common.protocols import BaseModelBackend
 from bioasq.common.types import SynthesisResult
+
+if TYPE_CHECKING:
+    from bioasq.common.protocols import BaseModelBackend
 
 # Exact answer type: can be a string, list of strings, list of synonym lists, or None
 type ExactAnswer = list[str] | list[list[str]] | str | None
@@ -45,7 +48,7 @@ def _normalize(s: str) -> str:
     s = s.lower().strip()
     for article in ("the ", "a ", "an "):
         if s.startswith(article):
-            s = s[len(article):]
+            s = s[len(article) :]
     return s.strip()
 
 
@@ -113,7 +116,7 @@ def merge_exact_answers(
             return count.most_common(1)[0][0]
         return best_exact
 
-    elif qtype == "factoid":
+    if qtype == "factoid":
         all_candidates: list[str] = []
         for r in runs:
             entry = r.get(qid, {})
@@ -146,7 +149,7 @@ def merge_exact_answers(
             return [norm_to_original[k] for k, _ in top[:5]]
         return best_exact
 
-    elif qtype == "list":
+    if qtype == "list":
         threshold: int = math.ceil(n / 2)
         norm_to_original_list: dict[str, str | list[str]] = {}
         counts = Counter()
@@ -161,17 +164,16 @@ def merge_exact_answers(
             if isinstance(ans, list):
                 for entity in ans:
                     text: str
-                    if isinstance(entity, list) and entity:
-                        text = entity[0]
-                    else:
-                        text = str(entity)
+                    text = entity[0] if isinstance(entity, list) and entity else str(entity)
                     key = _normalize(text)
                     if key not in norm_to_original_list:
                         norm_to_original_list[key] = entity  # type: ignore[assignment]
                     counts[key] += 1
 
         merged: list[str | list[str]] = [
-            norm_to_original_list[k] for k, c in counts.items() if c >= threshold  # type: ignore[misc]
+            norm_to_original_list[k]
+            for k, c in counts.items()
+            if c >= threshold  # type: ignore[misc]
         ]
         return merged if merged else best_exact  # type: ignore[return-value]
 
@@ -264,9 +266,7 @@ def run_synthesis(
                 ideal_answer = str(fallback.get("ideal_answer", ""))
 
             qtype: str = question_type.get(qid, "summary")
-            exact_answer: ExactAnswer = merge_exact_answers(
-                qtype, runs, qid, best_run_idx
-            )
+            exact_answer: ExactAnswer = merge_exact_answers(qtype, runs, qid, best_run_idx)
 
             pid_results[qid] = SynthesisResult(
                 ideal_answer=ideal_answer or "",

@@ -6,7 +6,6 @@ support.  All aliases used across the codebase are centralised here.
 
 from __future__ import annotations
 
-
 # ---------------------------------------------------------------------------
 # Scalar identity aliases
 # ---------------------------------------------------------------------------
@@ -22,7 +21,7 @@ type Score = float
 
 
 # ---------------------------------------------------------------------------
-# Phase A – reranker dataset aliases
+# Phase A - reranker dataset aliases
 # ---------------------------------------------------------------------------
 
 type SliceDataset = dict[str, dict[str | int, list[dict[str, str]] | str]]
@@ -76,7 +75,7 @@ Multi-negative::
 
 
 # ---------------------------------------------------------------------------
-# Phase A – retrieval / evaluation
+# Phase A - retrieval / evaluation
 # ---------------------------------------------------------------------------
 
 type RunDict = dict[QuestionId, dict[DocumentId, Score]]

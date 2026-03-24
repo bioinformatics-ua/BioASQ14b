@@ -9,19 +9,24 @@ Refactored from ``refactored-trainer/evaluation.py``.
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Mapping
 from contextlib import nullcontext
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import torch
-from torch.utils.data import DataLoader
 from tqdm import tqdm
-from transformers import PreTrainedModel, PreTrainedTokenizerBase
-from transformers.modeling_outputs import SequenceClassifierOutput
 
-from bioasq.common.aliases import RunDict
 from bioasq.common.io import save_json
 from bioasq.common.metrics import DEFAULT_RETRIEVAL_METRICS, evaluate_retrieval_run
+
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    from torch.utils.data import DataLoader
+    from transformers import PreTrainedModel, PreTrainedTokenizerBase
+    from transformers.modeling_outputs import SequenceClassifierOutput
+
+    from bioasq.common.aliases import RunDict
 
 # Type alias for batches from RankingCollator
 type InferenceBatch = dict[str, dict[str, torch.Tensor] | list[str] | list[int]]
@@ -58,9 +63,7 @@ def run_inference(
     model.eval()
     run_dict: dict[str, dict[str, float]] = defaultdict(dict)
     inspected: int = 0
-    use_autocast: bool = (
-        device_obj.type == "cuda" and amp_dtype in (torch.float16, torch.bfloat16)
-    )
+    use_autocast: bool = device_obj.type == "cuda" and amp_dtype in (torch.float16, torch.bfloat16)
 
     with torch.inference_mode():
         for batch in tqdm(dataloader, desc="Inference", disable=not show_progress):
@@ -85,15 +88,9 @@ def run_inference(
             batch_doc_ids: list[str] = batch["doc_id"]  # type: ignore[assignment]
 
             for i in range(scores.shape[0]):
-                qid: str = (
-                    batch_ids[i]
-                    if isinstance(batch_ids[i], str)
-                    else str(batch_ids[i])
-                )
+                qid: str = batch_ids[i] if isinstance(batch_ids[i], str) else str(batch_ids[i])
                 doc_id: str = (
-                    batch_doc_ids[i]
-                    if isinstance(batch_doc_ids[i], str)
-                    else str(batch_doc_ids[i])
+                    batch_doc_ids[i] if isinstance(batch_doc_ids[i], str) else str(batch_doc_ids[i])
                 )
                 run_dict[qid][doc_id] = float(scores[i])
 

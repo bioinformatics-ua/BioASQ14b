@@ -11,9 +11,6 @@ from __future__ import annotations
 
 import hashlib
 import os
-from pathlib import Path
-
-import yaml
 
 # Recursive type for values coming out of YAML / flattened config dicts.
 type ConfigValue = str | int | float | bool | None
@@ -49,15 +46,6 @@ def _flatten(d: dict[str, RawConfigValue]) -> dict[str, ConfigValue]:
     return dict(items)
 
 
-def _load_flat_config(path: Path | str) -> dict[str, ConfigValue]:
-    """Load a YAML config file and flatten it."""
-    with open(path) as fp:
-        config: dict[str, RawConfigValue] | None = yaml.safe_load(fp)
-    if config is None:
-        return {}
-    return _flatten(config)
-
-
 # ---------------------------------------------------------------------------
 # Training config
 # ---------------------------------------------------------------------------
@@ -78,31 +66,6 @@ def _normalize_training_config(
         if key in out and out[key] is False:
             out[key] = "no"
     return out
-
-
-def create_training_config(
-    config_path: Path | str,
-    **overrides: ConfigValue,
-) -> object:
-    """Load a YAML config, flatten, apply overrides, return TrainingArguments.
-
-    Parameters
-    ----------
-    config_path:
-        Path to the YAML training config file.
-    **overrides:
-        Key-value pairs that override values from the config file.
-
-    Returns
-    -------
-    :class:`transformers.TrainingArguments` instance.
-    """
-    from transformers import TrainingArguments
-
-    base: dict[str, ConfigValue] = _load_flat_config(config_path)
-    joint: dict[str, ConfigValue] = base | overrides
-    joint = _normalize_training_config(joint)
-    return TrainingArguments(**joint)  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------

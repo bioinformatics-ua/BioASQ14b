@@ -9,7 +9,7 @@ Refactored from ``phaseA-BM25/negatives.py``.
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import msgspec
 import orjson
@@ -18,6 +18,8 @@ from tqdm import tqdm
 
 from bioasq.phase_a.bm25.index import load_index
 
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # ---------------------------------------------------------------------------
 # Typed structures for negative mining
@@ -142,9 +144,7 @@ def mine_negatives(
         raise FileNotFoundError(msg)
 
     print(f"Loading ids_per_baseline from '{ids_per_baseline_file}'...")
-    ids_per_baseline: dict[str, dict[str, int]] = orjson.loads(
-        ids_per_baseline_file.read_bytes()
-    )
+    ids_per_baseline: dict[str, dict[str, int]] = orjson.loads(ids_per_baseline_file.read_bytes())
 
     print(f"Loading training data from '{training_file}'...")
     training_data: list[TrainingQuestion] = []
@@ -158,21 +158,15 @@ def mine_negatives(
         index_dir.name.split("_")[-1]: load_index(index_dir).bm25(  # type: ignore[attr-defined]
             k1=k1, b=b, num_results=fetch_size, threads=32
         )
-        for index_dir in tqdm(
-            indexes_dir.iterdir(), desc="Loading indexes", unit="index"
-        )
+        for index_dir in tqdm(indexes_dir.iterdir(), desc="Loading indexes", unit="index")
         if index_dir.is_dir()
     }
 
     output_file.parent.mkdir(parents=True, exist_ok=True)
     with output_file.open("wb+") as f:
-        for question in tqdm(
-            training_data, desc="Processing questions", unit="question"
-        ):
+        for question in tqdm(training_data, desc="Processing questions", unit="question"):
             if not question.baseline:
-                msg = (
-                    f"Question '{question.id}' has no 'baseline' field."
-                )
+                msg = f"Question '{question.id}' has no 'baseline' field."
                 raise ValueError(msg)
 
             bm25: object | None = index_pools.get(str(question.baseline))
@@ -184,13 +178,9 @@ def mine_negatives(
                 )
                 raise FileNotFoundError(msg)
 
-            pos_docs_ids: set[str] = {
-                str(doc.id) for doc in question.documents
-            }
+            pos_docs_ids: set[str] = {str(doc.id) for doc in question.documents}
 
-            query_df: pd.DataFrame = pd.DataFrame(
-                [{"qid": question.id, "query": question.body}]
-            )
+            query_df: pd.DataFrame = pd.DataFrame([{"qid": question.id, "query": question.body}])
             results: pd.DataFrame = bm25.transform(query_df)  # type: ignore[attr-defined]
 
             neg_docs: list[MinedNegativeDoc] = [
@@ -204,17 +194,12 @@ def mine_negatives(
             ]
             neg_docs = sorted(neg_docs, key=lambda x: -x.score)[:num_results]
 
-            _fill_neg_docs_text(
-                baselines_dir, ids_per_baseline, str(question.baseline), neg_docs
-            )
+            _fill_neg_docs_text(baselines_dir, ids_per_baseline, str(question.baseline), neg_docs)
 
             output: NegativeMiningOutput = NegativeMiningOutput(
                 id=question.id,
                 body=question.body,
-                pos_docs=[
-                    PositiveDoc(id=d.id, text=d.text)
-                    for d in question.documents
-                ],
+                pos_docs=[PositiveDoc(id=d.id, text=d.text) for d in question.documents],
                 neg_docs=neg_docs,
             )
             f.write(msgspec.json.encode(output) + b"\n")

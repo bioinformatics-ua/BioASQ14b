@@ -1,7 +1,7 @@
 """Phase B inference runner — generate answers for BioASQ questions.
 
 Loads a BioASQ JSONL file, builds all prompt combinations
-(num_support × prompt_ids) into a single batch, runs inference once,
+(num_support x prompt_ids) into a single batch, runs inference once,
 and writes one output file per combination.
 
 Refactored from ``phaseB/inference/run.py``.
@@ -12,11 +12,15 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Mapping, Sequence
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from bioasq.common.io import load_json
-from bioasq.common.protocols import BaseModelBackend
 from bioasq.common.types import GeneratedAnswer
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from bioasq.common.protocols import BaseModelBackend
 
 # Type for prompt template dictionaries
 type PromptTemplate = dict[str, str]
@@ -99,7 +103,7 @@ def run_generation(
     selected_counts: Sequence[int] = (5,),
     selected_prompts: Sequence[str] = ("1",),
 ) -> dict[int, dict[str, dict[str, GeneratedAnswer]]]:
-    """Run generation for all (question × num_support × prompt_id) combos.
+    """Run generation for all (question x num_support x prompt_id) combos.
 
     Returns
     -------

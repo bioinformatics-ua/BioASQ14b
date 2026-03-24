@@ -9,10 +9,13 @@ Refactored from ``phaseB/loaders/dataloader.py``.
 from __future__ import annotations
 
 import json
-from collections.abc import Iterator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from bioasq.common.types import Question, QuestionType, Snippet
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 class BioASQDataLoader:
@@ -35,15 +38,13 @@ class BioASQDataLoader:
         # Try standard JSON format first
         raw_questions: list[dict[str, str | list[str] | list[dict[str, str]]]]
         if raw_text.strip().startswith("{"):
-            data: dict[str, list[dict[str, str | list[str] | list[dict[str, str]]]]] = json.loads(raw_text)
+            data: dict[str, list[dict[str, str | list[str] | list[dict[str, str]]]]] = json.loads(
+                raw_text
+            )
             raw_questions = data.get("questions", [])
         else:
             # JSONL format
-            raw_questions = [
-                json.loads(line)
-                for line in raw_text.splitlines()
-                if line.strip()
-            ]
+            raw_questions = [json.loads(line) for line in raw_text.splitlines() if line.strip()]
 
         questions: list[Question] = []
         for q in raw_questions:
@@ -70,14 +71,16 @@ class BioASQDataLoader:
             if isinstance(snippets_field, list):
                 for s in snippets_field:
                     if isinstance(s, dict):
-                        snippets.append(Snippet(
-                            text=str(s.get("text", "")),
-                            document=str(s.get("document", "")),
-                            offset_in_begin_section=str(s.get("offsetInBeginSection", "")),
-                            offset_in_end_section=str(s.get("offsetInEndSection", "")),
-                            begin_section=str(s.get("beginSection", "")),
-                            end_section=str(s.get("endSection", "")),
-                        ))
+                        snippets.append(
+                            Snippet(
+                                text=str(s.get("text", "")),
+                                document=str(s.get("document", "")),
+                                offset_in_begin_section=str(s.get("offsetInBeginSection", "")),
+                                offset_in_end_section=str(s.get("offsetInEndSection", "")),
+                                begin_section=str(s.get("beginSection", "")),
+                                end_section=str(s.get("endSection", "")),
+                            )
+                        )
                     else:
                         snippets.append(Snippet(text=str(s)))
 
@@ -99,15 +102,17 @@ class BioASQDataLoader:
                 else:
                     exact_answer = [str(e) for e in raw_exact]
 
-            questions.append(Question(
-                id=q_id,
-                body=q_body,
-                type=q_type,
-                documents=raw_docs,
-                snippets=snippets,
-                ideal_answer=ideal_answer,
-                exact_answer=exact_answer,
-            ))
+            questions.append(
+                Question(
+                    id=q_id,
+                    body=q_body,
+                    type=q_type,
+                    documents=raw_docs,
+                    snippets=snippets,
+                    ideal_answer=ideal_answer,
+                    exact_answer=exact_answer,
+                )
+            )
 
         return questions
 

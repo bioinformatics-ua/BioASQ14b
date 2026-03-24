@@ -19,10 +19,10 @@ from __future__ import annotations
 
 import json
 import random
-from collections.abc import Iterator
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
+import msgspec
 from torch.utils.data import IterableDataset
 
 from bioasq.common.aliases import (
@@ -32,9 +32,12 @@ from bioasq.common.aliases import (
     Sample,
     SliceDataset,
 )
-from bioasq.phase_a.reranker.preprocessing import BasicSamplePreprocessing
-from bioasq.phase_a.reranker.sampler import BasicSampler
 
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from bioasq.phase_a.reranker.preprocessing import BasicSamplePreprocessing
+    from bioasq.phase_a.reranker.sampler import BasicSampler
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -46,26 +49,26 @@ def _get_relevance_order_from_dataset(dataset: SliceDataset) -> list[int]:
     if len(dataset) == 0:
         return []
     _sample = dataset[next(iter(dataset.keys()))]
-    return sorted([k for k in _sample.keys() if isinstance(k, int)], reverse=True)
+    return sorted([k for k in _sample if isinstance(k, int)], reverse=True)
 
 
 def _get_negative_positive_index(dataset: SliceDataset) -> tuple[int, int]:
     """Return (negative_index, positive_index) from dataset."""
     _sample = dataset[next(iter(dataset.keys()))]
-    relevance_order: list[int] = [k for k in _sample.keys() if isinstance(k, int)]
+    relevance_order: list[int] = [k for k in _sample if isinstance(k, int)]
     return min(relevance_order), max(relevance_order)
 
 
 def _load_rank_data(
-    bm25_rank_path: str,
+    bm25_rank_path: Path,
     at: int = 1000,
     qrels: QrelsDict | None = None,
 ) -> SliceDataset:
     """Load ranked data from JSONL file."""
     dataset: SliceDataset = {}
-    with open(bm25_rank_path) as f:
+    with bm25_rank_path.open() as f:
         for line in f:
-            q_data: dict[str, str | list[dict[str, str]]] = json.loads(line)
+            q_data: dict[str, str | list[dict[str, str]]] = msgspec.json.decode(line)
             q_id: str = str(q_data["id"])
             if qrels and q_id not in qrels:
                 continue
@@ -96,7 +99,6 @@ class BioASQPointwiseIterator:
         sampler_class_type: type[BasicSampler],
         num_neg_samples: int = 1,
         sampler_kwargs: dict[str, object] | None = None,
-        **kwargs: object,
     ) -> None:
         self.sample_preprocessing: BasicSamplePreprocessing = sample_preprocessing
         self.sampler_class_type: type[BasicSampler] = sampler_class_type
@@ -119,7 +121,7 @@ class BioASQPointwiseIterator:
         )
         self._total_samples = sum(
             sum(
-                len(cast(list[dict[str, str]], v))
+                len(cast("list[dict[str, str]]", v))
                 for k, v in q.items()
                 if isinstance(k, int)
             )
@@ -162,7 +164,7 @@ class BioASQPointwiseIterator:
             "doc_text": doc_text,
             "label": label,
         }
-        return cast(ProcessedSample, self.sample_preprocessing(sample))
+        return cast("ProcessedSample", self.sample_preprocessing(sample))
 
     def __next__(self) -> ProcessedSample:
         result: ProcessedSample | None = None
@@ -229,7 +231,6 @@ class BioASQMultiNegativePairwiseIterator:
         sampler_class: type[BasicSampler],
         num_neg_samples: int = 4,
         sampler_kwargs: dict[str, object] | None = None,
-        **kwargs: object,
     ) -> None:
         self.sample_preprocessing: BasicSamplePreprocessing = sample_preprocessing
         self.sampler_class: type[BasicSampler] = sampler_class
@@ -251,7 +252,7 @@ class BioASQMultiNegativePairwiseIterator:
         )
         self._total_samples = sum(
             sum(
-                len(cast(list[dict[str, str]], v))
+                len(cast("list[dict[str, str]]", v))
                 for k, v in q.items()
                 if isinstance(k, int)
             )
@@ -385,7 +386,7 @@ class BioASQInferenceDataset:
                     processed["labels"] = qrels[q_id][d_id]
                 else:
                     processed["labels"] = 0
-            self._samples.append(cast(ProcessedSample, processed))
+            self._samples.append(cast("ProcessedSample", processed))
 
     def __len__(self) -> int:
         return len(self._samples)
@@ -430,10 +431,10 @@ class BioASQPairwiseEvalDataset:
         for q_id, q_data in slice_dataset.items():
             q_text: str = str(q_data["question"])
             pos_docs: list[dict[str, str]] = cast(
-                list[dict[str, str]], q_data.get(pos_idx, [])
+                "list[dict[str, str]]", q_data.get(pos_idx, [])
             )
             neg_docs: list[dict[str, str]] = cast(
-                list[dict[str, str]], q_data.get(neg_idx, [])
+                "list[dict[str, str]]", q_data.get(neg_idx, [])
             )
 
             if not pos_docs or not neg_docs:
@@ -461,10 +462,12 @@ class BioASQPairwiseEvalDataset:
                             "label": 0,
                         }
                         neg_processed_list.append(sample_preprocessing(neg_sample))
-                    self._samples.append({
-                        "pos_inputs": pos_processed,
-                        "neg_inputs": neg_processed_list,
-                    })
+                    self._samples.append(
+                        {
+                            "pos_inputs": pos_processed,
+                            "neg_inputs": neg_processed_list,
+                        }
+                    )
                 else:
                     neg_doc: dict[str, str] = random.choice(neg_docs)
                     neg_s: Sample = {
@@ -474,10 +477,12 @@ class BioASQPairwiseEvalDataset:
                         "label": 0,
                     }
                     neg_processed: Sample = sample_preprocessing(neg_s)
-                    self._samples.append({
-                        "pos_inputs": pos_processed,
-                        "neg_inputs": neg_processed,
-                    })
+                    self._samples.append(
+                        {
+                            "pos_inputs": pos_processed,
+                            "neg_inputs": neg_processed,
+                        }
+                    )
 
     def __len__(self) -> int:
         return len(self._samples)
@@ -494,17 +499,17 @@ class BioASQPairwiseEvalDataset:
 def _get_docs_key(question: dict[str, str | list[dict[str, str]]]) -> str | None:
     """Identify the key containing document candidates."""
     for key in ("documents", "neg_docs", "bm25"):
-        if key in question and question[key]:
+        if question.get(key):
             return key
     return None
 
 
-def create_bioASQ_datasets(
-    positive_data_path: str,
-    all_data_path: str,
+def create_bioasq_datasets(
+    positive_data_path: Path,
+    all_data_path: Path,
     iterator: _IteratorType,
     test_sample_preprocessing: BasicSamplePreprocessing,
-    val_files: list[str] | None = None,
+    val_files: list[Path] | None = None,
     relevance_mapping: dict[str, int] | None = None,
     collection: Collection | None = None,
 ) -> tuple[
@@ -541,20 +546,20 @@ def create_bioASQ_datasets(
 
     # Load positive data
     positive_data: dict[str, dict[str, str | list[dict[str, str]]]] = {}
-    with open(positive_data_path) as f:
+    with positive_data_path.open() as f:
         for line in f:
             if not line.strip():
                 continue
-            q: dict[str, str | list[dict[str, str]]] = json.loads(line)
+            q: dict[str, str | list[dict[str, str]]] = msgspec.json.decode(line)
             positive_data[str(q["id"])] = q
 
     # Load all data (with negatives)
     all_data: dict[str, dict[str, str | list[dict[str, str]]]] = {}
-    with open(all_data_path) as f:
+    with all_data_path.open() as f:
         for line in f:
             if not line.strip():
                 continue
-            q = json.loads(line)
+            q = msgspec.json.decode(line)
             all_data[str(q["id"])] = q
 
     # Build slice dataset
@@ -565,8 +570,8 @@ def create_bioASQ_datasets(
     val_qids: set[str] = set()
     if val_files:
         for vf in val_files:
-            with open(vf) as f:
-                data: dict[str, list[dict[str, str]]] = json.load(f)
+            with vf.open() as f:
+                data: dict[str, list[dict[str, str]]] = msgspec.json.decode(f)
             for qq in data.get("questions", []):
                 val_qids.add(str(qq["id"]))
 
@@ -584,24 +589,30 @@ def create_bioASQ_datasets(
             docs: list[dict[str, str]] = pos_q.get(doc_key, [])  # type: ignore[assignment]
             if relevance not in entry:
                 entry[relevance] = []
-            docs_list: list[dict[str, str]] = cast(list[dict[str, str]], entry[relevance])
+            docs_list: list[dict[str, str]] = cast(
+                "list[dict[str, str]]", entry[relevance]
+            )
             docs_list.extend(docs)
 
         # Add negatives (level 0)
         neg_docs: list[dict[str, str]] = q_data.get("neg_docs", [])  # type: ignore[assignment]
         if 0 not in entry:
             entry[0] = []
-        neg_list: list[dict[str, str]] = cast(list[dict[str, str]], entry[0])
+        neg_list: list[dict[str, str]] = cast("list[dict[str, str]]", entry[0])
         neg_list.extend(neg_docs)
 
         if val_qids and q_id in val_qids:
             # This question is for testing
-            pos_list_for_test: list[dict[str, str]] = cast(list[dict[str, str]], entry.get(1, []))
+            pos_list_for_test: list[dict[str, str]] = cast(
+                "list[dict[str, str]]", entry.get(1, [])
+            )
             for doc in pos_list_for_test:
                 if q_id not in qrels_test:
                     qrels_test[q_id] = {}
                 qrels_test[q_id][str(doc.get("id", ""))] = 1
-            neg_list_for_test: list[dict[str, str]] = cast(list[dict[str, str]], entry.get(0, []))
+            neg_list_for_test: list[dict[str, str]] = cast(
+                "list[dict[str, str]]", entry.get(0, [])
+            )
             for doc in neg_list_for_test:
                 if q_id not in qrels_test:
                     qrels_test[q_id] = {}
@@ -627,12 +638,14 @@ def create_bioASQ_datasets(
         neg_docs_list: list[dict[str, str]] = q_data_raw.get("neg_docs", [])  # type: ignore[assignment]
         all_docs: list[dict[str, str]] = pos_docs_list + neg_docs_list
         for doc in all_docs:
-            test_samples.append({
-                "id": q_id,
-                "doc_id": str(doc.get("id", "")),
-                "query_text": q_text,
-                "doc_text": doc.get("text", ""),
-            })
+            test_samples.append(
+                {
+                    "id": q_id,
+                    "doc_id": str(doc.get("id", "")),
+                    "query_text": q_text,
+                    "doc_text": doc.get("text", ""),
+                }
+            )
 
     test_dataset: BioASQInferenceDataset = BioASQInferenceDataset(
         samples=test_samples,
@@ -648,16 +661,22 @@ def create_bioASQ_datasets(
             if q_id in all_data:
                 pos_q_raw = positive_data.get(q_id, {})
                 eval_entry: dict[str | int, list[dict[str, str]] | str] = {
-                    "question": str(pos_q_raw.get("body", pos_q_raw.get("question", ""))),
+                    "question": str(
+                        pos_q_raw.get("body", pos_q_raw.get("question", ""))
+                    ),
                 }
                 for doc_key, relevance in relevance_mapping.items():
                     if relevance not in eval_entry:
                         eval_entry[relevance] = []
-                    rel_list: list[dict[str, str]] = cast(list[dict[str, str]], eval_entry[relevance])
+                    rel_list: list[dict[str, str]] = cast(
+                        "list[dict[str, str]]", eval_entry[relevance]
+                    )
                     rel_list.extend(pos_q_raw.get(doc_key, []))  # type: ignore[arg-type]
                 if 0 not in eval_entry:
                     eval_entry[0] = []
-                neg_eval_list: list[dict[str, str]] = cast(list[dict[str, str]], eval_entry[0])
+                neg_eval_list: list[dict[str, str]] = cast(
+                    "list[dict[str, str]]", eval_entry[0]
+                )
                 neg_eval_list.extend(all_data[q_id].get("neg_docs", []))  # type: ignore[arg-type]
                 eval_slice[q_id] = eval_entry
 
@@ -666,9 +685,7 @@ def create_bioASQ_datasets(
     eval_multi_neg: BioASQPairwiseEvalDataset | None = None
 
     if eval_slice:
-        eval_pairwise = BioASQPairwiseEvalDataset(
-            eval_slice, test_sample_preprocessing
-        )
+        eval_pairwise = BioASQPairwiseEvalDataset(eval_slice, test_sample_preprocessing)
         eval_multi_neg = BioASQPairwiseEvalDataset(
             eval_slice, test_sample_preprocessing, is_multi_negative=True
         )
@@ -698,7 +715,9 @@ def create_inference_dataset_from_bioasq_json(
     with questions_path.open() as f:
         content: str = f.read().strip()
         if content.startswith("{"):
-            data: dict[str, list[dict[str, str | list[dict[str, str]]]]] = json.loads(content)
+            data: dict[str, list[dict[str, str | list[dict[str, str]]]]] = json.loads(
+                content
+            )
             questions = data.get("questions", [])
         else:
             for line in content.splitlines():
@@ -717,12 +736,14 @@ def create_inference_dataset_from_bioasq_json(
 
         docs: list[dict[str, str]] = q[docs_key][:max_docs]  # type: ignore[index]
         for doc in docs:
-            samples.append({
-                "id": q_id,
-                "doc_id": str(doc.get("id", "")),
-                "query_text": q_text,
-                "doc_text": doc.get("text", ""),
-            })
+            samples.append(
+                {
+                    "id": q_id,
+                    "doc_id": str(doc.get("id", "")),
+                    "query_text": q_text,
+                    "doc_text": doc.get("text", ""),
+                }
+            )
 
     return BioASQInferenceDataset(
         samples=samples, sample_preprocessing=sample_preprocessing

@@ -7,12 +7,14 @@ Refactored from ``phaseA-BM25/index.py``.
 
 from __future__ import annotations
 
-from collections.abc import Generator
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import msgspec
-import orjson
 from tqdm import tqdm
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 
 class PubMedArticle(msgspec.Struct, frozen=True):
@@ -77,7 +79,7 @@ def _load_collection(
     baseline: Path,
 ) -> Generator[dict[str, str], None, None]:
     """Yield ``{"docno": pmid, "text": title + abstract}`` from baseline JSONL."""
-    with open(baseline, "rb") as f:
+    with baseline.open("rb") as f:
         for line in tqdm(f, desc="Loading collection"):
             pub: PubMedArticle = msgspec.json.decode(line, type=PubMedArticle)
             yield {

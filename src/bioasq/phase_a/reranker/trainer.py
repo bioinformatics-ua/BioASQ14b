@@ -9,6 +9,8 @@ Refactored from ``refactored-trainer/trainer.py``.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import torch
 from transformers import (
     Trainer,
@@ -17,7 +19,6 @@ from transformers import (
     TrainerState,
     TrainingArguments,
 )
-from transformers.modeling_outputs import SequenceClassifierOutput
 
 from bioasq.phase_a.reranker.losses import (
     bce_loss,
@@ -26,6 +27,9 @@ from bioasq.phase_a.reranker.losses import (
     multi_negative_infonce_loss,
     multi_negative_margin_loss,
 )
+
+if TYPE_CHECKING:
+    from transformers.modeling_outputs import SequenceClassifierOutput
 
 # Internal type aliases for batch dicts coming from collators
 type ModelInputs = dict[str, torch.Tensor]
@@ -57,11 +61,10 @@ class EarlyStoppingOnGradNorm(TrainerCallback):
 
     def on_log(
         self,
-        args: TrainingArguments,
-        state: TrainerState,
+        _args: TrainingArguments,
+        _state: TrainerState,
         control: TrainerControl,
         logs: dict[str, float] | None = None,
-        **kwargs: object,
     ) -> None:
         if logs is None or "grad_norm" not in logs:
             return
@@ -97,7 +100,6 @@ class PointwiseRerankerTrainer(Trainer):
         model: torch.nn.Module,
         inputs: RankingBatch,
         return_outputs: bool = False,
-        **kwargs: object,
     ) -> torch.Tensor | tuple[torch.Tensor, SequenceClassifierOutput]:
         labels: list[int] | list[str] | ModelInputs = inputs.pop("labels")  # type: ignore[assignment]
         inputs.pop("id", None)
@@ -125,8 +127,8 @@ class PairwiseRerankerTrainer(Trainer):
         self,
         model: torch.nn.Module,
         inputs: PairwiseBatch,
-        prediction_loss_only: bool,
-        ignore_keys: list[str] | None = None,
+        _prediction_loss_only: bool,
+        _ignore_keys: list[str] | None = None,
     ) -> tuple[torch.Tensor, None, None]:
         inputs = self._prepare_inputs(inputs)  # type: ignore[assignment]
         with torch.no_grad():
@@ -139,7 +141,6 @@ class PairwiseRerankerTrainer(Trainer):
         model: torch.nn.Module,
         inputs: PairwiseBatch,
         return_outputs: bool = False,
-        **kwargs: object,
     ) -> torch.Tensor | tuple[torch.Tensor, SequenceClassifierOutput]:
         pos_inputs: ModelInputs = inputs["pos_inputs"]
         neg_inputs: ModelInputs = inputs["neg_inputs"]
@@ -150,9 +151,7 @@ class PairwiseRerankerTrainer(Trainer):
         pos_scores: torch.Tensor = extract_scores_from_logits(pos_outputs.logits)
         neg_scores: torch.Tensor = extract_scores_from_logits(neg_outputs.logits)
 
-        loss: torch.Tensor = margin_ranking_loss(
-            pos_scores, neg_scores, margin=self.margin
-        )
+        loss: torch.Tensor = margin_ranking_loss(pos_scores, neg_scores, margin=self.margin)
         return (loss, pos_outputs) if return_outputs else loss
 
 
@@ -180,8 +179,8 @@ class MultiNegativePairwiseRerankerTrainer(Trainer):
         self,
         model: torch.nn.Module,
         inputs: MultiNegBatch,
-        prediction_loss_only: bool,
-        ignore_keys: list[str] | None = None,
+        _prediction_loss_only: bool,
+        _ignore_keys: list[str] | None = None,
     ) -> tuple[torch.Tensor, None, None]:
         inputs = self._prepare_inputs(inputs)  # type: ignore[assignment]
         with torch.no_grad():
@@ -194,7 +193,6 @@ class MultiNegativePairwiseRerankerTrainer(Trainer):
         model: torch.nn.Module,
         inputs: MultiNegBatch,
         return_outputs: bool = False,
-        **kwargs: object,
     ) -> torch.Tensor | tuple[torch.Tensor, SequenceClassifierOutput]:
         pos_inputs: ModelInputs = inputs["pos_inputs"]  # type: ignore[assignment]
         neg_inputs: list[ModelInputs] = inputs["neg_inputs"]  # type: ignore[assignment]

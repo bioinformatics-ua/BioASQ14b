@@ -10,10 +10,13 @@ Refactored from ``refactored-trainer/losses.py``.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 import torch
-import torch.nn.functional as F
+import torch.nn.functional as nn_functional
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 def bce_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
@@ -100,7 +103,7 @@ def multi_negative_infonce_loss(
         dtype=torch.long,
         device=pos_scores.device,
     )
-    return F.cross_entropy(scores, target)
+    return nn_functional.cross_entropy(scores, target)
 
 
 def extract_scores_from_logits(logits: torch.Tensor) -> torch.Tensor:

@@ -21,9 +21,10 @@ Refactored from ``refactored-trainer/collator.py``.
 
 from __future__ import annotations
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-from transformers import BatchEncoding, PreTrainedTokenizerBase
+if TYPE_CHECKING:
+    from transformers import BatchEncoding, PreTrainedTokenizerBase
 
 type SentenceBatchSample = dict[str, list[list[int]]]
 
@@ -98,9 +99,7 @@ class PairwiseCollator:
     def __init__(self, tokenizer: PreTrainedTokenizerBase) -> None:
         self.tokenizer: PreTrainedTokenizerBase = tokenizer
 
-    def __call__(
-        self, batch: list[dict[str, TokenisedSample]]
-    ) -> dict[str, BatchEncoding]:
+    def __call__(self, batch: list[dict[str, TokenisedSample]]) -> dict[str, BatchEncoding]:
         pos_list: list[dict[str, list[int]]] = _filter_model_inputs(
             [s["pos_inputs"] for s in batch]  # type: ignore[arg-type]
         )
@@ -108,12 +107,8 @@ class PairwiseCollator:
             [s["neg_inputs"] for s in batch]  # type: ignore[arg-type]
         )
         return {
-            "pos_inputs": self.tokenizer.pad(
-                pos_list, padding=True, return_tensors="pt"
-            ),
-            "neg_inputs": self.tokenizer.pad(
-                neg_list, padding=True, return_tensors="pt"
-            ),
+            "pos_inputs": self.tokenizer.pad(pos_list, padding=True, return_tensors="pt"),
+            "neg_inputs": self.tokenizer.pad(neg_list, padding=True, return_tensors="pt"),
         }
 
 
@@ -134,12 +129,11 @@ class MultiNegativePairwiseCollator:
         pos_list: list[dict[str, list[int]]] = _filter_model_inputs(
             [sample["pos_inputs"] for sample in batch]  # type: ignore[arg-type]
         )
-        pos_inputs: BatchEncoding = self.tokenizer.pad(
-            pos_list, padding=True, return_tensors="pt"
-        )
+        pos_inputs: BatchEncoding = self.tokenizer.pad(pos_list, padding=True, return_tensors="pt")
 
         neg_inputs_raw: list[list[TokenisedSample]] = [
-            sample["neg_inputs"] for sample in batch  # type: ignore[misc]
+            sample["neg_inputs"]
+            for sample in batch  # type: ignore[misc]
         ]
         num_negs: int = len(neg_inputs_raw[0])
         neg_batches: list[BatchEncoding] = []
@@ -147,9 +141,7 @@ class MultiNegativePairwiseCollator:
             neg_j: list[dict[str, list[int]]] = _filter_model_inputs(
                 [neg_inputs_raw[i][j] for i in range(len(batch))]
             )
-            neg_batches.append(
-                self.tokenizer.pad(neg_j, padding=True, return_tensors="pt")
-            )
+            neg_batches.append(self.tokenizer.pad(neg_j, padding=True, return_tensors="pt"))
 
         return {"pos_inputs": pos_inputs, "neg_inputs": neg_batches}
 
@@ -273,9 +265,7 @@ class RankingSentenceCollator(SentenceCollator):
         self, batch: list[dict[str, SentenceBatchSample | int | str]]
     ) -> dict[str, BatchEncoding | list[int] | list[str]]:
         first_sample: dict[str, SentenceBatchSample | int | str] = batch[0]
-        actual_model_keys: set[str] = {
-            k for k in self.model_inputs_keys if k in first_sample
-        }
+        actual_model_keys: set[str] = {k for k in self.model_inputs_keys if k in first_sample}
 
         model_inputs: list[SentenceBatchSample] = []
         reminder_inputs: dict[str, list[int | str]] = {
@@ -284,7 +274,7 @@ class RankingSentenceCollator(SentenceCollator):
 
         for sample in batch:
             model_inputs.append(
-                cast(SentenceBatchSample, {k: sample[k] for k in actual_model_keys})
+                cast("SentenceBatchSample", {k: sample[k] for k in actual_model_keys})
             )
             for k in reminder_inputs:
                 reminder_inputs[k].append(sample[k])  # type: ignore[arg-type]

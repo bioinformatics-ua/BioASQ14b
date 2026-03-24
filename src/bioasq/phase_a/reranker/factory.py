@@ -40,10 +40,7 @@ if TYPE_CHECKING:
     from transformers import PreTrainedTokenizerBase, Trainer
 
 
-def get_sampler(
-    name: str,
-    **kwargs: object,
-) -> type[BasicSampler]:
+def get_sampler(name: str) -> type[BasicSampler]:
     """Return sampler *class* by name.
 
     Names: ``basic``, ``basicv2``, ``exponential``, ``shifter``.
@@ -66,7 +63,6 @@ def get_preprocessor(
     name: str,
     tokenizer: PreTrainedTokenizerBase,
     max_length: int = 512,
-    **kwargs: object,
 ) -> BasicSamplePreprocessing | NemotronSamplePreprocessing:
     """Return preprocessor *instance* by name.
 

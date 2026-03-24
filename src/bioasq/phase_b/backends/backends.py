@@ -11,10 +11,12 @@ from __future__ import annotations
 import gc
 import os
 import time
-from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 from bioasq.common.protocols import BaseModelBackend
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 # ---------------------------------------------------------------------------
 # Local vLLM backend
@@ -35,7 +37,7 @@ class VLLMBackend(BaseModelBackend):
     tensor_parallel_size:
         Number of GPUs to shard across.
     gpu_memory_utilization:
-        Fraction of GPU VRAM vLLM may use (0.0–1.0).
+        Fraction of GPU VRAM vLLM may use (0.0-1.0).
     max_model_len:
         Maximum context length in tokens.
     """
@@ -80,9 +82,7 @@ class VLLMBackend(BaseModelBackend):
         """Generate a single completion."""
         return self.generate_batch([prompt])[0]
 
-    def generate_chat(
-        self, messages: Sequence[dict[str, str]]
-    ) -> str:
+    def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
         """Generate using the model's chat template."""
         if self._llm is None:
             msg: str = "Model is not loaded. Call load() first."
@@ -183,9 +183,7 @@ class OpenRouterBackend(BaseModelBackend):
         """Generate a single completion via OpenRouter."""
         return self.generate_chat([{"role": "user", "content": prompt}])
 
-    def generate_chat(
-        self, messages: Sequence[dict[str, str]]
-    ) -> str:
+    def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
         """Generate using a chat-style message list."""
         if self._client is None:
             msg: str = "Client not initialised. Call load() first."

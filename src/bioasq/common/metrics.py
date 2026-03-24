@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import re
 import string
-from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING
 
 from rouge_score import rouge_scorer
 
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
 
 # ═══════════════════════════════════════════════════════════════════════════
 # Phase A — retrieval metrics (via ranx)
@@ -70,9 +72,7 @@ def evaluate_retrieval_run(
                 k: dict(v) for k, v in run_dict.items() if k in qid_set
             }
             if sub_qrels and sub_run:
-                results[filename] = evaluate(
-                    Qrels(sub_qrels), Run(sub_run), list(used_metrics)
-                )
+                results[filename] = evaluate(Qrels(sub_qrels), Run(sub_run), list(used_metrics))
 
     return results
 
@@ -95,8 +95,7 @@ def _normalize_answer(s: str) -> str:
     # Remove punctuation
     s = s.translate(str.maketrans("", "", string.punctuation))
     # Collapse whitespace
-    s = " ".join(s.split())
-    return s
+    return " ".join(s.split())
 
 
 def _gold_exact_to_normalised_set(
@@ -270,9 +269,7 @@ def mean_f1_list(
         precision: float = tp / len(pred_normalised)
         recall: float = tp / len(gold_set)
         f1: float = (
-            2 * precision * recall / (precision + recall)
-            if (precision + recall) > 0
-            else 0.0
+            2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
         )
 
         total_f1 += f1
@@ -304,9 +301,7 @@ def rouge2_summary(
     if not predictions:
         return {"rouge2_f": 0.0, "rouge2_p": 0.0, "rouge2_r": 0.0}
 
-    scorer: rouge_scorer.RougeScorer = rouge_scorer.RougeScorer(
-        ["rouge2"], use_stemmer=True
-    )
+    scorer: rouge_scorer.RougeScorer = rouge_scorer.RougeScorer(["rouge2"], use_stemmer=True)
     total_f: float = 0.0
     total_p: float = 0.0
     total_r: float = 0.0

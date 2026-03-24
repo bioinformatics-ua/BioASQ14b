@@ -10,20 +10,21 @@ Core principle: *accept abstract, return concrete*.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from collections.abc import Sequence
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from bioasq.common.aliases import Score
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
+    from bioasq.common.aliases import Score
 
 # ---------------------------------------------------------------------------
-# Protocols – structural subtyping (no inheritance needed)
+# Protocols - structural subtyping (no inheritance needed)
 # ---------------------------------------------------------------------------
 
 
 @runtime_checkable
 class Scorable(Protocol):
-    """Anything that can produce a relevance score for a query–document pair."""
+    """Anything that can produce a relevance score for a query-document pair."""
 
     def score(self, query: str, document: str) -> Score: ...
 
@@ -56,7 +57,7 @@ class SamplePreprocessor(Protocol):
 
 
 # ---------------------------------------------------------------------------
-# ABCs – when shared implementation is needed
+# ABCs - when shared implementation is needed
 # ---------------------------------------------------------------------------
 
 
@@ -76,9 +77,7 @@ class BaseModelBackend(ABC):
     def generate(self, prompt: str) -> str:
         """Generate a single completion."""
 
-    def generate_chat(
-        self, messages: Sequence[dict[str, str]]
-    ) -> str:
+    def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
         """Generate using a chat-style message list.
 
         Default implementation concatenates messages into a single

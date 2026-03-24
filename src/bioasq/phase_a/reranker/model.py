@@ -6,8 +6,8 @@ both training and inference entry points.
 
 from __future__ import annotations
 
-from collections.abc import Generator
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import torch
 from transformers import (
@@ -17,6 +17,9 @@ from transformers import (
     PreTrainedModel,
     PreTrainedTokenizerBase,
 )
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def sanitize_position_ids_buffers(model: torch.nn.Module) -> None:
@@ -125,9 +128,7 @@ def load_reranker_model(
     )
     tokenizer.model_max_length = max_length
 
-    config = AutoConfig.from_pretrained(
-        model_name, trust_remote_code=True, **extra_kwargs
-    )
+    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True, **extra_kwargs)
     model: PreTrainedModel = AutoModelForSequenceClassification.from_pretrained(
         model_name,
         config=config,

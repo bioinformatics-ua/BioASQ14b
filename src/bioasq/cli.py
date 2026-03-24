@@ -74,7 +74,9 @@ def negatives(
     indexes_dir: str = typer.Option("../data/indexes", "-i", help="Indexes directory."),
     output_file: str = typer.Option("../data/negatives.jsonl", "-o", help="Output JSONL."),
     baselines_dir: str = typer.Option("../data/baselines", help="Baselines directory."),
-    ids_per_baseline: str = typer.Option("../data/ids_per_baseline.json", "-p", help="IDs per baseline JSON."),
+    ids_per_baseline: str = typer.Option(
+        "../data/ids_per_baseline.json", "-p", help="IDs per baseline JSON."
+    ),
     k1: float = typer.Option(0.4, help="BM25 k1 parameter."),
     b: float = typer.Option(0.3, help="BM25 b parameter."),
     num_results: int = typer.Option(100, "-n", help="Negatives per question."),
