@@ -1,4 +1,9 @@
-"""
+"""Embedding generation using Text Embeddings Inference (TEI).
+
+This script connects to a TEI endpoint to embed a collection of PubMed
+documents iteratively and saves the dense vectors as numpy arrays.
+
+Docker usage examples:
 docker run --gpus '"device=0"' -p 8080:80 -v $PWD/data/dense_vectors:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
   --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
@@ -6,7 +11,6 @@ docker run --gpus '"device=0"' -p 8080:80 -v $PWD/data/dense_vectors:/data --pul
 docker run --gpus '"device=1"' -p 8081:80 -v $PWD/data/dense_vectors:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
   --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
-
 """
 
 import asyncio

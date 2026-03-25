@@ -1,3 +1,9 @@
+"""Merge distributed similarity shards into a lookup dictionary.
+
+Combines multiple .npy shard files containing similarity scores
+between document pairs into a JSON lookup table mapping PMIDs to similar PMIDs.
+"""
+
 from collections import defaultdict
 from pathlib import Path
 from typing import Annotated
