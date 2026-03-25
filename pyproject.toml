@@ -1,48 +1,115 @@
 [project]
-name = "bioasq13b"
+name = "bioasq"
 version = "0.1.0"
-description = "Add your description here"
+description = "BioASQ 14b — Unified biomedical question-answering pipeline"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "accelerate>=1.0.1",
-    "asyncio>=4.0.0",
-    "deepspeed>=0.18.8",
-    "duckdb>=1.5.0",
-    "evaluate>=0.4.6",
-    "flagembedding>=1.3.5",
-    "httpx>=0.28.1",
-    "ijson>=3.2.0",
-    "lxml>=6.0.2",
-    "msgspec>=0.20.0",
-    "nltk>=3.9.1",
-    "optimum>=1.23.3",
-    "peft>=0.13.2",
-    "pubmed-parser>=0.5.1",
-    "ranx>=0.3.21",
-    "ruff>=0.15.5",
-    "sentence-transformers>=5.3.0",
+    # Core ML
     "torch>=2.5.1",
     "transformers>=4.46.3",
+    "accelerate>=1.0.1",
+    "peft>=0.13.2",
     "trl>=0.11.4",
+
+    # Data & serialisation
+    "msgspec>=0.20.0",
+    "orjson>=3.11.7",
+    "pyyaml>=6.0",
+
+    # Retrieval
+    "ranx>=0.3.21",
+
+    # Evaluation
+    "evaluate>=0.4.6",
+    "rouge-score>=0.1.2",
+    "nltk>=3.9.1",
+
+    # LLM backends
+    "openai>=1.0.0",
+
+    # CLI
     "typer>=0.20.1",
-    "types-lxml>=2026.2.16",
-    "unsloth>=2026.3.4",
+
+    # Experiment tracking
     "wandb>=0.24.2",
-    "xformers>=0.0.35",
+
+    # Utilities
+    "tqdm>=4.0.0",
+    "pandas>=2.0.0",
+    "lxml>=6.0.2",
+    "pubmed-parser>=0.5.1",
+    "types-lxml>=2026.2.16",
 ]
 
+[project.scripts]
+bioasq = "bioasq.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bioasq"]
 
 [tool.uv.sources]
 ranx = { git = "https://github.com/T-Almeida/ranx.git", rev = "865e04a15fc47057127773a488a11e5dca235ce8" }
 
 [tool.uv.workspace]
 members = [
-    "phaseA-reranker/refactored-trainer",
+    "src/bioasq/phase_a/bm25",
 ]
 
 [dependency-groups]
 dev = [
+    "pyright>=1.1.408",
+    "pytest>=9.0.2",
+    "ruff>=0.15.5",
     "ty>=0.0.21",
 ]
 
+# ═══════════════════════════════════════════════════════════════════════════
+# Ruff configuration
+# ═══════════════════════════════════════════════════════════════════════════
+
+[tool.ruff]
+target-version = "py312"
+src = ["src"]
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "ANN",   # flake8-annotations
+    "B",     # flake8-bugbear
+    "A",     # flake8-builtins
+    "C4",    # flake8-comprehensions
+    "DTZ",   # flake8-datetimez
+    "T10",   # flake8-debugger
+    "ISC",   # flake8-implicit-str-concat
+    "ICN",   # flake8-import-conventions
+    "PIE",   # flake8-pie
+    "PT",    # flake8-pytest-style
+    "RSE",   # flake8-raise
+    "RET",   # flake8-return
+    "SLF",   # flake8-self
+    "SIM",   # flake8-simplify
+    "TID",   # flake8-tidy-imports
+    "TCH",   # flake8-type-checking
+    "ARG",   # flake8-unused-arguments
+    "PTH",   # flake8-use-pathlib
+    "RUF",   # Ruff-specific rules
+]
+# ANN401 is NOT ignored — typing.Any is forbidden
+ignore = [
+    "ANN101",
+    "ANN102",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["bioasq"]

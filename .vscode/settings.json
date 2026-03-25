@@ -1,6 +1,10 @@
 {
     "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
+        "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit"
+        }
     },
-    "python-envs.pythonProjects": []
+    "ruff.interpreter": [
+        "${workspaceFolder}/.venv/bin/python"
+    ],
 }

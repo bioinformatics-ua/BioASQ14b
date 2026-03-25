@@ -12,6 +12,7 @@ data/*/training*.json*
 data/ids_per_baseline.json
 data/not_found.jsonl
 data/dense_vectors* 
+data/embeddings_* 
 data/negatives*.jsonl
 data/lookup*.json
 data/BioASQ-task*bPhase*-testset*.json*
