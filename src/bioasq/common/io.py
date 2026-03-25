@@ -6,14 +6,18 @@ Replaces all scattered ``json.load``, ``orjson.loads``, and raw
 """
 
 from __future__ import annotations
+from bioasq.common.decoders import document_decoder
 
-from pathlib import Path
 from typing import TYPE_CHECKING, TypeVar, overload
 
 import msgspec
 
+from bioasq.common.types import Document
+
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Iterator, Sequence
+    from pathlib import Path
+
 
 T = TypeVar("T")
 
@@ -27,12 +31,12 @@ _json_decoder: msgspec.json.Decoder[object] = msgspec.json.Decoder()
 
 
 @overload
-def load_json[T](path: str | Path, *, type: type[T]) -> T: ...
+def load_json[T](path: Path, *, type: type[T]) -> T: ...
 @overload
-def load_json(path: str | Path) -> object: ...
+def load_json(path: Path) -> object: ...
 
 
-def load_json[T](path: str | Path, *, type_: type[T] | None = None) -> T | object:
+def load_json[T](path: Path, *, type_: type[T] | None = None) -> T | object:
     """Load a JSON file, optionally decoding into a typed *msgspec* struct.
 
     Parameters
@@ -43,13 +47,13 @@ def load_json[T](path: str | Path, *, type_: type[T] | None = None) -> T | objec
         If provided, decode into this ``msgspec.Struct`` (or other type).
         Otherwise return a plain Python object (dict / list).
     """
-    raw: bytes = Path(path).read_bytes()
+    raw: bytes = path.read_bytes()
     if type_ is not None:
         return msgspec.json.decode(raw, type=type_)
     return msgspec.json.decode(raw)
 
 
-def save_json(data: object, path: str | Path, *, indent: bool = False) -> None:
+def save_json(data: object, path: Path, *, indent: bool = False) -> None:
     """Serialise *data* to a JSON file using msgspec.
 
     Parameters
@@ -61,7 +65,7 @@ def save_json(data: object, path: str | Path, *, indent: bool = False) -> None:
     indent:
         Pretty-print with 2-space indentation if ``True``.
     """
-    p: Path = Path(path)
+    p: Path = path
     p.parent.mkdir(parents=True, exist_ok=True)
     if indent:
         encoded: bytes = msgspec.json.format(msgspec.json.encode(data), indent=2)
@@ -76,14 +80,12 @@ def save_json(data: object, path: str | Path, *, indent: bool = False) -> None:
 
 
 @overload
-def load_jsonl[T](path: str | Path, *, type: type[T]) -> list[T]: ...
+def load_jsonl[T](path: Path, *, type: type[T]) -> list[T]: ...
 @overload
-def load_jsonl(path: str | Path) -> list[object]: ...
+def load_jsonl(path: Path) -> list[object]: ...
 
 
-def load_jsonl[T](
-    path: str | Path, *, type_: type[T] | None = None
-) -> list[T] | list[object]:
+def load_jsonl[T](path: Path, *, type_: type[T] | None = None) -> list[T] | list[object]:
     """Load a JSONL file (one JSON object per line).
 
     Parameters
@@ -94,7 +96,7 @@ def load_jsonl[T](
         If provided, decode each line into this type.
     """
     results: list[object] = []
-    with Path(path).open("rb") as fh:
+    with path.open("rb") as fh:
         for line in fh:
             stripped: bytes = line.strip()
             if not stripped:
@@ -106,9 +108,65 @@ def load_jsonl[T](
     return results  # type: ignore[return-value]
 
 
+## TODO LOAD THE COLLECTION WITH DUCK DB
+
+
+@overload
+def load_collection(path: Path, constraints: list[Callable[[Document], bool]]) -> Iterator[str]: ...
+@overload
+def load_collection(
+    path: Path, constraints: list[Callable[[Document], bool]], id_present: bool = False
+) -> Iterator[tuple[str, Document]]: ...
+
+
+@overload
+def load_collection(path: Path) -> Iterator[str]: ...
+
+
+def load_collection(
+    path: Path,
+    constraints: list[Callable[[Document], bool]] | None = None,
+    id_present: bool = False,
+) -> Iterator[str] | Iterator[tuple[str, Document]]:
+    """Load a collection of articles from a JSONL file.
+
+    Example of call:
+    load_collection(Path("data/bioasq_2024_collection.jsonl"), \
+        constraints=[lambda x: len(f"{x['title']} {x['abstract']}") > 100])
+
+    Parameters
+    ----------
+    path:
+        Filesystem path to the JSONL file.
+    constraints:
+        based on this collection: dict[int, PMID] = {
+            i: line.lstrip(b'{"pmid": "').split(b'"', 1)[0].decode("utf-8")
+            for i, line in enumerate(f)
+            if len(line) < 1000
+        }
+
+    Returns:
+        Iterator[str]: Iterator of texts. "<title> <abstract>"
+        Iterator[tuple[str, Document]]: Iterator of (id, <title> <abstract>) pairs.
+
+    """
+    with path.open("rb") as f:
+        for line in f:
+            article: Document = document_decoder.decode(line)
+            if constraints is not None:
+                for constraint in constraints:
+                    if not constraint(article):
+                        continue
+            yield (
+                f"{article.title} {article.abstract}"
+                if not id_present
+                else (article.id, f"{article.title} {article.abstract}")
+            )
+
+
 def save_jsonl(
     data: Sequence[object],
-    path: str | Path,
+    path: Path,
 ) -> None:
     """Serialise a sequence of objects as JSONL.
 
@@ -119,7 +177,7 @@ def save_jsonl(
     path:
         Destination file path (parent dirs created automatically).
     """
-    p: Path = Path(path)
+    p: Path = path
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("wb") as fh:
         for item in data:
