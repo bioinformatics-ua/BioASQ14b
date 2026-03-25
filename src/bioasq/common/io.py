@@ -6,17 +6,18 @@ Replaces all scattered ``json.load``, ``orjson.loads``, and raw
 """
 
 from __future__ import annotations
-from bioasq.common.decoders import document_decoder
 
 from typing import TYPE_CHECKING, TypeVar, overload
 
 import msgspec
 
-from bioasq.common.types import Document
+from bioasq.common.decoders import document_decoder
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
     from pathlib import Path
+
+    from bioasq.common.types import Document
 
 
 T = TypeVar("T")
@@ -105,7 +106,7 @@ def load_jsonl[T](path: Path, *, type_: type[T] | None = None) -> list[T] | list
                 results.append(msgspec.json.decode(stripped, type=type))
             else:
                 results.append(msgspec.json.decode(stripped))
-    return results  # type: ignore[return-value]
+    return results
 
 
 ## TODO LOAD THE COLLECTION WITH DUCK DB

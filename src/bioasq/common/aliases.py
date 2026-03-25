@@ -5,6 +5,7 @@ support.  All aliases used across the codebase are centralised here.
 """
 
 from __future__ import annotations
+
 from typing import TypedDict
 
 # ---------------------------------------------------------------------------
@@ -74,11 +75,14 @@ Multi-negative::
     {"pos_inputs": {<Sample>}, "neg_inputs": [{<Sample>}, ...]}
 """
 
+
 class BaselineLine(TypedDict):
     """Line in the baseline JSONL file."""
+
     pmid: str
     title: str
     abstract: str
+
 
 # ---------------------------------------------------------------------------
 # Phase A - retrieval / evaluation
