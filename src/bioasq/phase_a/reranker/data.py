@@ -32,6 +32,7 @@ from bioasq.common.aliases import (
     Sample,
     SliceDataset,
 )
+from torch.utils.data import Dataset
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -362,7 +363,7 @@ class BioASQDataset(IterableDataset[ProcessedSample]):
         self._epoch += 1
 
 
-class BioASQInferenceDataset:
+class BioASQInferenceDataset(Dataset[ProcessedSample]):
     """Map-style dataset for inference and evaluation.
 
     Pre-processes all samples at init time for random access by index.
@@ -391,7 +392,7 @@ class BioASQInferenceDataset:
     def __len__(self) -> int:
         return len(self._samples)
 
-    def __getitem__(self, idx: int) -> ProcessedSample:
+    def __getitem__(self, idx: int) -> ProcessedSample: # type: ignore[override]
         return self._samples[idx]
 
     def get_qrels(self) -> QrelsDict:
@@ -401,7 +402,7 @@ class BioASQInferenceDataset:
         return f"BioASQInferenceDataset(n={len(self._samples)})"
 
 
-class BioASQPairwiseEvalDataset:
+class BioASQPairwiseEvalDataset(Dataset[ProcessedSample]):
     """Pairwise evaluation dataset.
 
     Builds (pos, neg) pairs from qrels and preprocesses them.
@@ -487,7 +488,7 @@ class BioASQPairwiseEvalDataset:
     def __len__(self) -> int:
         return len(self._samples)
 
-    def __getitem__(self, idx: int) -> ProcessedSample:
+    def __getitem__(self, idx: int) -> ProcessedSample: # type: ignore[override]
         return self._samples[idx]
 
 
@@ -571,7 +572,7 @@ def create_bioasq_datasets(
     if val_files:
         for vf in val_files:
             with vf.open() as f:
-                data: dict[str, list[dict[str, str]]] = msgspec.json.decode(f)
+                data: dict[str, list[dict[str, str]]] = msgspec.json.decode(f.read())
             for qq in data.get("questions", []):
                 val_qids.add(str(qq["id"]))
 

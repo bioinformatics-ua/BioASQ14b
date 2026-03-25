@@ -17,6 +17,12 @@ from __future__ import annotations
 
 import typer
 
+from bioasq.phase_a.reranker.cli import evaluate_command, inference_command, train_command
+from bioasq.phase_a.reranker.experiments import (
+    run_experiments_command,
+    run_llama_experiments_command,
+)
+
 app: typer.Typer = typer.Typer(
     name="bioasq",
     help="BioASQ 14b — Unified biomedical question-answering pipeline.",
@@ -48,6 +54,16 @@ bm25_app: typer.Typer = typer.Typer(
 app.add_typer(phase_a_app, name="phase-a")
 app.add_typer(phase_b_app, name="phase-b")
 app.add_typer(bm25_app, name="bm25")
+
+# ---------------------------------------------------------------------------
+# Phase-A Reranker commands
+# ---------------------------------------------------------------------------
+
+phase_a_app.command(name="train")(train_command)
+phase_a_app.command(name="evaluate")(evaluate_command)
+phase_a_app.command(name="inference")(inference_command)
+phase_a_app.command(name="run-experiments")(run_experiments_command)
+phase_a_app.command(name="run-llama-experiments")(run_llama_experiments_command)
 
 
 # ---------------------------------------------------------------------------
