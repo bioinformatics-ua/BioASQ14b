@@ -120,7 +120,7 @@ def load_reranker_model(
     ``(model, tokenizer)`` tuple.
     """
     extra_kwargs: dict[str, str] = {}
-    if revision:
+    if revision and not Path(model_name).exists():
         extra_kwargs["revision"] = revision
 
     tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(

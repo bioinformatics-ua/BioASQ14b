@@ -6,7 +6,7 @@ between document pairs into a JSON lookup table mapping PMIDs to similar PMIDs.
 
 from collections import defaultdict
 from pathlib import Path
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 import numpy as np
 import orjson
@@ -15,7 +15,9 @@ from tqdm import tqdm
 
 from bioasq.common.io import load_collection
 
-type PMID = str
+if TYPE_CHECKING:
+    from bioasq.common.aliases import DocumentId
+
 app = typer.Typer()
 
 
@@ -44,17 +46,17 @@ def main(
 
     print(f"Loading collection from '{baseline}'...")
     collection_iter = load_collection(
-        baseline, constraints=[lambda x: len(f"{x.title} {x.abstract}") > 100], id_present=True
+        baseline, constraints=[lambda x: len(f"{x.title} {x.abstract}") > 100]
     )
     # TODO here we will consume the colletction
     # Maps the line id to the pmid
     # Needs duck duck db
-    collection: dict[int, PMID] = {i: doc[0] for i, doc in enumerate(collection_iter)}
+    collection: dict[int, DocumentId] = {i: doc.pmid for i, doc in enumerate(collection_iter)}
 
     shard_files = list(shards_dir.glob("*.npy"))
 
     shard_files.sort(key=lambda x: int(x.stem.split("_")[1]))
-    lookup: defaultdict[PMID, list[tuple[PMID, float]]] = defaultdict(list)
+    lookup: defaultdict[DocumentId, list[tuple[DocumentId, float]]] = defaultdict(list)
     for shard_file in tqdm(shard_files, desc="Processing shards", unit="shard"):
         with shard_file.open("rb") as f:
             indexes0, indexes1, scores = np.load(f, allow_pickle=False).T

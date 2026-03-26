@@ -15,7 +15,6 @@ The articles table has the following columns:
 from __future__ import annotations
 
 import os
-from struct import pack
 from typing import TYPE_CHECKING, Annotated, overload
 
 import asyncpg

@@ -32,11 +32,13 @@ class QuestionType(StrEnum):
 class Document(msgspec.Struct, frozen=True):
     """A PubMed document (article)."""
 
-    id: str
+    pmid: str
     title: str = ""
     abstract: str = ""
-    text: str = ""
-    url: str = ""
+
+    @property
+    def full_text(self) -> str:
+        return f"{self.title} {self.abstract}"
 
 
 class NegDoc(msgspec.Struct, frozen=True):
@@ -100,7 +102,8 @@ class RerankerPrediction(msgspec.Struct, frozen=True):
 class GeneratedAnswer(msgspec.Struct):
     """Model-generated answer for a BioASQ question."""
 
-    text: str
+    text: str = ""
+    exact_answer: list[str] | list[list[str]] | str | None = None
     valid: bool = False
     raw: str = ""
 

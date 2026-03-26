@@ -103,32 +103,27 @@ def load_jsonl[T](path: Path, *, type_: type[T] | None = None) -> list[T] | list
             if not stripped:
                 continue
             if type_ is not None:
-                results.append(msgspec.json.decode(stripped, type=type))
+                results.append(msgspec.json.decode(stripped, type=type_))
             else:
                 results.append(msgspec.json.decode(stripped))
     return results
 
 
-## TODO LOAD THE COLLECTION WITH DUCK DB
-
-
-@overload
-def load_collection(path: Path, constraints: list[Callable[[Document], bool]]) -> Iterator[str]: ...
 @overload
 def load_collection(
-    path: Path, constraints: list[Callable[[Document], bool]], id_present: bool = False
-) -> Iterator[tuple[str, Document]]: ...
+    path: Path, constraints: list[Callable[[Document], bool]] | None = None
+) -> Iterator[Document]: ...
 
 
 @overload
-def load_collection(path: Path) -> Iterator[str]: ...
+def load_collection(
+    path: Path, constraints: list[Callable[[Document], bool]] | None = None, chunk_size: int = 50000
+) -> Iterator[list[Document]]: ...
 
 
 def load_collection(
-    path: Path,
-    constraints: list[Callable[[Document], bool]] | None = None,
-    id_present: bool = False,
-) -> Iterator[str] | Iterator[tuple[str, Document]]:
+    path: Path, constraints: list[Callable[[Document], bool]] | None = None, chunk_size: int = 1
+) -> Iterator[Document] | Iterator[list[Document]]:
     """Load a collection of articles from a JSONL file.
 
     Example of call:
@@ -145,24 +140,33 @@ def load_collection(
             for i, line in enumerate(f)
             if len(line) < 1000
         }
+    chunk_size:
+        Size of the chunk to load.
 
     Returns:
-        Iterator[str]: Iterator of texts. "<title> <abstract>"
-        Iterator[tuple[str, Document]]: Iterator of (id, <title> <abstract>) pairs.
-
+        Iterator[Document]: Iterator of documents.
+        Iterator[list[Document]]: Iterator of lists of documents.
     """
     with path.open("rb") as f:
+        chunk: list[Document] = []
         for line in f:
-            article: Document = document_decoder.decode(line)
+            article = document_decoder.decode(line)
+
             if constraints is not None:
                 for constraint in constraints:
                     if not constraint(article):
                         continue
-            yield (
-                f"{article.title} {article.abstract}"
-                if not id_present
-                else (article.id, f"{article.title} {article.abstract}")
-            )
+
+            if chunk_size == 1:
+                yield article
+                continue
+
+            chunk.append(article)
+            if len(chunk) == chunk_size:
+                yield chunk
+                chunk = []
+        if chunk_size != 1 and chunk:
+            yield chunk
 
 
 def save_jsonl(
