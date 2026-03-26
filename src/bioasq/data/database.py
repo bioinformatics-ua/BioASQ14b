@@ -15,16 +15,17 @@ The articles table has the following columns:
 from __future__ import annotations
 
 import os
+from struct import pack
 from typing import TYPE_CHECKING, Annotated, overload
 
 import asyncpg
+import numpy as np
 from pgvector.asyncpg import register_vector
 from tqdm.asyncio import tqdm
 
 from bioasq.common.types import Document
 
 if TYPE_CHECKING:
-    import numpy as np
     from asyncpg import Pool
 
 _POOL: Pool | None = None
@@ -38,14 +39,13 @@ def _pool_dsn() -> str:
     )
 
 
-async def get_pool(*, register: bool = True) -> Pool:
+async def get_pool() -> Pool:
     """Return a shared asyncpg pool with pgvector codecs registered on each connection."""
     global _POOL
     if _POOL is None:
         _POOL = await asyncpg.create_pool(dsn=_pool_dsn())
-        if register:
-            async with _POOL.acquire() as conn:
-                await register_vector(conn)
+        async with _POOL.acquire() as conn:
+            await register_vector(conn)
     return _POOL
 
 
@@ -55,29 +55,6 @@ async def close_pool() -> None:
     if _POOL is not None:
         await _POOL.close()
         _POOL = None
-
-
-async def init_db() -> None:
-    """Enable extensions, create articles table, and create diskann + BM25 indexes."""
-    pool = await get_pool(register=False)
-    async with pool.acquire() as conn:
-        await conn.execute("CREATE EXTENSION IF NOT EXISTS vectorscale CASCADE")
-        await conn.execute("CREATE EXTENSION IF NOT EXISTS pg_textsearch CASCADE")
-        await conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS articles (
-                pmid      INTEGER PRIMARY KEY,
-                title     TEXT    NOT NULL,
-                abstract  TEXT,
-                full_text TEXT    GENERATED ALWAYS AS (
-                    title || ' ' || COALESCE(abstract, '')
-                ) STORED,
-                embedding vector(1024)
-            )
-            """
-        )
-
-    print("Database initialized")
 
 
 async def create_indexes() -> None:
@@ -108,18 +85,24 @@ def _row_to_document(row: asyncpg.Record) -> Document:
 
 
 @overload
-async def insert_articles(docs: Document, embedding: np.ndarray | None = None) -> None: ...
+async def insert_articles(
+    docs: Document, embedding: np.ndarray | None = None, semaphore: asyncio.Semaphore | None = None
+) -> None: ...
 @overload
 async def insert_articles(
-    docs: list[Document], embeddings: list[np.ndarray] | None = None
+    docs: list[Document],
+    embeddings: list[np.ndarray] | None = None,
+    semaphore: asyncio.Semaphore | None = None,
 ) -> None: ...
 
 
 async def insert_articles(
-    docs: Document | list[Document], embeddings: np.ndarray | list[np.ndarray] | None = None
+    docs: Document | list[Document],
+    embeddings: np.ndarray | list[np.ndarray] | None = None,
+    semaphore: asyncio.Semaphore | None = None,
+    pool: Pool | None = None,
 ) -> None:
     """Insert a PubMed-style article; duplicate pmid is ignored."""
-    pool = await get_pool()
 
     if isinstance(docs, Document):
         docs = [docs]
@@ -127,27 +110,33 @@ async def insert_articles(
             embeddings = [embeddings]
 
     if embeddings is not None and len(docs) != len(embeddings):
-        raise ValueError("Number of documents and embeddings must be the same")
-
-    async with pool.acquire() as conn:
-        await conn.executemany(
-            f"""
-            INSERT INTO articles (pmid, title, abstract, embedding)
-            VALUES ($1, $2, $3{", $4" if embeddings is not None else ""})
-            ON CONFLICT (pmid) DO NOTHING
-            """,
-            [
-                (
-                    int(doc.pmid),
-                    doc.title,
-                    doc.abstract or None,
-                    embedding,
-                )
-                for doc, embedding in zip(docs, embeddings, strict=True)
-            ]
-            if embeddings is not None
-            else [(int(doc.pmid), doc.title, doc.abstract or None) for doc in docs],
+        raise ValueError(
+            f"Number of documents and embeddings must be the same. "
+            f"Docs: {len(docs)}, Embeddings: {len(embeddings)}"
         )
+
+    async with semaphore or asyncio.Semaphore(1), (pool or await get_pool()).acquire() as conn:
+        await register_vector(conn)
+        try:
+            await conn.copy_records_to_table(
+                "articles",
+                records=(
+                    [
+                        (
+                            int(doc.pmid),
+                            doc.title,
+                            doc.abstract or None,
+                            np.array(embedding, dtype=np.float32),
+                        )
+                        for doc, embedding in zip(docs, embeddings, strict=True)
+                    ]
+                    if embeddings is not None
+                    else [(int(doc.pmid), doc.title, doc.abstract or None) for doc in docs]
+                ),
+                columns=("pmid", "title", "abstract", "embedding"),
+            )
+        except asyncpg.UniqueViolationError:
+            return
 
 
 async def get_article_by_id(article_id: int) -> Document | None:
@@ -245,11 +234,6 @@ if __name__ == "__main__":
 
     app = typer.Typer()
 
-    @app.command(name="init")
-    @typer_async
-    async def init() -> None:
-        await init_db()
-
     @app.command(name="populate")
     @typer_async
     async def populate(
@@ -281,20 +265,46 @@ if __name__ == "__main__":
 
         import numpy as np
 
-        embeddings_files = list(embeddings_dir.glob("*.npy"))
-
-        print("Loading PubMed articles from JSONL")
-        for docs, embeddings in tqdm(
-            zip(
-                load_collection(jsonl_path, chunk_size=50000),
-                (np.load(x) for x in embeddings_files),
-                strict=True,
-            ),
+        embeddings_files = sorted(
+            embeddings_dir.glob("*.npy"),
+            key=lambda x: (int(x.stem.split("_")[1]), int(x.stem.split("_")[2])),
+        )
+        semaphore = asyncio.Semaphore(8)
+        pool = await get_pool()
+        tasks = [
+            asyncio.create_task(insert_articles(docs, embeddings, semaphore=semaphore, pool=pool))
+            for docs, embeddings in tqdm(
+                zip(
+                    load_collection(jsonl_path, chunk_size=50000),
+                    (np.load(x) for x in embeddings_files),
+                    strict=True,
+                ),
+                desc="Loading collection",
+                unit="article",
+                total=len(embeddings_files),
+                unit_scale=50000,
+            )
+        ]
+        await tqdm.gather(
+            *tasks,
             desc="Inserting articles",
             unit="article",
             total=len(embeddings_files),
             unit_scale=50000,
-        ):
-            await insert_articles(docs, embeddings)
+        )
+
+        # print("Loading PubMed articles from JSONL")
+        # for docs, embeddings in tqdm(
+        #     zip(
+        #         load_collection(jsonl_path, chunk_size=50000),
+        #         (np.load(x) for x in embeddings_files),
+        #         strict=True,
+        #     ),
+        #     desc="Inserting articles",
+        #     unit="article",
+        #     total=len(embeddings_files),
+        #     unit_scale=50000,
+        # ):
+        #     await insert_articles(docs, embeddings)
 
     asyncio.run(app())
