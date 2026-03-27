@@ -11,6 +11,10 @@ from __future__ import annotations
 
 import hashlib
 import os
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # Recursive type for values coming out of YAML / flattened config dicts.
 type ConfigValue = str | int | float | bool | None
@@ -66,6 +70,30 @@ def _normalize_training_config(
         if key in out and out[key] is False:
             out[key] = "no"
     return out
+
+
+def _load_flat_config(path: Path) -> dict[str, ConfigValue]:
+    import yaml
+
+    with path.open() as fp:
+        config = yaml.safe_load(fp)
+    if config is None:
+        return {}
+    return _flatten(config)  # type: ignore
+
+
+def create_training_config(
+    config_path: Path,
+    **overrides: ConfigValue,
+) -> dict[
+    str, ConfigValue
+]:  # Wait, the return type should actually be transformers.TrainingArguments
+    from transformers import TrainingArguments
+
+    base = _load_flat_config(config_path)
+    joint = {**base, **overrides}
+    joint = _normalize_training_config(joint)
+    return TrainingArguments(**joint)  # type: ignore
 
 
 # ---------------------------------------------------------------------------

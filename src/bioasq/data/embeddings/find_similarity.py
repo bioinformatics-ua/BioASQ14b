@@ -1,4 +1,5 @@
-"""
+"""DEPRECATED: Embeddings are now stored in the database.
+
 Multi-GPU similarity computation. Distributes (file0, file1) pairs across
 available GPUs via torch.multiprocessing.spawn.
 """

@@ -10,3 +10,9 @@ CREATE TABLE IF NOT EXISTS articles (
     ) STORED,
     embedding vector(1024)
 );
+
+CREATE TABLE IF NOT EXISTS ids_per_baseline (
+    year INTEGER NOT NULL,
+    pmid INTEGER NOT NULL,
+    PRIMARY KEY (year, pmid)
+);

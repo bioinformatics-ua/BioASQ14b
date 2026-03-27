@@ -12,7 +12,6 @@ Usage:
 """
 
 import gzip
-import json
 import random
 import time
 from datetime import UTC, datetime
@@ -21,6 +20,7 @@ from pathlib import Path
 from typing import Annotated
 from urllib.request import urlopen
 
+import orjson
 import pubmed_parser as pp
 import requests
 import typer
@@ -362,7 +362,7 @@ def writer_process(results_queue: Queue[dict | str], output_file: str, num_worke
                 files_done = int(item.split(":")[1])
                 total_files += files_done
             else:
-                f_out.write(json.dumps(item) + "\n")
+                f_out.write(orjson.dumps(item) + "\n")
                 total_articles += 1
                 if total_articles % 5000 == 0:
                     print(f"  Writer: {total_articles} articles...")
@@ -442,12 +442,5 @@ def parse_main(
     print("=" * 50)
 
 
-# ============== MAIN ==============
-
-
-def main() -> None:
-    app()
-
-
 if __name__ == "__main__":
-    main()
+    app()

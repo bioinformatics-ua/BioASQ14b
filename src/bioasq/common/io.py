@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, TypeVar, overload
 
 import msgspec
 
+from bioasq.common.aliases import DocumentId
 from bioasq.common.decoders import document_decoder
 
 if TYPE_CHECKING:
@@ -167,6 +168,15 @@ def load_collection(
                 chunk = []
         if chunk_size != 1 and chunk:
             yield chunk
+
+
+def load_collection_ids(path: Path) -> Iterator[DocumentId]:
+    """Load the PMIDs from a JSONL file."""
+
+    with path.open("rb") as f:
+        for line in f:
+            pmid: bytes = line.lstrip(b'{"pmid": "').split(b'"', 1)[0]
+            yield pmid.decode("utf-8")
 
 
 def save_jsonl(

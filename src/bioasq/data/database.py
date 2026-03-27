@@ -12,20 +12,20 @@ The articles table has the following columns:
 - embedding: the embedding of the article
 """
 
-from __future__ import annotations
-
+import asyncio
 import os
-from typing import TYPE_CHECKING, Annotated, overload
+from typing import Annotated, overload
 
 import asyncpg
 import numpy as np
+from asyncpg import Pool
 from pgvector.asyncpg import register_vector
 from tqdm.asyncio import tqdm
 
+from bioasq.common import PROJECT_DATA_BASELINES_DIR
+from bioasq.common.aliases import DocumentId
+from bioasq.common.io import load_collection_ids
 from bioasq.common.types import Document
-
-if TYPE_CHECKING:
-    from asyncpg import Pool
 
 _POOL: Pool | None = None
 
@@ -59,16 +59,19 @@ async def close_pool() -> None:
 async def create_indexes() -> None:
     pool = await get_pool()
     async with pool.acquire() as conn:
+        print("Creating embedding index")
         await conn.execute(
             """
             CREATE INDEX IF NOT EXISTS articles_embedding_idx
-            ON articles USING diskann (embedding)
+            ON articles USING diskann (embedding vector_cosine_ops)
             """
         )
+
+        print("Creating BM25 index")
         await conn.execute(
             """
             CREATE INDEX IF NOT EXISTS articles_bm25_idx
-            ON articles USING bm25 (full_text) WITH (text_config = 'english')
+            ON articles USING bm25(full_text) WITH (text_config = 'english')
             """
         )
 
@@ -181,8 +184,8 @@ async def vss_search(
     embedding: np.ndarray,
     topk: int | None = 10,
     *,
-    exclude_id: int | None = None,
-) -> list[tuple[int, float]]:
+    exclude_id: DocumentId | None = None,
+) -> list[tuple[DocumentId, float]]:
     """
     Vector similarity search (cosine via pgvector / diskann).
     Returns (pmid, similarity) where similarity = 1 - cosine_distance.
@@ -202,10 +205,10 @@ async def vss_search(
             topk,
             exclude_id,
         )
-    return [(int(r["pmid"]), float(r["distance"])) for r in rows]
+    return [(DocumentId(r["pmid"]), float(r["distance"])) for r in rows]
 
 
-async def lookup_by_id(article_id: int) -> list[tuple[int, float]]:
+async def lookup_by_pmid(article_id: DocumentId) -> list[tuple[DocumentId, float]]:
     """
     Neighbours of an article by VSS: load embedding for article_id, then top-k similar.
     The source article is excluded from results.
@@ -220,6 +223,36 @@ async def lookup_by_id(article_id: int) -> list[tuple[int, float]]:
         return []
     emb = row["embedding"]
     return await vss_search(emb, topk=10000, exclude_id=article_id)
+
+
+async def add_baseline_ids(year: int, pmids: list[DocumentId]) -> None:
+    """Add the PMIDs to the ids_per_baseline table."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        await conn.executemany(
+            "INSERT INTO ids_per_baseline (year, pmid) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            [(year, int(pmid)) for pmid in pmids],
+        )
+
+
+async def get_pmids_per_baseline(year: int) -> list[DocumentId]:
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT pmid FROM ids_per_baseline WHERE year = $1",
+            year,
+        )
+    return [DocumentId(row["pmid"]) for row in rows]
+
+
+async def get_baselines_per_pmid(pmid: DocumentId) -> list[int]:
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT year FROM ids_per_baseline WHERE pmid = $1",
+            pmid,
+        )
+    return [row["year"] for row in rows]
 
 
 if __name__ == "__main__":
@@ -292,18 +325,26 @@ if __name__ == "__main__":
             unit_scale=50000,
         )
 
-        # print("Loading PubMed articles from JSONL")
-        # for docs, embeddings in tqdm(
-        #     zip(
-        #         load_collection(jsonl_path, chunk_size=50000),
-        #         (np.load(x) for x in embeddings_files),
-        #         strict=True,
-        #     ),
-        #     desc="Inserting articles",
-        #     unit="article",
-        #     total=len(embeddings_files),
-        #     unit_scale=50000,
-        # ):
-        #     await insert_articles(docs, embeddings)
+    @app.command(name="populate-baseline-ids")
+    @typer_async
+    async def populate_baseline_ids(
+        baselines_dir: Annotated[
+            Path,
+            typer.Argument(
+                help="The path to the directory containing the baseline files.",
+            ),
+        ] = PROJECT_DATA_BASELINES_DIR,
+    ) -> None:
+        baselines: list[Path] = list(baselines_dir.glob("pubmed_baseline_20[0-9][0-9].jsonl"))
+
+        for baseline in tqdm(baselines, desc="Processing baselines", unit="baseline"):
+            year = int(baseline.name.removeprefix("pubmed_baseline_").removesuffix(".jsonl"))
+            pmids = list(load_collection_ids(baseline))
+            await add_baseline_ids(year, pmids)
+
+    @app.command(name="create-indexes")
+    @typer_async
+    async def indexes() -> None:
+        await create_indexes()
 
     asyncio.run(app())

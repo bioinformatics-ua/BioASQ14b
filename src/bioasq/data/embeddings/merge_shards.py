@@ -1,4 +1,6 @@
-"""Merge distributed similarity shards into a lookup dictionary.
+"""DEPRECATED: Embeddings are now stored in the database.
+
+Merge distributed similarity shards into a lookup dictionary.
 
 Combines multiple .npy shard files containing similarity scores
 between document pairs into a JSON lookup table mapping PMIDs to similar PMIDs.
