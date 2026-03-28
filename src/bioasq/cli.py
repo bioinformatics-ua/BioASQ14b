@@ -13,10 +13,11 @@ Usage::
     bioasq bm25 negatives training.jsonl …
 """
 
-from __future__ import annotations
+from pathlib import Path
 
 import typer
 
+from bioasq.phase_a.bm25.negatives import app as negatives_app
 from bioasq.phase_a.reranker.cli import evaluate_command, inference_command, train_command
 from bioasq.phase_a.reranker.experiments import (
     run_experiments_command,
@@ -51,6 +52,8 @@ bm25_app: typer.Typer = typer.Typer(
     no_args_is_help=True,
 )
 
+bm25_app.add_typer(negatives_app, name="negatives")
+
 app.add_typer(phase_a_app, name="phase-a")
 app.add_typer(phase_b_app, name="phase-b")
 app.add_typer(bm25_app, name="bm25")
@@ -77,41 +80,10 @@ def index(
     output_dir: str = typer.Option(..., "-o", "--out", help="Index output directory."),
 ) -> None:
     """Create a PISA BM25 index from a PubMed baseline."""
-    from pathlib import Path
 
     from bioasq.phase_a.bm25.index import create_index
 
     create_index(Path(baseline), Path(output_dir))
-
-
-@bm25_app.command()
-def negatives(
-    training_file: str = typer.Argument(..., help="Training JSONL file."),
-    indexes_dir: str = typer.Option("../data/indexes", "-i", help="Indexes directory."),
-    output_file: str = typer.Option("../data/negatives.jsonl", "-o", help="Output JSONL."),
-    baselines_dir: str = typer.Option("../data/baselines", help="Baselines directory."),
-    ids_per_baseline: str = typer.Option(
-        "../data/ids_per_baseline.json", "-p", help="IDs per baseline JSON."
-    ),
-    k1: float = typer.Option(0.4, help="BM25 k1 parameter."),
-    b: float = typer.Option(0.3, help="BM25 b parameter."),
-    num_results: int = typer.Option(100, "-n", help="Negatives per question."),
-) -> None:
-    """Mine BM25 negatives for training questions."""
-    from pathlib import Path
-
-    from bioasq.phase_a.bm25.negatives import mine_negatives
-
-    mine_negatives(
-        Path(training_file),
-        Path(indexes_dir),
-        Path(output_file),
-        Path(baselines_dir),
-        Path(ids_per_baseline),
-        k1=k1,
-        b=b,
-        num_results=num_results,
-    )
 
 
 # ---------------------------------------------------------------------------

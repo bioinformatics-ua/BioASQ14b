@@ -9,5 +9,6 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 
 PROJECT_DATA_DIR = PROJECT_ROOT / "data"
+PROJECT_DATA_BM25_DIR = PROJECT_DATA_DIR / "bm25"
 PROJECT_DATA_BASELINES_DIR = PROJECT_DATA_DIR / "baselines"
 PROJECT_DATA_EMBEDDINGS_DIR = PROJECT_DATA_DIR / "embeddings"

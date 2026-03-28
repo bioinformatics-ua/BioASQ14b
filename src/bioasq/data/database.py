@@ -25,7 +25,7 @@ from tqdm.asyncio import tqdm
 from bioasq.common import PROJECT_DATA_BASELINES_DIR
 from bioasq.common.aliases import DocumentId
 from bioasq.common.io import load_collection_ids
-from bioasq.common.types import Document
+from bioasq.common.types import Document, DocumentWithScore
 
 _POOL: Pool | None = None
 
@@ -86,6 +86,18 @@ def _row_to_document(row: asyncpg.Record) -> Document:
     )
 
 
+def _row_to_bm25_result(row: asyncpg.Record) -> DocumentWithScore:
+    abstract_val = row["abstract"]
+    abstract_str = "" if abstract_val is None else str(abstract_val)
+    return DocumentWithScore(
+        pmid=str(row["pmid"]),
+        title=str(row["title"]),
+        abstract=abstract_str,
+        full_text=str(row["full_text"]),
+        score=-float(row["score"]),
+    )
+
+
 @overload
 async def insert_articles(
     docs: Document, embedding: np.ndarray | None = None, semaphore: asyncio.Semaphore | None = None
@@ -135,7 +147,9 @@ async def insert_articles(
                     if embeddings is not None
                     else [(int(doc.pmid), doc.title, doc.abstract or None) for doc in docs]
                 ),
-                columns=("pmid", "title", "abstract", "embedding"),
+                columns=("pmid", "title", "abstract", "embedding")
+                if embeddings is not None
+                else ("pmid", "title", "abstract"),
             )
         except asyncpg.UniqueViolationError:
             return
@@ -152,21 +166,28 @@ async def get_article_by_id(article_id: int) -> Document | None:
     return _row_to_document(row) if row else None
 
 
-async def bm25_search(query: str, topk: int = 10) -> list[Document]:
+async def bm25_search(
+    query: str, topk: int = 10, *, exclude_ids: set[DocumentId] | None = None
+) -> list[DocumentWithScore]:
     """BM25 full-text search over generated full_text (pg_textsearch)."""
     pool = await get_pool()
     async with pool.acquire() as conn:
+        exclude_clause = (
+            "" if exclude_ids is None else f"WHERE pmid NOT IN ({', '.join(exclude_ids)})"
+        )
         rows = await conn.fetch(
-            """
-            SELECT pmid, title, abstract
+            f"""
+            SELECT pmid, title, abstract, full_text, full_text <@> $1 as score
             FROM articles
-            ORDER BY full_text <@> $1
+            {exclude_clause}
+            ORDER BY score
             LIMIT $2
             """,
             query,
             topk,
         )
-    return [_row_to_document(r) for r in rows]
+
+    return [_row_to_bm25_result(r) for r in rows]
 
 
 async def update_article_embedding(article_id: int, embedding: np.ndarray) -> None:
@@ -225,13 +246,22 @@ async def lookup_by_pmid(article_id: DocumentId) -> list[tuple[DocumentId, float
     return await vss_search(emb, topk=10000, exclude_id=article_id)
 
 
-async def add_baseline_ids(year: int, pmids: list[DocumentId]) -> None:
+"""
+SELECT articles.* FROM articles
+JOIN ids_per_baseline ON articles.pmid = ids_per_baseline.pmid AND ids_per_baseline.year = 2026
+ORDER BY embedding <@> $1::vector(1024)
+LIMIT 100;
+"""
+
+
+async def add_baseline_ids(year: int, pmids: list[tuple[DocumentId, int]]) -> None:
     """Add the PMIDs to the ids_per_baseline table."""
     pool = await get_pool()
     async with pool.acquire() as conn:
         await conn.executemany(
-            "INSERT INTO ids_per_baseline (year, pmid) VALUES ($1, $2) ON CONFLICT DO NOTHING",
-            [(year, int(pmid)) for pmid in pmids],
+            "INSERT INTO ids_per_baseline (year, pmid, offset)"
+            "VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
+            [(year, int(pmid), offset) for pmid, offset in pmids],
         )
 
 
@@ -273,16 +303,10 @@ if __name__ == "__main__":
             Path, typer.Argument(help="The path to the JSONL file containing the articles.")
         ] = Path("../../../data/baselines/pubmed_baseline_2026.jsonl"),
     ) -> None:
-        import time
 
         print("Loading PubMed articles from JSONL")
-        for docs in tqdm(
-            load_collection(jsonl_path, chunk_size=10000), desc="Inserting articles", unit="article"
-        ):
-            start_time = time.perf_counter()
-            await insert_articles(docs)
-            end_time = time.perf_counter()
-            print(f"Inserted article in {end_time - start_time} seconds")
+        for doc in tqdm(load_collection(jsonl_path), desc="Inserting articles", unit="article"):
+            await insert_articles(doc)
 
     @app.command(name="populate-with-embeddings")
     @typer_async

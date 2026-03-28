@@ -17,6 +17,7 @@ data/negatives*.jsonl
 data/lookup*.json
 data/BioASQ-task*bPhase*-testset*.json*
 data/band_aid
+data/bm25
 
 data/quality
 !data/quality/.keep

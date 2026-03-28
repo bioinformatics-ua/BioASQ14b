@@ -41,6 +41,12 @@ class Document(msgspec.Struct, frozen=True):
         return f"{self.title} {self.abstract}"
 
 
+class DocumentWithScore(Document):
+    """A PubMed document (article) with its BM25 retrieval score."""
+
+    score: float = 0.0
+
+
 class NegDoc(msgspec.Struct, frozen=True):
     """A negative document with its BM25 retrieval score."""
 
