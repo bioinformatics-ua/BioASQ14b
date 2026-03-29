@@ -669,8 +669,8 @@ def run_experiments_command(
             "batch_size": 16,
             "learning_rate": 2e-5,
             "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
-            "train_neg_path": "../../data/negatives.jsonl",
-            "full_data": True,
+            "train_neg_path": "../../data/negatives.jsonl", #TODO DELETED
+            "full_data": True, # ALWAYS TRUEEE
             "val_files": [
                 "../../data/val_data/13B3_golden.json",
                 "../../data/val_data/13B1_golden.json",

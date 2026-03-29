@@ -36,6 +36,7 @@ dependencies = [
     "rich>=14.3.3",
     "asyncpg>=0.31.0",
     "pgvector>=0.3.6",
+    "vllm>=0.2.5",
 ]
 
 [project.scripts]

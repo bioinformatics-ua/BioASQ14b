@@ -6,9 +6,7 @@ and the pg_textsearch extension for the search engine.
 
 The articles table has the following columns:
 - pmid: the pmid of the article (commonly referred to as PMID)
-- title: the title of the article
-- abstract: the abstract of the article
-- full_text: title + space + coalesced abstract (GENERATED ALWAYS AS ...)
+- full_text: the full text of the article
 - embedding: the embedding of the article
 """
 
@@ -22,7 +20,7 @@ from asyncpg import Pool
 from pgvector.asyncpg import register_vector
 from tqdm.asyncio import tqdm
 
-from bioasq.common import PROJECT_DATA_BASELINES_DIR
+from bioasq.common import PROJECT_DATA_BASELINES_DIR, PROJECT_DATA_EMBEDDINGS_DIR
 from bioasq.common.aliases import DocumentId
 from bioasq.common.io import load_collection_ids
 from bioasq.common.types import Document, DocumentWithScore
@@ -59,6 +57,13 @@ async def close_pool() -> None:
 async def create_indexes() -> None:
     pool = await get_pool()
     async with pool.acquire() as conn:
+        print("Setting up configs")
+
+        await conn.execute("SET maintenance_work_mem = '512MB'")
+        await conn.execute("SET diskann.min_vectors_for_parallel_build = 10000")
+        await conn.execute("SET diskann.force_parallel_workers = 16")
+        await conn.execute("SET diskann.parallel_flush_interval = 0.05;")
+
         print("Creating embedding index")
         await conn.execute(
             """
@@ -67,32 +72,25 @@ async def create_indexes() -> None:
             """
         )
 
-        print("Creating BM25 index")
-        await conn.execute(
-            """
-            CREATE INDEX IF NOT EXISTS articles_bm25_idx
-            ON articles USING bm25(full_text) WITH (text_config = 'english')
-            """
-        )
+        # print("Creating BM25 index")
+        # await conn.execute(
+        #     """
+        #     CREATE INDEX IF NOT EXISTS articles_bm25_idx
+        #     ON articles USING bm25(full_text) WITH (text_config = 'english')
+        #     """
+        # )
 
 
 def _row_to_document(row: asyncpg.Record) -> Document:
-    abstract_val = row["abstract"]
-    abstract_str = "" if abstract_val is None else str(abstract_val)
     return Document(
         pmid=str(row["pmid"]),
-        title=str(row["title"]),
-        abstract=abstract_str,
+        full_text=str(row["full_text"]),
     )
 
 
 def _row_to_bm25_result(row: asyncpg.Record) -> DocumentWithScore:
-    abstract_val = row["abstract"]
-    abstract_str = "" if abstract_val is None else str(abstract_val)
     return DocumentWithScore(
         pmid=str(row["pmid"]),
-        title=str(row["title"]),
-        abstract=abstract_str,
         full_text=str(row["full_text"]),
         score=-float(row["score"]),
     )
@@ -105,14 +103,14 @@ async def insert_articles(
 @overload
 async def insert_articles(
     docs: list[Document],
-    embeddings: list[np.ndarray] | None = None,
+    embeddings: np.ndarray | None = None,
     semaphore: asyncio.Semaphore | None = None,
 ) -> None: ...
 
 
 async def insert_articles(
     docs: Document | list[Document],
-    embeddings: np.ndarray | list[np.ndarray] | None = None,
+    embeddings: np.ndarray | None = None,
     semaphore: asyncio.Semaphore | None = None,
     pool: Pool | None = None,
 ) -> None:
@@ -120,8 +118,6 @@ async def insert_articles(
 
     if isinstance(docs, Document):
         docs = [docs]
-        if embeddings is not None:
-            embeddings = [embeddings]
 
     if embeddings is not None and len(docs) != len(embeddings):
         raise ValueError(
@@ -138,18 +134,17 @@ async def insert_articles(
                     [
                         (
                             int(doc.pmid),
-                            doc.title,
-                            doc.abstract or None,
-                            np.array(embedding, dtype=np.float32),
+                            doc.full_text,
+                            embedding,
                         )
                         for doc, embedding in zip(docs, embeddings, strict=True)
                     ]
                     if embeddings is not None
-                    else [(int(doc.pmid), doc.title, doc.abstract or None) for doc in docs]
+                    else [(int(doc.pmid), doc.full_text) for doc in docs]
                 ),
-                columns=("pmid", "title", "abstract", "embedding")
+                columns=("pmid", "full_text", "embedding")
                 if embeddings is not None
-                else ("pmid", "title", "abstract"),
+                else ("pmid", "full_text"),
             )
         except asyncpg.UniqueViolationError:
             return
@@ -160,10 +155,21 @@ async def get_article_by_id(article_id: int) -> Document | None:
     pool = await get_pool()
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT pmid, title, abstract FROM articles WHERE pmid = $1",
+            "SELECT pmid, full_text FROM articles WHERE pmid = $1",
             article_id,
         )
     return _row_to_document(row) if row else None
+
+
+async def get_if_articles_exist(pmids: list[DocumentId]) -> set[DocumentId]:
+    """Check if the articles exist in the database."""
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT pmid FROM articles WHERE pmid = ANY($1)",
+            pmids,
+        )
+    return {str(row["pmid"]) for row in rows}
 
 
 async def bm25_search(
@@ -177,7 +183,7 @@ async def bm25_search(
         )
         rows = await conn.fetch(
             f"""
-            SELECT pmid, title, abstract, full_text, full_text <@> $1 as score
+            SELECT pmid, full_text, full_text <@> $1 as score
             FROM articles
             {exclude_clause}
             ORDER BY score
@@ -254,14 +260,13 @@ LIMIT 100;
 """
 
 
-async def add_baseline_ids(year: int, pmids: list[tuple[DocumentId, int]]) -> None:
+async def add_baseline_ids(year: int, pmids: list[DocumentId] | list[int]) -> None:
     """Add the PMIDs to the ids_per_baseline table."""
     pool = await get_pool()
     async with pool.acquire() as conn:
         await conn.executemany(
-            "INSERT INTO ids_per_baseline (year, pmid, offset)"
-            "VALUES ($1, $2, $3) ON CONFLICT DO NOTHING",
-            [(year, int(pmid), offset) for pmid, offset in pmids],
+            "INSERT INTO ids_per_baseline (year, pmid) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+            [(year, int(pmid)) for pmid in pmids],
         )
 
 
@@ -300,10 +305,10 @@ if __name__ == "__main__":
     @typer_async
     async def populate(
         jsonl_path: Annotated[
-            Path, typer.Argument(help="The path to the JSONL file containing the articles.")
-        ] = Path("../../../data/baselines/pubmed_baseline_2026.jsonl"),
+            Path,
+            typer.Argument(help="The path to the JSONL file containing the articles.", exists=True),
+        ] = PROJECT_DATA_BASELINES_DIR / "pubmed_baseline_2026.jsonl",
     ) -> None:
-
         print("Loading PubMed articles from JSONL")
         for doc in tqdm(load_collection(jsonl_path), desc="Inserting articles", unit="article"):
             await insert_articles(doc)
@@ -312,11 +317,12 @@ if __name__ == "__main__":
     @typer_async
     async def populate_with_embeddings(
         jsonl_path: Annotated[
-            Path, typer.Argument(help="The path to the JSONL file containing the articles.")
-        ] = Path("../../../data/baselines/pubmed_baseline_2026.jsonl"),
+            Path,
+            typer.Argument(help="The path to the JSONL file containing the articles.", exists=True),
+        ] = PROJECT_DATA_BASELINES_DIR / "pubmed_baseline_2026.jsonl",
         embeddings_dir: Annotated[
             Path, typer.Argument(help="The path to the embeddings file.")
-        ] = Path("../../../data/embeddings_2026"),
+        ] = PROJECT_DATA_EMBEDDINGS_DIR,
     ) -> None:
 
         import numpy as np

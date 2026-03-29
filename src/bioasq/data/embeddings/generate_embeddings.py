@@ -8,11 +8,11 @@ and ``<stem>.ids.json`` (same-length list of PMIDs / document ids as strings).
 TEI returns embeddings in the same order as ``inputs``, so rows align with ids.
 
 Docker usage examples:
-docker run --gpus '"device=0"' -p 8080:80 -v $PWD/data/dense_vectors:/data --pull always \
+docker run --device nvidia.com/gpu=0 -p 8080:80 -v $PWD/tei-volume:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
   --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
 
-docker run --gpus '"device=1"' -p 8081:80 -v $PWD/data/dense_vectors:/data --pull always \
+docker run --device nvidia.com/gpu=1 -p 8081:80 -v $PWD/tei-volume:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
   --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
 """
@@ -20,25 +20,31 @@ docker run --gpus '"device=1"' -p 8081:80 -v $PWD/data/dense_vectors:/data --pul
 import asyncio
 import random
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING, Annotated, Literal
 
 import httpx
 import numpy as np
 import typer
 from tqdm.asyncio import tqdm
 
-from bioasq.common.aliases import DocumentId
 from bioasq.common.io import load_collection, save_json
+from bioasq.common.types import Document
 from bioasq.common.utils import typer_async
-from bioasq.data.database import create_indexes, update_article_embedding
+from bioasq.data.database import (
+    add_baseline_ids,
+    insert_articles,
+    update_article_embedding,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
 
+    from bioasq.common.aliases import DocumentId
+
 
 app = typer.Typer()
 
-ENDPOINTS = ["http://localhost:8080/embed"]  # "http://localhost:8081/embed"
+ENDPOINTS = ["http://localhost:8080/embed", "http://localhost:8081/embed"]
 MAX_EMBEDDINGS_PER_GPU = 16
 N_GPUS = len(ENDPOINTS)
 
@@ -53,38 +59,55 @@ async def call_tei(
 
 
 async def process_chunk_async(
-    texts: list[tuple[DocumentId, str]], output_file: Path, tei_batch_size: int = 16
+    documents: list[Document],
+    output_file: Path | None = None,
+    insert_into_db: Literal["insert", "update", "none"] = "none",
+    tei_batch_size: int = 16,
 ) -> None:
     semaphore = asyncio.Semaphore(MAX_EMBEDDINGS_PER_GPU * N_GPUS)  # This is the LIMIT of TEI
-    ordered_ids: list[int] = [int(doc_id) for doc_id, _ in texts]
+    ordered_ids: list[int] = [int(doc.pmid) for doc in documents]
 
     async with httpx.AsyncClient() as client:
         tasks: list[Awaitable[list[list[float]]]] = []
 
-        for i in range(0, len(texts), tei_batch_size):
+        for i in range(0, len(documents), tei_batch_size):
             url = random.choice(ENDPOINTS)
-            batch = texts[i : i + tei_batch_size]
-            text_inputs = [t for _, t in batch]
+            batch = documents[i : i + tei_batch_size]
+            text_inputs = [d.full_text for d in batch]
             tasks.append(call_tei(client, url, text_inputs, semaphore))
 
-        # Gather results for this 100k chunk (order matches batch submission order)
         results = await tqdm.gather(*tasks, desc="Encoding Batches", leave=False)
-        print(f"Results length: {len(results)}")
-        # Flatten and save (row i <-> ordered_ids[i], same as TEI input order)
+
         embeddings = np.concatenate([np.array(r, dtype=np.float16) for r in results])
         print(f"Embeddings shape: {embeddings.shape}")
-        if embeddings.shape[0] != len(ordered_ids):
+
+        if embeddings.shape[0] != len(documents):
             raise RuntimeError(
-                f"Embedding rows ({embeddings.shape[0]}) != ids ({len(ordered_ids)})"
+                f"Embedding rows ({embeddings.shape[0]}) != documents ({len(documents)})"
             )
 
-        print(f"Saving embeddings to {output_file}")
-        np.save(output_file, embeddings)
-        save_json(ordered_ids, output_file.with_name(f"{output_file.stem}.ids.json"))
+        if output_file is not None:
+            print(f"Saving embeddings to {output_file}")
+            np.save(output_file, embeddings)
+            save_json(ordered_ids, output_file.with_name(f"{output_file.stem}.ids.json"))
 
-        print("Saving embeddings in database")
-        for id_, embedding in zip(ordered_ids, embeddings, strict=True):
-            await update_article_embedding(id_, embedding)
+        try:
+            match insert_into_db:
+                case "insert":
+                    print("Inserting articles and embeddings into database")
+                    await insert_articles(documents, embeddings)
+                    print("PIXA2 Adding baseline ids")
+                    await add_baseline_ids(2026, ordered_ids)
+                case "update":
+                    print("Updating embeddings in database")
+                    for id_, embedding in zip(ordered_ids, embeddings, strict=True):
+                        await update_article_embedding(id_, embedding)
+                case "none":
+                    pass
+
+        except Exception as e:
+            print(f"Error inserting articles and embeddings into database: {e}")
+            return
 
 
 @app.command()
@@ -125,10 +148,6 @@ async def main(
         remainder_ids_path = out_path.with_name(f"{out_path.stem}.ids.json")
         if not out_path.exists() or not remainder_ids_path.exists():
             await process_chunk_async(current_chunk, out_path)
-
-    print("Creating indexes")
-    await create_indexes()
-    print("Indexes created")
 
 
 if __name__ == "__main__":

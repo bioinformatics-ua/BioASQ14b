@@ -28,17 +28,19 @@ class QuestionType(StrEnum):
 # Core domain objects
 # ---------------------------------------------------------------------------
 
+class DocumentOriginal(msgspec.Struct, frozen=True):
+    """A PubMed document (article)."""
+
+    pmid: str
+    title: str
+    abstract: str
+
 
 class Document(msgspec.Struct, frozen=True):
     """A PubMed document (article)."""
 
     pmid: str
-    title: str = ""
-    abstract: str = ""
-
-    @property
-    def full_text(self) -> str:
-        return f"{self.title} {self.abstract}"
+    full_text: str
 
 
 class DocumentWithScore(Document):

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import msgspec
 
-from bioasq.common.types import Document
+from bioasq.common.types import Document, DocumentOriginal
 
 document_decoder = msgspec.json.Decoder(Document)
+document_original_decoder = msgspec.json.Decoder(DocumentOriginal)

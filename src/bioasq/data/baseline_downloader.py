@@ -11,6 +11,7 @@ Usage:
     python pubmed_downloader.py parse 2026 --workers 8
 """
 
+import asyncio
 import gzip
 import random
 import time
@@ -25,6 +26,11 @@ import pubmed_parser as pp
 import requests
 import typer
 from lxml import etree
+
+from bioasq.common import PROJECT_DATA_BASELINES_DIR
+from bioasq.common.types import Document
+from bioasq.data.database import add_baseline_ids, get_if_articles_exist, insert_articles
+from bioasq.data.embeddings.generate_embeddings import process_chunk_async
 
 app = typer.Typer(
     help="Two-stage PubMed baseline downloader and parser.",
@@ -167,8 +173,14 @@ def get_pubmed_links(years: list[int]) -> list[PubmedLink]:
             else f"https://web.archive.org/web/20241219010838/https://lhncbc.nlm.nih.gov/ii/information/MBR/Baselines/{year}.html"
         )
 
-        output: bytes = urlopen(url).read()
-        print(f"Fetching index page for year {year} from {url}")
+        while True:
+            try:
+                print(f"Fetching index page for year {year} from {url}...")
+                output: bytes = urlopen(url).read()
+                break
+            except Exception as e:
+                print(f"Error fetching index page for year {year} from {url}: {e}")
+                time.sleep(random.uniform(1, 10))
 
         tree = etree.fromstring(output.decode("utf-8"), etree.HTMLParser())
 
@@ -194,7 +206,7 @@ type DownloadStats = tuple[int, int, int]  # downloaded, skipped, failed
 
 def download_file_worker(
     worker_id: int,
-    task_queue: Queue[PubmedLink | None],
+    task_queue: Queue,
     base_dir: str,
     max_retries: int = 40,
 ) -> DownloadStats:
@@ -262,19 +274,21 @@ def download_main(
         typer.Option("-w", "--workers", help="Parallel download workers"),
     ] = DEFAULT_WORKERS,
     base_dir: Annotated[
-        str,
+        Path,
         typer.Option("-d", "--dir", help="Base directory for downloads"),
-    ] = "downloaded_baselines",
+    ] = PROJECT_DATA_BASELINES_DIR / "downloaded_baselines",
 ) -> None:
     """Download all files for given years."""
     print(f"Downloading PubMed baselines for years: {years}")
     print(f"Base directory: {base_dir}")
     print(f"Workers: {workers}\n")
 
+    base_dir.mkdir(parents=True, exist_ok=True)
+
     links = get_pubmed_links(years)
     print(f"\nTotal files to download: {len(links)}\n")
 
-    task_queue: Queue[PubmedLink | None] = Queue()
+    task_queue: Queue = Queue()
     for year, url, filename in links:
         task_queue.put((year, url, filename))
     task_queue.put(None)
@@ -316,8 +330,8 @@ def parse_local_file(filepath: str, output_fields: list[str]) -> list[dict]:
 
 def parse_worker(
     worker_id: int,
-    task_queue: Queue[str | None],
-    results_queue: Queue[dict | str],
+    task_queue: Queue,
+    results_queue: Queue,
     output_fields: list[str],
 ) -> None:
     """Worker: parse files and put articles to results."""
@@ -339,15 +353,25 @@ def parse_worker(
         articles = parse_local_file(filepath, output_fields)
         files_processed += 1
 
-        for article in articles:
-            results_queue.put(article)
+        results_queue.put(
+            [
+                Document(
+                    pmid=article["pmid"], full_text=article["title"] + " " + article["abstract"]
+                )
+                for article in articles
+            ]
+        )
 
-        print(f"[{worker_id}] ✓ {filename}: {len(articles)} articles")
+        print(
+            f"[{worker_id}] ✓ {filename}: {len(articles)} articles. first pmid: {articles[0]['pmid']}"
+        )
+
+        time.sleep(20)
 
     results_queue.put(f"WORKER_{worker_id}_DONE:{files_processed}")
 
 
-def writer_process(results_queue: Queue[dict | str], output_file: str, num_workers: int) -> None:
+def writer_process(results_queue: Queue, output_file: str, num_workers: int) -> None:
     """Write results to JSONL."""
     total_articles = 0
     workers_done = 0
@@ -362,7 +386,7 @@ def writer_process(results_queue: Queue[dict | str], output_file: str, num_worke
                 files_done = int(item.split(":")[1])
                 total_files += files_done
             else:
-                f_out.write(orjson.dumps(item) + "\n")
+                f_out.write(orjson.dumps(item) + b"\n")
                 total_articles += 1
                 if total_articles % 5000 == 0:
                     print(f"  Writer: {total_articles} articles...")
@@ -373,41 +397,75 @@ def writer_process(results_queue: Queue[dict | str], output_file: str, num_worke
 _DEFAULT_FIELDS = ("pmid", "title", "abstract")
 
 
+async def db_process(results_queue: Queue, num_workers: int, embeddings: bool, year: int) -> None:
+    """Process embeddings and insert into database."""
+    total_articles = 0
+    workers_done = 0
+    total_files = 0
+
+    while workers_done < num_workers:
+        item = results_queue.get()
+        print(f"PIXA Getting item: {len(item)}, first pmid: {item[0].pmid}")
+
+        if isinstance(item, str) and item.startswith("WORKER_"):
+            workers_done += 1
+            files_done = int(item.split(":")[1])
+            total_files += files_done
+        else:
+            total_articles += 1
+            if embeddings:
+                await process_chunk_async(item, insert_into_db="insert")
+            else:
+                existing = await get_if_articles_exist([int(doc.pmid) for doc in item])
+                print(f"PIXA Adding {len(item) - len(existing)} baseline ids to database")
+                await insert_articles([doc for doc in item if str(doc.pmid) not in existing])
+                await add_baseline_ids(year, [int(doc.pmid) for doc in item])
+
+    print(f"\nWriter: {total_files} files → {total_articles} articles")
+
+
 @app.command("parse")
 def parse_main(
-    years: Annotated[list[int], typer.Argument(help="Years to parse")],
+    year: Annotated[int, typer.Argument(help="Year to parse")],
     output_file: Annotated[
-        str,
+        Path | None,
         typer.Option("-o", "--output", help="Output JSONL file"),
-    ],
+    ] = None,
     workers: Annotated[
         int,
         typer.Option("-w", "--workers", help="Parallel parsing workers"),
     ] = DEFAULT_WORKERS,
     base_dir: Annotated[
-        str,
+        Path,
         typer.Option("-d", "--dir", help="Base directory with downloads"),
-    ] = "downloaded_baselines",
+    ] = PROJECT_DATA_BASELINES_DIR / "downloaded_baselines",
     output_fields: Annotated[
         list[str] | None,
         typer.Option("-f", "--fields", help="Fields to include in output"),
     ] = None,
+    embeddings: Annotated[
+        bool,
+        typer.Option("-e", "--embeddings", help="Generate embeddings"),
+    ] = False,
+    chunk_size: Annotated[
+        int,
+        typer.Option("-c", "--chunk-size", help="Chunk size for database processing"),
+    ] = 5000,
 ) -> None:
     """Parse downloaded files."""
     if output_fields is None:
         output_fields = list(_DEFAULT_FIELDS)
 
-    print(f"Parsing PubMed baselines for years: {years}")
+    print(f"Parsing PubMed baselines for year: {year}")
     print(f"Base directory: {base_dir}")
-    print(f"Output: {output_file}")
     print(f"Workers: {workers}\n")
 
     # Collect all files
-    files_to_parse = []
-    for year in years:
-        year_dir = Path(base_dir) / str(year)
-        if year_dir.exists():
-            files_to_parse.extend(year_dir.glob("*.xml.gz"))
+    year_dir = Path(base_dir) / str(year)
+    if not year_dir.exists():
+        print(f"Year directory {year_dir} does not exist! Run download first.")
+        return
+    files_to_parse = list(year_dir.glob("*.xml.gz"))
 
     if not files_to_parse:
         print("No files found! Run download first.")
@@ -420,22 +478,29 @@ def parse_main(
         task_queue.put(str(f))
     task_queue.put(None)
 
-    results_queue: Queue[dict | str] = Queue()
+    results_queue: Queue[list[dict] | str] = Queue()
 
     worker_ps = [
         Process(target=parse_worker, args=(i, task_queue, results_queue, output_fields))
         for i in range(workers)
     ]
 
-    writer_p = Process(target=writer_process, args=(results_queue, output_file, workers))
+    # writer_p = Process(target=writer_process, args=(results_queue, output_file, workers))
 
-    writer_p.start()
+    def db_process_wrapper(results_queue: Queue, workers: int, embeddings: bool, year: int) -> None:
+        asyncio.run(db_process(results_queue, workers, embeddings, year))
+
+    db_p = Process(target=db_process_wrapper, args=(results_queue, workers, embeddings, year))
+
+    # writer_p.start()
+    db_p.start()
     for wp in worker_ps:
         wp.start()
 
     for wp in worker_ps:
         wp.join()
-    writer_p.join()
+    # writer_p.join()
+    db_p.join()
 
     print("\n" + "=" * 50)
     print("Parse stage complete!")

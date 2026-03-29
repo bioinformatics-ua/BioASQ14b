@@ -7,21 +7,19 @@ Replaces all scattered ``json.load``, ``orjson.loads``, and raw
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeVar, overload
+from typing import TYPE_CHECKING, overload
 
 import msgspec
 
-from bioasq.common.aliases import DocumentId
-from bioasq.common.decoders import document_decoder
+from bioasq.common.decoders import document_original_decoder
+from bioasq.common.types import Document
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterator, Sequence
     from pathlib import Path
 
-    from bioasq.common.types import Document
+    from bioasq.common.aliases import DocumentId
 
-
-T = TypeVar("T")
 
 _json_encoder: msgspec.json.Encoder = msgspec.json.Encoder()
 _json_decoder: msgspec.json.Decoder[object] = msgspec.json.Decoder()
@@ -151,18 +149,22 @@ def load_collection(
     with path.open("rb") as f:
         chunk: list[Document] = []
         for line in f:
-            article = document_decoder.decode(line)
+            article = document_original_decoder.decode(line)
+            document = Document(
+                pmid=article.pmid,
+                full_text=f"{article.title} {article.abstract}",
+            )
 
             if constraints is not None:
                 for constraint in constraints:
-                    if not constraint(article):
+                    if not constraint(document):
                         continue
 
             if chunk_size == 1:
-                yield article
+                yield document
                 continue
 
-            chunk.append(article)
+            chunk.append(document)
             if len(chunk) == chunk_size:
                 yield chunk
                 chunk = []
