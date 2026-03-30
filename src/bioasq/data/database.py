@@ -115,20 +115,30 @@ async def insert_articles(
     semaphore: asyncio.Semaphore | None = None,
     pool: Pool | None = None,
 ) -> None:
-    """Insert a PubMed-style article; duplicate pmid is ignored."""
+    """Insert PubMed-style articles in bulk; duplicate pmids are silently ignored."""
 
     if isinstance(docs, Document):
         docs = [docs]
+    if not docs:
+        return
+
+    records = [(int(doc.pmid), doc.full_text) for doc in docs]
 
     async with semaphore or asyncio.Semaphore(1), (pool or await get_pool()).acquire() as conn:
-        try:
+        async with conn.transaction():
+            await conn.execute(
+                "CREATE TEMP TABLE _tmp_articles (pmid bigint, full_text text) ON COMMIT DROP"
+            )
             await conn.copy_records_to_table(
-                "articles",
-                records=([(int(doc.pmid), doc.full_text) for doc in docs]),
+                "_tmp_articles",
+                records=records,
                 columns=("pmid", "full_text"),
             )
-        except asyncpg.UniqueViolationError:
-            return
+            await conn.execute(
+                "INSERT INTO articles (pmid, full_text) "
+                "SELECT pmid, full_text FROM _tmp_articles "
+                "ON CONFLICT (pmid) DO NOTHING"
+            )
 
 
 async def get_article_by_id(article_id: int) -> Document | None:
@@ -325,8 +335,7 @@ if __name__ == "__main__":
         for docs in tqdm(
             load_collection(jsonl_path, chunk_size=50000), desc="Inserting articles", unit="article"
         ):
-            existing = await get_if_articles_exist([int(doc.pmid) for doc in docs])
-            await insert_articles([doc for doc in docs if str(doc.pmid) not in existing])
+            await insert_articles(docs)
             await add_baseline_ids(year, [doc.pmid for doc in docs])
 
     @app.command(name="populate-with-embeddings")
