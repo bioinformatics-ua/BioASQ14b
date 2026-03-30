@@ -9,7 +9,6 @@
       "template": "Act as a biomedical expert. You will receive retrieved documents and an open-ended **summary** question.\n\n<context>\n{context}\n</context>\n\n<question>\n{question}\n</question>\n\nINSTRUCTIONS:\n1. Step through the context and identify themes that answer the question.\n2. Write **ideal_answer**: one narrative paragraph (plain text only, no lists or markdown) that **summarizes** the topic for a biomedical reader, strictly between 50 and 200 words, grounded only in the context.\n3. Output ONLY valid JSON with keys reasoning (string) and ideal_answer (string). No markdown fences.\n\nEXAMPLE OUTPUT:\n{{\n  \"reasoning\": \"Key themes: definition from doc1; mechanism from doc2; ...\",\n  \"ideal_answer\": \"Topic X is ... (unified summary paragraph).\"\n}}"
     }
   },
-
   "yesno": {
     "1": {
       "description": "Yes/no exact answer only. Chain-of-thought reasoning, then a single JSON with exact_answer yes or no.",
@@ -28,7 +27,6 @@
       "template": "Act as a biomedical expert. You will receive several abstracts and a yes/no question.\n\nThe question makes a specific claim. In one sentence, state whether the abstracts support, contradict, or are inconclusive about that specific claim. Then answer yes or no based on that sentence — answer \"yes\" only if the abstracts clearly support the claim.\n\nOutput your sentence followed by only this JSON (no markdown):\n{{\"exact_answer\": \"yes\"}}\nor\n{{\"exact_answer\": \"no\"}}\n\nQuestion: {question}\n\n{context}"
     }
   },
-
   "factoid": {
     "1": {
       "description": "Factoid exact answer only. Up to 5 candidate named entities ranked by likelihood.",
@@ -55,7 +53,6 @@
       "template": "Act as a biomedical expert. You will receive several abstracts and a factoid question asking for a specific named entity.\n\nFirst, rewrite the question as a fill-in-the-blank statement (e.g. 'What drug treats X?' → 'The drug that treats X is ___'). Then scan each abstract for text that fills the blank. Rank up to 5 candidates by how explicitly they fill it.\n\nOutput only this JSON (no markdown):\n{{\"exact_answer\": [\"best answer\", \"second best\", \"third\"]}}\n\nUse exact names as they appear in the abstracts.\n\nQuestion: {question}\n\n{context}"
     }
   },
-
   "list": {
     "1": {
       "description": "List exact answer only. All relevant entities as a nested list, each wrapped in its own array.",

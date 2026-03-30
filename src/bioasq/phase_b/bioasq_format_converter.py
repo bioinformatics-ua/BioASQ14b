@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Any
 
 import orjson
 import typer
@@ -33,23 +33,26 @@ def main(
     ideal_answer: Annotated[Path, typer.Argument(..., help="Path to ideal answer JSON file")],
     out_file: Annotated[Path, typer.Argument(..., help="Path to output JSON file")],
     fallback_ideal_answer: Annotated[
-        Path,
+        Path | None,
         typer.Option(
             default=None,
             help="Path to fallback ideal answer JSON file, which is used when primary is invalid",
         ),
-    ],
+    ] = None,
     exact_answer: Annotated[
-        Path,
-        typer.Option(..., help="Path to exact answer JSON file (per-question, with valid flag)"),
-    ],
+        Path | None,
+        typer.Option(
+            default=None,
+            help="Path to exact answer JSON file (per-question, with valid flag)",
+        ),
+    ] = None,
 ) -> None:
     testset = orjson.loads(test_set.read_bytes())
     ideal_predictions = orjson.loads(ideal_answer.read_bytes())
     fallback_predictions = orjson.loads(fallback_ideal_answer.read_bytes() or b"{}")
     exact_predictions = orjson.loads(exact_answer.read_bytes() or b"{}")
 
-    new_data = {"questions": []}
+    new_data: dict[str, list[dict[str, Any]]] = {"questions": []}
 
     for q in testset["questions"]:
         qid = q["id"]

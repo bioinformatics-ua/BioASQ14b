@@ -12,19 +12,15 @@ Refactored from ``phaseB-alex/synthesis/synthesize.py`` (the more
 feature-complete version with exact answer merging).
 """
 
-from __future__ import annotations
-
-import json
 import math
 import re
 from collections import Counter
 from collections.abc import Mapping, Sequence
-from typing import TYPE_CHECKING
 
+import orjson
+
+from bioasq.common.protocols import BaseModelBackend
 from bioasq.common.types import SynthesisResult
-
-if TYPE_CHECKING:
-    from bioasq.common.protocols import BaseModelBackend
 
 # Exact answer type: can be a string, list of strings, list of synonym lists, or None
 type ExactAnswer = list[str] | list[list[str]] | str | None
@@ -190,11 +186,11 @@ def parse_synthesis_output(text: str) -> tuple[bool, str | None]:
     matches: list[str] = re.findall(r"\{.*?\}", text, re.DOTALL)
     if matches:
         try:
-            parsed: dict[str, str] = json.loads(matches[-1], strict=False)
+            parsed: dict[str, str] = orjson.loads(matches[-1])
             ideal: str | None = parsed.get("ideal_answer")
             if ideal:
                 return True, str(ideal)
-        except json.JSONDecodeError:
+        except orjson.JSONDecodeError:
             pass
     return False, None
 

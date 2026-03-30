@@ -40,7 +40,7 @@ def context_from_question(q: dict[str, Any], max_chars: int) -> str:
     parts: list[str] = []
     for d in docs:
         if isinstance(d, dict) and isinstance(d.get("text"), str):
-            parts.append(cast(str, d["text"]))
+            parts.append(cast("str", d["text"]))
     snippets = q.get("snippets") or []
     for s in snippets:
         if isinstance(s, str):

@@ -1,20 +1,17 @@
-from __future__ import annotations
-
-import json
 import re
 from typing import Any, cast
 
-from loaders.base import BaseModelBackend
-from loaders.cloud import OpenRouterBackend
-from loaders.local import VLLMBackend
+import orjson
 
-from evaluation.prediction_normalize import (
+from bioasq.phase_b.backends.base import BaseModelBackend
+from bioasq.phase_b.backends.cloud import OpenRouterBackend
+from bioasq.phase_b.backends.local import VLLMBackend
+from bioasq.phase_b.evaluation.prediction_normalize import (
     context_from_question,
     gold_references_html,
     ideal_answer_text_for_judge,
 )
-from evaluation.schemas import JudgeScores
-
+from bioasq.phase_b.evaluation.schemas import JudgeScores
 
 _JUDGE_SYSTEM = (
     "You are a biomedical question-answering evaluator. "
@@ -56,18 +53,18 @@ def parse_judge_json(text: str) -> dict[str, object]:
         s = re.sub(r"\s*```\s*$", "", s)
     s = s.strip()
     try:
-        obj = json.loads(s)
+        obj = orjson.loads(s)
         if isinstance(obj, dict):
             return obj
-    except json.JSONDecodeError:
+    except orjson.JSONDecodeError:
         pass
     m = re.findall(r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", text, flags=re.DOTALL)
     for chunk in reversed(m):
         try:
-            obj = json.loads(chunk)
+            obj = orjson.loads(chunk)
             if isinstance(obj, dict):
                 return obj
-        except json.JSONDecodeError:
+        except orjson.JSONDecodeError:
             continue
     # Last resort: truncated JSON repair — close any open string then the object
     for candidate in (s, text):
@@ -79,18 +76,18 @@ def parse_judge_json(text: str) -> dict[str, object]:
                 else:
                     repaired += '"}'
             try:
-                obj = json.loads(repaired)
+                obj = orjson.loads(repaired)
                 if isinstance(obj, dict) and any(
                     k in obj for k in ("correctness", "faithfulness", "overall")
                 ):
-                    print(f"[judge] WARNING: repaired truncated JSON", flush=True)
+                    print("[judge] WARNING: repaired truncated JSON", flush=True)
                     return obj
-            except json.JSONDecodeError:
+            except orjson.JSONDecodeError:
                 pass
     raise ValueError(
         f"judge response did not contain valid JSON object.\n"
-        f"--- RAW RESPONSE (repr) ---\n{repr(text)}\n"
-        f"--- RAW RESPONSE (stripped) ---\n{repr(s)}\n"
+        f"--- RAW RESPONSE (repr) ---\n{text!r}\n"
+        f"--- RAW RESPONSE (stripped) ---\n{s!r}\n"
         f"---"
     )
 
@@ -107,12 +104,9 @@ def coerce_judge_scores(d: dict[str, object]) -> JudgeScores:
     fh = f("faithfulness")
     cp = f("completeness")
     ov = d.get("overall")
-    if ov is not None:
-        overall = max(0.0, min(1.0, float(ov)))
-    else:
-        overall = (c + fh + cp) / 3.0
+    overall = max(0.0, min(1.0, float(ov))) if ov is not None else (c + fh + cp) / 3.0
     rationale = d.get("rationale")
-    r = str(rationale) if rationale is not None else ""
+    r = rationale or ""
     return JudgeScores(
         correctness=c, faithfulness=fh, completeness=cp, overall=overall, rationale=r
     )
@@ -137,9 +131,7 @@ def build_backend(
             max_model_len=max_model_len,
         )
     if backend == "openrouter":
-        return OpenRouterBackend(
-            model=model, max_tokens=max_tokens, temperature=temperature
-        )
+        return OpenRouterBackend(model=model, max_tokens=max_tokens, temperature=temperature)
     raise ValueError(f"unknown backend {backend}")
 
 
@@ -155,15 +147,13 @@ def run_judge_batch(
         results: dict[str, JudgeScores] = {}
         for q, pred in pairs:
             qid = str(q["id"])
-            cand = ideal_answer_text_for_judge(cast(dict[str, Any], pred))
+            cand = ideal_answer_text_for_judge(cast("dict[str, Any]", pred))
             ia_raw = q.get("ideal_answer")
             strs: list[str] = (
-                [x for x in ia_raw if isinstance(x, str)]
-                if isinstance(ia_raw, list)
-                else []
+                [x for x in ia_raw if isinstance(x, str)] if isinstance(ia_raw, list) else []
             )
             rb = gold_references_html(strs)
-            ctx = context_from_question(cast(dict[str, Any], q), context_max_chars)
+            ctx = context_from_question(cast("dict[str, Any]", q), context_max_chars)
             messages = make_judge_messages(
                 str(q["body"]),
                 str(q["type"]),
@@ -172,9 +162,9 @@ def run_judge_batch(
                 cand or "(empty answer)",
             )
             raw = backend.generate_chat(messages)
-            print(f"[judge] qid={qid} raw={repr(raw)}", flush=True)
+            print(f"[judge] qid={qid} raw={raw!r}", flush=True)
             parsed = parse_judge_json(raw)
-            results[qid] = coerce_judge_scores(cast(dict[str, object], parsed))
+            results[qid] = coerce_judge_scores(cast("dict[str, object]", parsed))
         return results
     finally:
         backend.unload()

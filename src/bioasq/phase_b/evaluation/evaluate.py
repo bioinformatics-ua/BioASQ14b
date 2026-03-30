@@ -22,13 +22,13 @@ from pathlib import Path
 # Allow imports from project root regardless of working directory
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from loaders.dataloader import BioASQDataLoader
-from evaluation.metrics import evaluate_all
-
+from bioasq.phase_b.dataloader import BioASQDataLoader
+from bioasq.phase_b.evaluation.metrics import evaluate_all
 
 # ---------------------------------------------------------------------------
 # Report printing
 # ---------------------------------------------------------------------------
+
 
 def print_report(results: dict, n_total: int, n_valid: int) -> None:
     """
@@ -106,36 +106,31 @@ def print_report(results: dict, n_total: int, n_valid: int) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Score BioASQ Phase B predictions against ground truth"
     )
     parser.add_argument(
-        "--predictions",
-        required=True,
-        help="Path to predictions JSON (output of inference/run.py)"
+        "--predictions", required=True, help="Path to predictions JSON (output of inference/run.py)"
     )
     parser.add_argument(
         "--ground-truth",
         required=True,
-        help="Path to BioASQ JSON with gold answers (e.g. training14b.json)"
+        help="Path to BioASQ JSON with gold answers (e.g. training14b.json)",
     )
-    parser.add_argument(
-        "--output",
-        default=None,
-        help="Optional path to save the report as JSON"
-    )
+    parser.add_argument("--output", default=None, help="Optional path to save the report as JSON")
     parser.add_argument(
         "--question-types",
         nargs="+",
         default=["yesno", "factoid", "list", "summary"],
-        help="Question types to evaluate (default: all four)"
+        help="Question types to evaluate (default: all four)",
     )
     parser.add_argument(
         "--limit",
         type=int,
         default=None,
-        help="Cap number of ground truth questions (for quick checks)"
+        help="Cap number of ground truth questions (for quick checks)",
     )
 
     args = parser.parse_args()
@@ -167,9 +162,7 @@ def main() -> None:
 
     # Keep only questions that have gold answers and appear in predictions
     ground_truth = [
-        q for q in loader
-        if q.get("ideal_answer") is not None
-        and q["id"] in predictions
+        q for q in loader if q.get("ideal_answer") is not None and q["id"] in predictions
     ]
     print(f"Ground truth questions available for scoring: {len(ground_truth)}")
 

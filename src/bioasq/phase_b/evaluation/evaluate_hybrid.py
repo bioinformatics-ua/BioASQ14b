@@ -47,26 +47,26 @@ Example (both):
 
 from __future__ import annotations
 
-import json
 import sys
 from dataclasses import asdict
 from pathlib import Path
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
+import orjson
 import typer
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from evaluation.evaluate import print_report
-from evaluation.llm_judge import build_backend, judge_score_means, run_judge_batch
-from evaluation.metrics import evaluate_all
-from evaluation.prediction_normalize import metrics_ready_predictions
-from loaders.dataloader import BioASQDataLoader
+from bioasq.phase_b.dataloader import BioASQDataLoader
+from bioasq.phase_b.evaluation.evaluate import print_report
+from bioasq.phase_b.evaluation.llm_judge import build_backend, judge_score_means, run_judge_batch
+from bioasq.phase_b.evaluation.metrics import evaluate_all
+from bioasq.phase_b.evaluation.prediction_normalize import metrics_ready_predictions
 
 app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 
-def _parse_types(spec: Optional[str]) -> Optional[set[str]]:
+def _parse_types(spec: str | None) -> set[str] | None:
     if spec is None or not spec.strip():
         return None
     return {x.strip() for x in spec.split(",") if x.strip()}
@@ -74,8 +74,8 @@ def _parse_types(spec: Optional[str]) -> Optional[set[str]]:
 
 def _filter_golden(
     loader: BioASQDataLoader,
-    types: Optional[set[str]],
-    limit: Optional[int],
+    types: set[str] | None,
+    limit: int | None,
 ) -> list[dict[str, Any]]:
     rows = [q for q in loader if q.get("ideal_answer")]
     if types is not None:
@@ -86,8 +86,8 @@ def _filter_golden(
 
 
 def _load_predictions(path: Path) -> dict[str, dict[str, Any]]:
-    with open(path) as f:
-        raw = json.load(f)
+    with path.open("rb") as f:
+        raw = orjson.loads(f.read_bytes())
     return {str(k): v for k, v in raw.items() if isinstance(v, dict)}
 
 
@@ -101,16 +101,14 @@ def _align_predictions(
 
 @app.command("classical")
 def classical_cmd(
-    predictions: Annotated[
-        Path, typer.Option("--predictions", exists=True, dir_okay=False)
-    ],
+    predictions: Annotated[Path, typer.Option("--predictions", exists=True, dir_okay=False)],
     golden: Annotated[Path, typer.Option("--golden", exists=True, dir_okay=False)],
-    output: Annotated[Optional[Path], typer.Option("--output", dir_okay=False)] = None,
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
     question_types: Annotated[
-        Optional[str],
+        str | None,
         typer.Option("--question-types", help="Comma list: yesno,factoid,list,summary"),
     ] = None,
-    limit: Annotated[Optional[int], typer.Option("--limit", min=1)] = None,
+    limit: Annotated[int | None, typer.Option("--limit", min=1)] = None,
 ) -> None:
     types = _parse_types(question_types)
     loader = BioASQDataLoader(str(golden))
@@ -132,31 +130,25 @@ def classical_cmd(
             "n_valid": n_valid,
             "metrics": results,
         }
-        with open(output, "w") as f:
-            json.dump(payload, f, indent=2)
+        with output.open("wb") as f:
+            f.write(orjson.dumps(payload))
         typer.echo(f"Wrote {output}")
 
 
 @app.command("judge")
 def judge_cmd(
-    predictions: Annotated[
-        Path, typer.Option("--predictions", exists=True, dir_okay=False)
-    ],
+    predictions: Annotated[Path, typer.Option("--predictions", exists=True, dir_okay=False)],
     golden: Annotated[Path, typer.Option("--golden", exists=True, dir_okay=False)],
     backend: Annotated[str, typer.Option("--backend")] = "openrouter",
-    model: Annotated[
-        str, typer.Option("--model", "-m")
-    ] = "anthropic/claude-sonnet-4-6",
-    output: Annotated[Optional[Path], typer.Option("--output", dir_okay=False)] = None,
-    question_types: Annotated[Optional[str], typer.Option("--question-types")] = None,
-    limit: Annotated[Optional[int], typer.Option("--limit", min=1)] = None,
+    model: Annotated[str, typer.Option("--model", "-m")] = "anthropic/claude-sonnet-4-6",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+    question_types: Annotated[str | None, typer.Option("--question-types")] = None,
+    limit: Annotated[int | None, typer.Option("--limit", min=1)] = None,
     max_tokens: Annotated[int, typer.Option("--max-tokens")] = 2048,
     temperature: Annotated[float, typer.Option("--temperature")] = 0.0,
     context_max_chars: Annotated[int, typer.Option("--context-max-chars")] = 6000,
     tensor_parallel_size: Annotated[int, typer.Option("--tensor-parallel-size")] = 1,
-    gpu_memory_utilization: Annotated[
-        float, typer.Option("--gpu-memory-utilization")
-    ] = 0.9,
+    gpu_memory_utilization: Annotated[float, typer.Option("--gpu-memory-utilization")] = 0.9,
     max_model_len: Annotated[int, typer.Option("--max-model-len")] = 8192,
 ) -> None:
     types = _parse_types(question_types)
@@ -179,7 +171,7 @@ def judge_cmd(
     )
     scores = run_judge_batch(b, pairs, context_max_chars)
     means = judge_score_means(scores)
-    typer.echo(json.dumps({"judge_means": means}, indent=2))
+    typer.echo(orjson.dumps({"judge_means": means}).decode("utf-8"))
     if output is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
         detail = {qid: asdict(s) for qid, s in scores.items()}
@@ -192,31 +184,25 @@ def judge_cmd(
             "judge_means": means,
             "per_question": detail,
         }
-        with open(output, "w") as f:
-            json.dump(payload, f, indent=2)
+        with output.open("wb") as f:
+            f.write(orjson.dumps(payload))
         typer.echo(f"Wrote {output}")
 
 
 @app.command("all")
 def all_cmd(
-    predictions: Annotated[
-        Path, typer.Option("--predictions", exists=True, dir_okay=False)
-    ],
+    predictions: Annotated[Path, typer.Option("--predictions", exists=True, dir_okay=False)],
     golden: Annotated[Path, typer.Option("--golden", exists=True, dir_okay=False)],
     backend: Annotated[str, typer.Option("--backend")] = "openrouter",
-    model: Annotated[
-        str, typer.Option("--model", "-m")
-    ] = "anthropic/claude-sonnet-4-6",
-    output: Annotated[Optional[Path], typer.Option("--output", dir_okay=False)] = None,
-    question_types: Annotated[Optional[str], typer.Option("--question-types")] = None,
-    limit: Annotated[Optional[int], typer.Option("--limit", min=1)] = None,
+    model: Annotated[str, typer.Option("--model", "-m")] = "anthropic/claude-sonnet-4-6",
+    output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
+    question_types: Annotated[str | None, typer.Option("--question-types")] = None,
+    limit: Annotated[int | None, typer.Option("--limit", min=1)] = None,
     max_tokens: Annotated[int, typer.Option("--max-tokens")] = 2048,
     temperature: Annotated[float, typer.Option("--temperature")] = 0.0,
     context_max_chars: Annotated[int, typer.Option("--context-max-chars")] = 6000,
     tensor_parallel_size: Annotated[int, typer.Option("--tensor-parallel-size")] = 1,
-    gpu_memory_utilization: Annotated[
-        float, typer.Option("--gpu-memory-utilization")
-    ] = 0.9,
+    gpu_memory_utilization: Annotated[float, typer.Option("--gpu-memory-utilization")] = 0.9,
     max_model_len: Annotated[int, typer.Option("--max-model-len")] = 8192,
 ) -> None:
     types = _parse_types(question_types)
@@ -249,7 +235,7 @@ def all_cmd(
     )
     judge_scores = run_judge_batch(b, pairs, context_max_chars)
     means = judge_score_means(judge_scores)
-    typer.echo(json.dumps({"judge_means": means}, indent=2))
+    typer.echo(orjson.dumps({"judge_means": means}).decode("utf-8"))
     if output is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
         detail = {qid: asdict(s) for qid, s in judge_scores.items()}
@@ -265,8 +251,8 @@ def all_cmd(
             "judge_means": means,
             "per_question_judge": detail,
         }
-        with open(output, "w") as f:
-            json.dump(payload, f, indent=2)
+        with output.open("wb") as f:
+            f.write(orjson.dumps(payload))
         typer.echo(f"Wrote {output}")
 
 

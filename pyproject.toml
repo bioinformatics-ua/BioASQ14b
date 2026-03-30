@@ -34,6 +34,7 @@ dependencies = [
     "pubmed-parser>=0.5.1",
     "types-lxml>=2026.2.16",
     "rich>=14.3.3",
+    "httpx>=0.28.0",
     "asyncpg>=0.31.0",
     "pgvector>=0.3.6",
     "vllm>=0.2.5",

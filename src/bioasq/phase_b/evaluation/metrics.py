@@ -17,12 +17,13 @@ floats. The evaluate.py script handles file I/O and calling these functions.
 
 import re
 import string
-from rouge_score import rouge_scorer as rouge_lib
 
+from rouge_score import rouge_scorer as rouge_lib
 
 # ---------------------------------------------------------------------------
 # Shared helpers
 # ---------------------------------------------------------------------------
+
 
 def _normalise(text: str) -> str:
     """
@@ -31,20 +32,7 @@ def _normalise(text: str) -> str:
     """
     text = text.lower().strip()
     text = text.translate(str.maketrans("", "", string.punctuation))
-    text = re.sub(r"\s+", " ", text)
-    return text
-
-
-def _gold_exact_to_normalised_set(gold_items: list) -> set[str]:
-    """Flatten exact_answer (flat or nested lists) to normalised strings."""
-    gold_set: set[str] = set()
-    for item in gold_items:
-        if isinstance(item, list):
-            for subitem in item:
-                gold_set.add(_normalise(str(subitem)))
-        else:
-            gold_set.add(_normalise(str(item)))
-    return gold_set
+    return re.sub(r"\s+", " ", text)
 
 
 def _rouge2_f1(prediction: str, references: list[str]) -> float:
@@ -63,6 +51,7 @@ def _rouge2_f1(prediction: str, references: list[str]) -> float:
 # ---------------------------------------------------------------------------
 # Ideal answer metric (all types)
 # ---------------------------------------------------------------------------
+
 
 def rouge2_ideal(predictions: dict, ground_truth: list[dict]) -> dict:
     """
@@ -93,6 +82,7 @@ def rouge2_ideal(predictions: dict, ground_truth: list[dict]) -> dict:
 # Yes/No — macro F1
 # ---------------------------------------------------------------------------
 
+
 def macro_f1_yesno(predictions: dict, ground_truth: list[dict]) -> dict:
     """
     Macro F1 for yes/no questions.
@@ -106,7 +96,7 @@ def macro_f1_yesno(predictions: dict, ground_truth: list[dict]) -> dict:
     # Counts for each class: true positives, false positives, false negatives
     counts = {
         "yes": {"tp": 0, "fp": 0, "fn": 0},
-        "no":  {"tp": 0, "fp": 0, "fn": 0},
+        "no": {"tp": 0, "fp": 0, "fn": 0},
     }
 
     n_scored = 0
@@ -115,7 +105,7 @@ def macro_f1_yesno(predictions: dict, ground_truth: list[dict]) -> dict:
         if q["type"] != "yesno":
             continue
 
-        qid  = q["id"]
+        qid = q["id"]
         gold = (q.get("exact_answer") or "").lower().strip()
 
         if qid not in predictions or gold not in ("yes", "no"):
@@ -140,18 +130,18 @@ def macro_f1_yesno(predictions: dict, ground_truth: list[dict]) -> dict:
         fp = counts[cls]["fp"]
         fn = counts[cls]["fn"]
         precision: int | float = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-        recall: int | float    = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        recall: int | float = tp / (tp + fn) if (tp + fn) > 0 else 0.0
         if precision + recall == 0:
             return 0.0
         return 2 * precision * recall / (precision + recall)
 
-    f1_yes   = _f1("yes")
-    f1_no    = _f1("no")
+    f1_yes = _f1("yes")
+    f1_no = _f1("no")
     macro_f1 = (f1_yes + f1_no) / 2
 
     return {
-        "f1_yes":   f1_yes,
-        "f1_no":    f1_no,
+        "f1_yes": f1_yes,
+        "f1_no": f1_no,
         "macro_f1": macro_f1,
         "n_scored": n_scored,
     }
@@ -160,6 +150,7 @@ def macro_f1_yesno(predictions: dict, ground_truth: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 # Factoid — Mean Reciprocal Rank (MRR)
 # ---------------------------------------------------------------------------
+
 
 def mrr_factoid(predictions: dict, ground_truth: list[dict]) -> dict:
     """
@@ -175,28 +166,29 @@ def mrr_factoid(predictions: dict, ground_truth: list[dict]) -> dict:
     ground_truth:  list of factoid question dicts
     """
     reciprocal_ranks = []
-    strict_hits      = []   # 1 if gold is first candidate, else 0
-    lenient_hits     = []   # 1 if gold appears anywhere in top-5, else 0
+    strict_hits = []  # 1 if gold is first candidate, else 0
+    lenient_hits = []  # 1 if gold appears anywhere in top-5, else 0
 
     for q in ground_truth:
         if q["type"] != "factoid":
             continue
 
-        qid        = q["id"]
+        qid = q["id"]
         gold_items = q.get("exact_answer") or []
 
         if qid not in predictions or not gold_items:
             continue
 
-        # Gold may be flat ["Bazex syndrome"] or nested like list questions
-        gold_set = _gold_exact_to_normalised_set(gold_items)
+        # Gold answers — normalise for comparison
+        # Factoid gold is a flat list like ["Bazex syndrome"]
+        gold_set = {_normalise(g) for g in gold_items}
 
         candidates = predictions[qid].get("exact_answer") or []
         if isinstance(candidates, str):
             candidates = [candidates]
 
         rr = 0.0
-        strict_correct = False   # gold is first candidate (SAcc)
+        strict_correct = False  # gold is first candidate (SAcc)
         lenient_correct = False  # gold appears anywhere in top-5 (LAcc)
 
         for rank, candidate in enumerate(candidates[:5], start=1):
@@ -212,15 +204,16 @@ def mrr_factoid(predictions: dict, ground_truth: list[dict]) -> dict:
         lenient_hits.append(1 if lenient_correct else 0)
 
     n = len(reciprocal_ranks)
-    mrr   = sum(reciprocal_ranks) / n if n else 0.0
-    sacc  = sum(strict_hits)  / n if n else 0.0   # strict accuracy
-    lacc  = sum(lenient_hits) / n if n else 0.0   # lenient accuracy
+    mrr = sum(reciprocal_ranks) / n if n else 0.0
+    sacc = sum(strict_hits) / n if n else 0.0  # strict accuracy
+    lacc = sum(lenient_hits) / n if n else 0.0  # lenient accuracy
     return {"mrr": mrr, "strict_acc": sacc, "lenient_acc": lacc, "n_scored": n}
 
 
 # ---------------------------------------------------------------------------
 # List — Mean F1
 # ---------------------------------------------------------------------------
+
 
 def mean_f1_list(predictions: dict, ground_truth: list[dict]) -> dict:
     """
@@ -241,18 +234,24 @@ def mean_f1_list(predictions: dict, ground_truth: list[dict]) -> dict:
         if q["type"] != "list":
             continue
 
-        qid        = q["id"]
+        qid = q["id"]
         gold_items = q.get("exact_answer") or []
 
         if qid not in predictions or not gold_items:
             continue
 
         # Gold is nested: [["EGF"], ["betacellulin"]] — flatten and normalise
-        gold_set = _gold_exact_to_normalised_set(gold_items)
+        gold_set = set()
+        for item in gold_items:
+            if isinstance(item, list):
+                for subitem in item:
+                    gold_set.add(_normalise(str(subitem)))
+            else:
+                gold_set.add(_normalise(str(item)))
 
         # Predictions can be nested or flat — flatten and normalise
         pred_items = predictions[qid].get("exact_answer") or []
-        pred_set   = set()
+        pred_set = set()
         for item in pred_items:
             if isinstance(item, list):
                 for subitem in item:
@@ -264,9 +263,9 @@ def mean_f1_list(predictions: dict, ground_truth: list[dict]) -> dict:
             f1_scores.append(0.0)
             continue
 
-        tp        = len(pred_set & gold_set)
+        tp = len(pred_set & gold_set)
         precision = tp / len(pred_set)
-        recall    = tp / len(gold_set) if gold_set else 0.0
+        recall = tp / len(gold_set) if gold_set else 0.0
 
         if precision + recall == 0:
             f1_scores.append(0.0)
@@ -281,6 +280,7 @@ def mean_f1_list(predictions: dict, ground_truth: list[dict]) -> dict:
 # Combined scorer
 # ---------------------------------------------------------------------------
 
+
 def evaluate_all(predictions: dict, ground_truth: list[dict]) -> dict:
     """
     Run all metrics and return a single results dict.
@@ -289,7 +289,7 @@ def evaluate_all(predictions: dict, ground_truth: list[dict]) -> dict:
     """
     return {
         "rouge2_ideal": rouge2_ideal(predictions, ground_truth),
-        "yesno":        macro_f1_yesno(predictions, ground_truth),
-        "factoid":      mrr_factoid(predictions, ground_truth),
-        "list":         mean_f1_list(predictions, ground_truth),
+        "yesno": macro_f1_yesno(predictions, ground_truth),
+        "factoid": mrr_factoid(predictions, ground_truth),
+        "list": mean_f1_list(predictions, ground_truth),
     }
