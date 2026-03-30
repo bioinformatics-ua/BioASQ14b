@@ -18,6 +18,7 @@ from pathlib import Path
 
 import typer
 
+from bioasq.data.qdrant_store import upload_embeddings_command
 from bioasq.phase_a.bm25.negatives import app as negatives_app
 from bioasq.phase_a.reranker.cli import evaluate_command, inference_command, train_command
 from bioasq.phase_a.reranker.experiments import (
@@ -25,10 +26,17 @@ from bioasq.phase_a.reranker.experiments import (
     run_llama_experiments_command,
 )
 from bioasq.phase_a.retrieval.cli import app as hybrid_retrieve_app
+from bioasq.phase_b.generation.generate import generate_command
 
 app: typer.Typer = typer.Typer(
     name="bioasq",
     help="BioASQ 14b — Unified biomedical question-answering pipeline.",
+    no_args_is_help=True,
+)
+
+data_app: typer.Typer = typer.Typer(
+    name="data",
+    help="Data management: embeddings, vector stores, etc.",
     no_args_is_help=True,
 )
 
@@ -59,6 +67,7 @@ bm25_app.add_typer(negatives_app, name="negatives")
 app.add_typer(phase_a_app, name="phase-a")
 app.add_typer(phase_b_app, name="phase-b")
 app.add_typer(bm25_app, name="bm25")
+app.add_typer(data_app, name="data")
 
 # ---------------------------------------------------------------------------
 # Phase-A Reranker commands
@@ -69,8 +78,17 @@ phase_a_app.command(name="evaluate")(evaluate_command)
 phase_a_app.command(name="inference")(inference_command)
 phase_a_app.command(name="run-experiments")(run_experiments_command)
 phase_a_app.command(name="run-llama-experiments")(run_llama_experiments_command)
-phase_a_app.add_typer(hybrid_retrieve_app, name="hybrid-retrieve")
 
+# ---------------------------------------------------------------------------
+# Phase-B commands
+# ---------------------------------------------------------------------------
+phase_b_app.command(name="generate")(generate_command)
+
+# ---------------------------------------------------------------------------
+# Data commands
+# ---------------------------------------------------------------------------
+
+data_app.command(name="upload-to-qdrant")(upload_embeddings_command)
 
 # ---------------------------------------------------------------------------
 # BM25 commands

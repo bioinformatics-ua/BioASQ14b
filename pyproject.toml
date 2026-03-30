@@ -38,6 +38,9 @@ dependencies = [
     "asyncpg>=0.31.0",
     "pgvector>=0.3.6",
     # "vllm>=0.2.5",
+    "qdrant-client>=1.17.1",
+    #    "vllm>=0.2.5",
+    "huggingface-hub>=0.36.2",
 ]
 
 [project.scripts]

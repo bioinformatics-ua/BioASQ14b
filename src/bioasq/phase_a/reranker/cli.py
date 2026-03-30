@@ -31,41 +31,10 @@ from bioasq.phase_a.reranker.factory import (
     get_sampler,
     get_trainer_cls,
 )
-from bioasq.phase_a.reranker.model import build_output_dir_name
+from bioasq.phase_a.reranker.model import build_output_dir_name, load_reranker_model
 
 BASE_DIR = Path(__file__).parent.resolve()
 DEFAULT_CONFIG = BASE_DIR / "config" / "train_config.yaml"
-
-
-def _sanitize_position_ids_buffers(model: torch.nn.Module) -> None:
-    """Ensure any `position_ids` buffers are monotonic 0..N-1.
-
-    Some remote-code checkpoints may load a corrupted `position_ids` buffer,
-    which later causes out-of-bounds indexing in positional embeddings/RoPE.
-    """
-    for module in model.modules():
-        position_ids = getattr(module, "position_ids", None)
-        if not isinstance(position_ids, torch.Tensor):
-            continue
-        if position_ids.dtype not in (torch.int32, torch.int64):
-            continue
-        if position_ids.ndim == 1:
-            expected = torch.arange(
-                position_ids.shape[0],
-                device=position_ids.device,
-                dtype=position_ids.dtype,
-            )
-        elif position_ids.ndim == 2 and position_ids.shape[0] == 1:
-            expected = torch.arange(
-                position_ids.shape[1],
-                device=position_ids.device,
-                dtype=position_ids.dtype,
-            ).unsqueeze(0)
-        else:
-            continue
-
-        if not torch.equal(position_ids, expected):
-            position_ids.copy_(expected)
 
 
 def _build_sampler_kwargs(
@@ -187,21 +156,13 @@ def train_command(
 
     model_dtype = _resolve_model_dtype(bf16=bf16, fp16=fp16)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-    tokenizer.model_max_length = max_length
-
-    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name,
-        config=config,
-        trust_remote_code=True,
-        torch_dtype=model_dtype,
+    model, tokenizer = load_reranker_model(
+        model_name=model_name,
+        revision=None,
+        max_length=max_length,
+        dtype=model_dtype,
+        num_labels=1,
     )
-    _sanitize_position_ids_buffers(model)
-    if getattr(model.config, "num_labels", 1) != 1:
-        model.config.num_labels = 1
-        model.config.id2label = {0: "SCORE"}
-        model.config.label2id = {"SCORE": 0}
 
     preprocessor = get_preprocessor("basic", tokenizer, max_length=max_length)
     sampler_cls = get_sampler(sampler)
@@ -349,20 +310,13 @@ def evaluate_command(
 
     infer_dtype = _resolve_inference_dtype(inference_dtype)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-    tokenizer.model_max_length = max_length
-    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name,
-        config=config,
-        trust_remote_code=True,
-        torch_dtype=infer_dtype,
+    model, tokenizer = load_reranker_model(
+        model_name=model_name,
+        revision=None,
+        max_length=max_length,
+        dtype=infer_dtype,
+        num_labels=1,
     )
-    _sanitize_position_ids_buffers(model)
-    if getattr(model.config, "num_labels", 1) != 1:
-        model.config.num_labels = 1
-        model.config.id2label = {0: "SCORE"}
-        model.config.label2id = {"SCORE": 0}
 
     preprocessor = get_preprocessor("basic", tokenizer, max_length=max_length)
     sampler_cls = get_sampler("basic")
@@ -458,21 +412,13 @@ def inference_command(
             q = orjson.loads(line)
             questions_by_id[str(q["id"])] = q
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision, trust_remote_code=True)
-    tokenizer.model_max_length = max_length
-    config = AutoConfig.from_pretrained(model_name, revision=revision, trust_remote_code=True)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name,
-        config=config,
-        trust_remote_code=True,
+    model, tokenizer = load_reranker_model(
+        model_name=model_name,
         revision=revision,
-        torch_dtype=infer_dtype,
+        max_length=max_length,
+        dtype=infer_dtype,
+        num_labels=1,
     )
-    _sanitize_position_ids_buffers(model)
-    if getattr(model.config, "num_labels", 1) != 1:
-        model.config.num_labels = 1
-        model.config.id2label = {0: "SCORE"}
-        model.config.label2id = {"SCORE": 0}
 
     preprocessor = get_preprocessor("basic", tokenizer, max_length=max_length)
     inference_dataset = create_inference_dataset_from_bioasq_json(
