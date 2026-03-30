@@ -7,6 +7,7 @@ Usage::
     bioasq phase-a train --model-name bert-base-uncased …
     bioasq phase-a evaluate --model-name outputs/checkpoint …
     bioasq phase-a inference --model-name outputs/checkpoint …
+    bioasq phase-a hybrid-retrieve run-jsonl questions.jsonl -o hybrid.jsonl
     bioasq phase-b generate --data-path data/batch1.jsonl …
     bioasq phase-b synthesize runs/*.json …
     bioasq bm25 index --baseline data/baseline.jsonl …
@@ -23,6 +24,7 @@ from bioasq.phase_a.reranker.experiments import (
     run_experiments_command,
     run_llama_experiments_command,
 )
+from bioasq.phase_a.retrieval.cli import app as hybrid_retrieve_app
 
 app: typer.Typer = typer.Typer(
     name="bioasq",
@@ -67,6 +69,7 @@ phase_a_app.command(name="evaluate")(evaluate_command)
 phase_a_app.command(name="inference")(inference_command)
 phase_a_app.command(name="run-experiments")(run_experiments_command)
 phase_a_app.command(name="run-llama-experiments")(run_llama_experiments_command)
+phase_a_app.add_typer(hybrid_retrieve_app, name="hybrid-retrieve")
 
 
 # ---------------------------------------------------------------------------
