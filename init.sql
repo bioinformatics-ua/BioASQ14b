@@ -3,8 +3,7 @@ CREATE EXTENSION IF NOT EXISTS pg_textsearch CASCADE;
 
 CREATE TABLE IF NOT EXISTS articles (
     pmid      INTEGER PRIMARY KEY,
-    full_text TEXT,
-    embedding vector(1024)
+    full_text TEXT
 );
 
 CREATE TABLE IF NOT EXISTS ids_per_baseline (

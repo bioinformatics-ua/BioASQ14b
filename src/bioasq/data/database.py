@@ -110,21 +110,8 @@ def _exclude_ids_array(exclude_ids: set[DocumentId] | None) -> list[int] | None:
     return [int(x) for x in exclude_ids]
 
 
-@overload
-async def insert_articles(
-    docs: Document, embedding: np.ndarray | None = None, semaphore: asyncio.Semaphore | None = None
-) -> None: ...
-@overload
-async def insert_articles(
-    docs: list[Document],
-    embeddings: np.ndarray | None = None,
-    semaphore: asyncio.Semaphore | None = None,
-) -> None: ...
-
-
 async def insert_articles(
     docs: Document | list[Document],
-    embeddings: np.ndarray | None = None,
     semaphore: asyncio.Semaphore | None = None,
     pool: Pool | None = None,
 ) -> None:
@@ -133,32 +120,12 @@ async def insert_articles(
     if isinstance(docs, Document):
         docs = [docs]
 
-    if embeddings is not None and len(docs) != len(embeddings):
-        raise ValueError(
-            f"Number of documents and embeddings must be the same. "
-            f"Docs: {len(docs)}, Embeddings: {len(embeddings)}"
-        )
-
     async with semaphore or asyncio.Semaphore(1), (pool or await get_pool()).acquire() as conn:
-        await register_vector(conn)
         try:
             await conn.copy_records_to_table(
                 "articles",
-                records=(
-                    [
-                        (
-                            int(doc.pmid),
-                            doc.full_text,
-                            embedding,
-                        )
-                        for doc, embedding in zip(docs, embeddings, strict=True)
-                    ]
-                    if embeddings is not None
-                    else [(int(doc.pmid), doc.full_text) for doc in docs]
-                ),
-                columns=("pmid", "full_text", "embedding")
-                if embeddings is not None
-                else ("pmid", "full_text"),
+                records=([(int(doc.pmid), doc.full_text) for doc in docs]),
+                columns=("pmid", "full_text"),
             )
         except asyncpg.UniqueViolationError:
             return
@@ -352,10 +319,15 @@ if __name__ == "__main__":
             Path,
             typer.Argument(help="The path to the JSONL file containing the articles.", exists=True),
         ] = PROJECT_DATA_BASELINES_DIR / "pubmed_baseline_2026.jsonl",
+        year: Annotated[int, typer.Option(help="The year of the baseline.")] = 2026,
     ) -> None:
         print("Loading PubMed articles from JSONL")
-        for doc in tqdm(load_collection(jsonl_path), desc="Inserting articles", unit="article"):
-            await insert_articles(doc)
+        for docs in tqdm(
+            load_collection(jsonl_path, chunk_size=50000), desc="Inserting articles", unit="article"
+        ):
+            existing = await get_if_articles_exist([int(doc.pmid) for doc in docs])
+            await insert_articles([doc for doc in docs if str(doc.pmid) not in existing])
+            await add_baseline_ids(year, [doc.pmid for doc in docs])
 
     @app.command(name="populate-with-embeddings")
     @typer_async
