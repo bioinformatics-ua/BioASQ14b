@@ -23,6 +23,7 @@ async def hybrid_retrieve_rrf(
     qid: QuestionId,
     query_text: str,
     *,
+    year: int | None = None,
     bm25_topk: int = 100,
     semantic_topk: int = 100,
     query_embedding: np.ndarray | None = None,
@@ -34,14 +35,15 @@ async def hybrid_retrieve_rrf(
     Parallel BM25 + dense DB search, then RRF fusion.
 
     If ``query_embedding`` is omitted, encodes ``query_text`` via TEI
-    (:func:`embed_queries_tei`).
+    (:func:`embed_queries_tei`).  Pass *year* to restrict both searches to
+    the corresponding PubMed baseline.
     """
     if query_embedding is None:
         mat = await embed_queries_tei([query_text], embed_url=embed_url)
         query_embedding = mat[0]
 
-    bm25_task = bm25_search(query_text, topk=bm25_topk, exclude_ids=exclude_ids)
-    dense_task = semantic_search(query_embedding, topk=semantic_topk, exclude_ids=exclude_ids)
+    bm25_task = bm25_search(query_text, topk=bm25_topk, year=year, exclude_ids=exclude_ids)
+    dense_task = semantic_search(query_embedding, topk=semantic_topk, year=year, exclude_ids=exclude_ids)
     bm25_docs, dense_docs = await asyncio.gather(bm25_task, dense_task)
 
     return fuse_retrieval_lists_rrf(

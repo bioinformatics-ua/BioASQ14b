@@ -9,6 +9,7 @@ Refactored from ``phaseA-BM25/negatives.py``.
 
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, Annotated
 
 import msgspec
@@ -71,9 +72,17 @@ async def mine_negatives(
     output_file.parent.mkdir(parents=True, exist_ok=True)
     with output_file.open("wb+") as f:
         for question in tqdm(training_data, desc="Processing questions", unit="question"):
+            year_match = re.search(r"\b(20\d{2})\b", question.baseline)
+            year: int | None = int(year_match.group(1)) if year_match else None
+
             pos_docs_ids: set[DocumentId] = {doc.id for doc in question.documents}
             neg_docs = (
-                await bm25_search(question.body, topk=num_results + 100, exclude_ids=pos_docs_ids)
+                await bm25_search(
+                    question.body,
+                    topk=num_results + 100,
+                    year=year,
+                    exclude_ids=pos_docs_ids,
+                )
             )[:num_results]
 
             output = NegativeMiningOutput(

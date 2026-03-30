@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from aliases import SliceDataset, QrelsDict
 import hashlib
+import json
 import os
 from collections.abc import Generator
 from pathlib import Path
-import json
 from typing import Any
 
 import yaml
+from aliases import QrelsDict, SliceDataset
 from transformers import TrainingArguments
 
 
@@ -23,7 +23,9 @@ def setup_wandb(name: str) -> None:
     os.environ["WANDB_RUN_ID"] = get_wandb_run_id(name)
     os.environ["WANDB_RESUME"] = "allow"  # Update existing run if same id, else create new
 
-    os.environ["WANDB_API_KEY"] = "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"
+    os.environ["WANDB_API_KEY"] = (
+        "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"
+    )
     os.environ["WANDB_PROJECT"] = "bioasq-14b-phaseA-reranker"
     os.environ["WANDB_LOG_MODEL"] = "false"
     os.environ["WANDB_ENTITY"] = "bitua"

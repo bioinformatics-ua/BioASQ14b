@@ -20,6 +20,8 @@ import asyncpg
 import numpy as np
 from asyncpg import Pool
 from pgvector.asyncpg import register_vector
+from qdrant_client import AsyncQdrantClient
+from qdrant_client.models import FieldCondition, Filter, HasIdCondition, Range
 from tqdm.asyncio import tqdm
 
 from bioasq.common import PROJECT_DATA_BASELINES_DIR, PROJECT_DATA_EMBEDDINGS_DIR, PROJECT_DATA_EMBEDDINGS_DIR_EXPORT
@@ -28,6 +30,26 @@ from bioasq.common.io import load_collection_ids, save_json
 from bioasq.common.types import Document, DocumentWithScore
 
 _POOL: Pool | None = None
+_QDRANT_CLIENT: AsyncQdrantClient | None = None
+_QDRANT_COLLECTION = "articles"
+
+
+def _qdrant_url() -> str:
+    return os.environ.get("BIOASQ_QDRANT_URL", "http://127.0.0.1:6333")
+
+
+async def get_qdrant_client() -> AsyncQdrantClient:
+    global _QDRANT_CLIENT
+    if _QDRANT_CLIENT is None:
+        _QDRANT_CLIENT = AsyncQdrantClient(url=_qdrant_url(), timeout=60)
+    return _QDRANT_CLIENT
+
+
+async def close_qdrant_client() -> None:
+    global _QDRANT_CLIENT
+    if _QDRANT_CLIENT is not None:
+        await _QDRANT_CLIENT.close()
+        _QDRANT_CLIENT = None
 
 
 def _pool_dsn() -> str:
@@ -77,8 +99,7 @@ async def create_indexes() -> None:
         # print("Creating BM25 index")
         # await conn.execute(
         #     """
-        #     CREATE INDEX IF NOT EXISTS articles_bm25_idx
-        #     ON articles USING bm25(full_text) WITH (text_config = 'english')
+        #     CREATE INDEX IF NOT EXISTS articles_bm25_idx ON articles USING bm25(full_text) WITH (text_config='english', k1=0.4, b=0.3);
         #     """
         # )
 
@@ -127,6 +148,7 @@ async def insert_articles(
     records = [(int(doc.pmid), doc.full_text) for doc in docs]
 
     async with semaphore or asyncio.Semaphore(1), (pool or await get_pool()).acquire() as conn:
+        await conn.execute("SET temp_buffers = '256MB'")
         async with conn.transaction():
             await conn.execute("SET temp_buffers = '256MB'")
 
@@ -168,25 +190,50 @@ async def get_if_articles_exist(pmids: list[DocumentId]) -> set[DocumentId]:
 
 
 async def bm25_search(
-    query: str, topk: int = 10, *, exclude_ids: set[DocumentId] | None = None
+    query: str,
+    topk: int = 10,
+    *,
+    year: int | None = None,
+    exclude_ids: set[DocumentId] | None = None,
 ) -> list[DocumentWithScore]:
-    """BM25 full-text search over generated full_text (pg_textsearch)."""
+    """BM25 full-text search over generated full_text (pg_textsearch).
+
+    When *year* is provided the search is restricted to articles present in
+    that year's PubMed baseline (via ``ids_per_baseline``).
+    """
     pool = await get_pool()
     excl = _exclude_ids_array(exclude_ids)
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT pmid, full_text, full_text <@> $1 AS score
-            FROM articles
-            WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
-                   OR pmid != ALL($3::bigint[]))
-            ORDER BY score
-            LIMIT $2
-            """,
-            query,
-            topk,
-            excl,
-        )
+        if year is not None:
+            rows = await conn.fetch(
+                """
+                SELECT a.pmid, a.full_text, a.full_text <@> $1 AS score
+                FROM articles a
+                JOIN ids_per_baseline b ON a.pmid = b.pmid AND b.year = $4
+                WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                       OR a.pmid != ALL($3::bigint[]))
+                ORDER BY score
+                LIMIT $2
+                """,
+                query,
+                topk,
+                excl,
+                year,
+            )
+        else:
+            rows = await conn.fetch(
+                """
+                SELECT pmid, full_text, full_text <@> $1 AS score
+                FROM articles
+                WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                       OR pmid != ALL($3::bigint[]))
+                ORDER BY score
+                LIMIT $2
+                """,
+                query,
+                topk,
+                excl,
+            )
 
     return [_row_to_bm25_result(r) for r in rows]
 
@@ -206,75 +253,78 @@ async def vss_search(
     embedding: np.ndarray,
     topk: int | None = 10,
     *,
+    year: int | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[tuple[DocumentId, float]]:
+    """Vector similarity search (cosine via Qdrant). Returns (pmid, similarity).
+
+    When *year* is provided, only articles whose ``first_year`` payload field
+    is <= *year* are considered (i.e. articles present in that year's baseline).
     """
-    Vector similarity search (cosine via pgvector / diskann).
-    Returns (pmid, similarity) where similarity = 1 - cosine_distance.
-    """
-    pool = await get_pool()
-    excl = _exclude_ids_array(exclude_ids)
+    client = await get_qdrant_client()
     lim = topk if topk is not None else 10
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT pmid, 1.0 - (embedding <=> $1) AS distance
-            FROM articles
-            WHERE embedding IS NOT NULL
-              AND ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
-                   OR pmid != ALL($3::bigint[]))
-            ORDER BY embedding <=> $1
-            LIMIT $2
-            """,
-            embedding,
-            lim,
-            excl,
-        )
-    return [(DocumentId(r["pmid"]), float(r["distance"])) for r in rows]
+
+    must: list[FieldCondition] = []
+    must_not = []
+    if year is not None:
+        must.append(FieldCondition(key="first_year", range=Range(lte=year)))
+    if exclude_ids:
+        must_not.append(HasIdCondition(has_id=[int(x) for x in exclude_ids]))
+
+    filter_ = Filter(must=must or None, must_not=must_not or None) if (must or must_not) else None
+
+    hits = await client.search(
+        collection_name=_QDRANT_COLLECTION,
+        query_vector=embedding.astype(np.float32).tolist(),
+        limit=lim,
+        query_filter=filter_,
+        with_payload=False,
+        with_vectors=False,
+    )
+    return [(DocumentId(str(hit.id)), float(hit.score)) for hit in hits]
 
 
 async def semantic_search(
     query_embedding: np.ndarray,
     topk: int = 10,
     *,
+    year: int | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[DocumentWithScore]:
-    """Dense retrieval: cosine similarity in DB, returns documents with similarity scores."""
+    """Dense retrieval via Qdrant, hydrates full_text from Postgres."""
+    ranked = await vss_search(query_embedding, topk, year=year, exclude_ids=exclude_ids)
+    if not ranked:
+        return []
+    pmid_ints = [int(pmid) for pmid, _ in ranked]
     pool = await get_pool()
-    excl = _exclude_ids_array(exclude_ids)
     async with pool.acquire() as conn:
         rows = await conn.fetch(
-            """
-            SELECT pmid, full_text, 1.0 - (embedding <=> $1) AS score
-            FROM articles
-            WHERE embedding IS NOT NULL
-              AND ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
-                   OR pmid != ALL($3::bigint[]))
-            ORDER BY embedding <=> $1
-            LIMIT $2
-            """,
-            query_embedding,
-            topk,
-            excl,
+            "SELECT pmid, full_text FROM articles WHERE pmid = ANY($1)",
+            pmid_ints,
         )
-    return [_row_to_semantic_result(r) for r in rows]
+    texts: dict[str, str] = {str(r["pmid"]): r["full_text"] for r in rows}
+    return [
+        DocumentWithScore(pmid=pmid, full_text=texts[pmid], score=score)
+        for pmid, score in ranked
+        if pmid in texts
+    ]
 
 
 async def lookup_by_pmid(article_id: DocumentId) -> list[tuple[DocumentId, float]]:
     """
-    Neighbours of an article by VSS: load embedding for article_id, then top-k similar.
+    Neighbours of an article by VSS: fetch the stored vector from Qdrant, then search.
     The source article is excluded from results.
     """
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        row = await conn.fetchrow(
-            "SELECT embedding FROM articles WHERE pmid = $1 AND embedding IS NOT NULL",
-            article_id,
-        )
-    if row is None or row["embedding"] is None:
+    client = await get_qdrant_client()
+    points = await client.retrieve(
+        collection_name=_QDRANT_COLLECTION,
+        ids=[int(article_id)],
+        with_vectors=True,
+    )
+    if not points:
         return []
-    emb = row["embedding"]
-    return await vss_search(emb, topk=10000, exclude_ids={str(article_id)})
+    embedding = np.array(points[0].vector, dtype=np.float32)
+    return await vss_search(embedding, topk=10000, exclude_ids={article_id})
 
 
 """
