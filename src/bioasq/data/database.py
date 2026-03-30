@@ -96,6 +96,20 @@ def _row_to_bm25_result(row: asyncpg.Record) -> DocumentWithScore:
     )
 
 
+def _row_to_semantic_result(row: asyncpg.Record) -> DocumentWithScore:
+    return DocumentWithScore(
+        pmid=str(row["pmid"]),
+        full_text=str(row["full_text"]),
+        score=float(row["score"]),
+    )
+
+
+def _exclude_ids_array(exclude_ids: set[DocumentId] | None) -> list[int] | None:
+    if not exclude_ids:
+        return None
+    return [int(x) for x in exclude_ids]
+
+
 @overload
 async def insert_articles(
     docs: Document, embedding: np.ndarray | None = None, semaphore: asyncio.Semaphore | None = None
@@ -177,20 +191,20 @@ async def bm25_search(
 ) -> list[DocumentWithScore]:
     """BM25 full-text search over generated full_text (pg_textsearch)."""
     pool = await get_pool()
+    excl = _exclude_ids_array(exclude_ids)
     async with pool.acquire() as conn:
-        exclude_clause = (
-            "" if exclude_ids is None else f"WHERE pmid NOT IN ({', '.join(exclude_ids)})"
-        )
         rows = await conn.fetch(
-            f"""
-            SELECT pmid, full_text, full_text <@> $1 as score
+            """
+            SELECT pmid, full_text, full_text <@> $1 AS score
             FROM articles
-            {exclude_clause}
+            WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                   OR pmid != ALL($3::bigint[]))
             ORDER BY score
             LIMIT $2
             """,
             query,
             topk,
+            excl,
         )
 
     return [_row_to_bm25_result(r) for r in rows]
@@ -211,28 +225,58 @@ async def vss_search(
     embedding: np.ndarray,
     topk: int | None = 10,
     *,
-    exclude_id: DocumentId | None = None,
+    exclude_ids: set[DocumentId] | None = None,
 ) -> list[tuple[DocumentId, float]]:
     """
     Vector similarity search (cosine via pgvector / diskann).
     Returns (pmid, similarity) where similarity = 1 - cosine_distance.
     """
     pool = await get_pool()
+    excl = _exclude_ids_array(exclude_ids)
+    lim = topk if topk is not None else 10
     async with pool.acquire() as conn:
-        exclude_clause = "" if exclude_id is None else f"AND pmid <> {exclude_id}"
         rows = await conn.fetch(
-            f"""
-                SELECT pmid, 1.0 - (embedding <=> $1) AS distance
-                FROM articles
-                WHERE embedding IS NOT NULL {exclude_clause}
-                ORDER BY embedding <=> $1
-                LIMIT $2
+            """
+            SELECT pmid, 1.0 - (embedding <=> $1) AS distance
+            FROM articles
+            WHERE embedding IS NOT NULL
+              AND ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                   OR pmid != ALL($3::bigint[]))
+            ORDER BY embedding <=> $1
+            LIMIT $2
             """,
             embedding,
-            topk,
-            exclude_id,
+            lim,
+            excl,
         )
     return [(DocumentId(r["pmid"]), float(r["distance"])) for r in rows]
+
+
+async def semantic_search(
+    query_embedding: np.ndarray,
+    topk: int = 10,
+    *,
+    exclude_ids: set[DocumentId] | None = None,
+) -> list[DocumentWithScore]:
+    """Dense retrieval: cosine similarity in DB, returns documents with similarity scores."""
+    pool = await get_pool()
+    excl = _exclude_ids_array(exclude_ids)
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT pmid, full_text, 1.0 - (embedding <=> $1) AS score
+            FROM articles
+            WHERE embedding IS NOT NULL
+              AND ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                   OR pmid != ALL($3::bigint[]))
+            ORDER BY embedding <=> $1
+            LIMIT $2
+            """,
+            query_embedding,
+            topk,
+            excl,
+        )
+    return [_row_to_semantic_result(r) for r in rows]
 
 
 async def lookup_by_pmid(article_id: DocumentId) -> list[tuple[DocumentId, float]]:
@@ -249,7 +293,7 @@ async def lookup_by_pmid(article_id: DocumentId) -> list[tuple[DocumentId, float
     if row is None or row["embedding"] is None:
         return []
     emb = row["embedding"]
-    return await vss_search(emb, topk=10000, exclude_id=article_id)
+    return await vss_search(emb, topk=10000, exclude_ids={str(article_id)})
 
 
 """

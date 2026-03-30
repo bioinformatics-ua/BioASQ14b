@@ -3,6 +3,7 @@
 from pathlib import Path
 from typing import Annotated
 
+import msgspec
 import orjson
 import typer
 
@@ -33,6 +34,8 @@ async def main(
     with output_file.open("wb") as f:
         for question, result in zip(questions, results, strict=True):
             f.write(
-                orjson.dumps({"qid": question["id"], "results": [doc.to_dict() for doc in result]})
+                orjson.dumps(
+                    {"qid": question["id"], "results": [msgspec.to_builtins(doc) for doc in result]}
+                )
                 + "\n"
             )
