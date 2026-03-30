@@ -112,58 +112,35 @@ def _exclude_ids_array(exclude_ids: set[DocumentId] | None) -> list[int] | None:
     return [int(x) for x in exclude_ids]
 
 
-@overload
-async def insert_articles(
-    docs: Document, embedding: np.ndarray | None = None, semaphore: asyncio.Semaphore | None = None
-) -> None: ...
-@overload
-async def insert_articles(
-    docs: list[Document],
-    embeddings: np.ndarray | None = None,
-    semaphore: asyncio.Semaphore | None = None,
-) -> None: ...
-
-
 async def insert_articles(
     docs: Document | list[Document],
-    embeddings: np.ndarray | None = None,
     semaphore: asyncio.Semaphore | None = None,
     pool: Pool | None = None,
 ) -> None:
-    """Insert a PubMed-style article; duplicate pmid is ignored."""
+    """Insert PubMed-style articles in bulk; duplicate pmids are silently ignored."""
 
     if isinstance(docs, Document):
         docs = [docs]
+    if not docs:
+        return
 
-    if embeddings is not None and len(docs) != len(embeddings):
-        raise ValueError(
-            f"Number of documents and embeddings must be the same. "
-            f"Docs: {len(docs)}, Embeddings: {len(embeddings)}"
-        )
+    records = [(int(doc.pmid), doc.full_text) for doc in docs]
 
     async with semaphore or asyncio.Semaphore(1), (pool or await get_pool()).acquire() as conn:
-        await register_vector(conn)
-        try:
-            await conn.copy_records_to_table(
-                "articles",
-                records=(
-                    [
-                        (
-                            int(doc.pmid),
-                            doc.full_text,
-                            embedding,
-                        )
-                        for doc, embedding in zip(docs, embeddings, strict=True)
-                    ]
-                    if embeddings is not None
-                    else [(int(doc.pmid), doc.full_text) for doc in docs]
-                ),
-                columns=("pmid", "full_text", "embedding")
-                if embeddings is not None
-                else ("pmid", "full_text"),
+        async with conn.transaction():
+            await conn.execute(
+                "CREATE TEMP TABLE _tmp_articles (pmid bigint, full_text text) ON COMMIT DROP"
             )
-        except asyncpg.UniqueViolationError:
-            return
+            await conn.copy_records_to_table(
+                "_tmp_articles",
+                records=records,
+                columns=("pmid", "full_text"),
+            )
+            await conn.execute(
+                "INSERT INTO articles (pmid, full_text) "
+                "SELECT pmid, full_text FROM _tmp_articles "
+                "ON CONFLICT (pmid) DO NOTHING"
+            )
 
 
 async def get_article_by_id(article_id: int) -> Document | None:
@@ -373,10 +350,14 @@ if __name__ == "__main__":
             Path,
             typer.Argument(help="The path to the JSONL file containing the articles.", exists=True),
         ] = PROJECT_DATA_BASELINES_DIR / "pubmed_baseline_2026.jsonl",
+        year: Annotated[int, typer.Option(help="The year of the baseline.")] = 2026,
     ) -> None:
         print("Loading PubMed articles from JSONL")
-        for doc in tqdm(load_collection(jsonl_path), desc="Inserting articles", unit="article"):
-            await insert_articles(doc)
+        for docs in tqdm(
+            load_collection(jsonl_path, chunk_size=50000), desc="Inserting articles", unit="article"
+        ):
+            await insert_articles(docs)
+            await add_baseline_ids(year, [doc.pmid for doc in docs])
 
     @app.command(name="populate-with-embeddings")
     @typer_async
