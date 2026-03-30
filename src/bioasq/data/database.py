@@ -21,7 +21,7 @@ import numpy as np
 from asyncpg import Pool
 from pgvector.asyncpg import register_vector
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import Filter, HasIdCondition
+from qdrant_client.models import FieldCondition, Filter, HasIdCondition, Range
 from tqdm.asyncio import tqdm
 
 from bioasq.common import PROJECT_DATA_BASELINES_DIR, PROJECT_DATA_EMBEDDINGS_DIR, PROJECT_DATA_EMBEDDINGS_DIR_EXPORT
@@ -99,8 +99,7 @@ async def create_indexes() -> None:
         # print("Creating BM25 index")
         # await conn.execute(
         #     """
-        #     CREATE INDEX IF NOT EXISTS articles_bm25_idx
-        #     ON articles USING bm25(full_text) WITH (text_config = 'english')
+        #     CREATE INDEX IF NOT EXISTS articles_bm25_idx ON articles USING bm25(full_text) WITH (text_config='english', k1=0.4, b=0.3);
         #     """
         # )
 
@@ -189,25 +188,50 @@ async def get_if_articles_exist(pmids: list[DocumentId]) -> set[DocumentId]:
 
 
 async def bm25_search(
-    query: str, topk: int = 10, *, exclude_ids: set[DocumentId] | None = None
+    query: str,
+    topk: int = 10,
+    *,
+    year: int | None = None,
+    exclude_ids: set[DocumentId] | None = None,
 ) -> list[DocumentWithScore]:
-    """BM25 full-text search over generated full_text (pg_textsearch)."""
+    """BM25 full-text search over generated full_text (pg_textsearch).
+
+    When *year* is provided the search is restricted to articles present in
+    that year's PubMed baseline (via ``ids_per_baseline``).
+    """
     pool = await get_pool()
     excl = _exclude_ids_array(exclude_ids)
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            """
-            SELECT pmid, full_text, full_text <@> $1 AS score
-            FROM articles
-            WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
-                   OR pmid != ALL($3::bigint[]))
-            ORDER BY score
-            LIMIT $2
-            """,
-            query,
-            topk,
-            excl,
-        )
+        if year is not None:
+            rows = await conn.fetch(
+                """
+                SELECT a.pmid, a.full_text, a.full_text <@> $1 AS score
+                FROM articles a
+                JOIN ids_per_baseline b ON a.pmid = b.pmid AND b.year = $4
+                WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                       OR a.pmid != ALL($3::bigint[]))
+                ORDER BY score
+                LIMIT $2
+                """,
+                query,
+                topk,
+                excl,
+                year,
+            )
+        else:
+            rows = await conn.fetch(
+                """
+                SELECT pmid, full_text, full_text <@> $1 AS score
+                FROM articles
+                WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
+                       OR pmid != ALL($3::bigint[]))
+                ORDER BY score
+                LIMIT $2
+                """,
+                query,
+                topk,
+                excl,
+            )
 
     return [_row_to_bm25_result(r) for r in rows]
 
@@ -227,16 +251,26 @@ async def vss_search(
     embedding: np.ndarray,
     topk: int | None = 10,
     *,
+    year: int | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[tuple[DocumentId, float]]:
-    """Vector similarity search (cosine via Qdrant). Returns (pmid, similarity)."""
+    """Vector similarity search (cosine via Qdrant). Returns (pmid, similarity).
+
+    When *year* is provided, only articles whose ``first_year`` payload field
+    is <= *year* are considered (i.e. articles present in that year's baseline).
+    """
     client = await get_qdrant_client()
     lim = topk if topk is not None else 10
-    filter_ = (
-        Filter(must_not=[HasIdCondition(has_id=[int(x) for x in exclude_ids])])
-        if exclude_ids
-        else None
-    )
+
+    must: list[FieldCondition] = []
+    must_not = []
+    if year is not None:
+        must.append(FieldCondition(key="first_year", range=Range(lte=year)))
+    if exclude_ids:
+        must_not.append(HasIdCondition(has_id=[int(x) for x in exclude_ids]))
+
+    filter_ = Filter(must=must or None, must_not=must_not or None) if (must or must_not) else None
+
     hits = await client.search(
         collection_name=_QDRANT_COLLECTION,
         query_vector=embedding.astype(np.float32).tolist(),
@@ -252,10 +286,11 @@ async def semantic_search(
     query_embedding: np.ndarray,
     topk: int = 10,
     *,
+    year: int | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[DocumentWithScore]:
     """Dense retrieval via Qdrant, hydrates full_text from Postgres."""
-    ranked = await vss_search(query_embedding, topk, exclude_ids=exclude_ids)
+    ranked = await vss_search(query_embedding, topk, year=year, exclude_ids=exclude_ids)
     if not ranked:
         return []
     pmid_ints = [int(pmid) for pmid, _ in ranked]
