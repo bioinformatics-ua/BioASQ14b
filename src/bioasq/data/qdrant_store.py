@@ -21,7 +21,7 @@ from bioasq.common.io import load_json
 _QDRANT_URL_ENV = "BIOASQ_QDRANT_URL"
 _DEFAULT_URL = "http://127.0.0.1:6333"
 _COLLECTION = "articles"
-_UPLOAD_BATCH = 10_000
+_UPLOAD_BATCH = 50_000
 
 
 def _qdrant_url() -> str:
