@@ -15,3 +15,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:gpu-latest
+    ports:
+      - "6333:6333"   # REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - /dev/shm/qdrant_storage:/qdrant/storage
+      - ./qdrant_config.yaml:/qdrant/config/production.yaml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [ gpu ]
+
