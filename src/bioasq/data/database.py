@@ -10,6 +10,8 @@ The articles table has the following columns:
 - embedding: the embedding of the article
 """
 
+from pathlib import Path
+
 import asyncio
 import os
 from typing import Annotated, overload
@@ -20,9 +22,9 @@ from asyncpg import Pool
 from pgvector.asyncpg import register_vector
 from tqdm.asyncio import tqdm
 
-from bioasq.common import PROJECT_DATA_BASELINES_DIR, PROJECT_DATA_EMBEDDINGS_DIR
+from bioasq.common import PROJECT_DATA_BASELINES_DIR, PROJECT_DATA_EMBEDDINGS_DIR, PROJECT_DATA_EMBEDDINGS_DIR_EXPORT
 from bioasq.common.aliases import DocumentId
-from bioasq.common.io import load_collection_ids
+from bioasq.common.io import load_collection_ids, save_json
 from bioasq.common.types import Document, DocumentWithScore
 
 _POOL: Pool | None = None
@@ -334,6 +336,25 @@ async def get_baselines_per_pmid(pmid: DocumentId) -> list[int]:
     return [row["year"] for row in rows]
 
 
+async def _export_embeddings(output_dir: Path) -> None:
+    pool = await get_pool()
+    async with pool.acquire() as conn:
+        count = await conn.fetchval("SELECT COUNT(*) FROM articles")
+        for i in tqdm(range(0, count, 50000), desc="Exporting embeddings", unit="chunk"):
+            rows = await conn.fetch(
+                "SELECT pmid, embedding FROM articles LIMIT 50000 OFFSET $1",
+                i,
+            )
+            np.save(
+                output_dir / f"embeddings_{i}_{i + 50000}.npy",
+                np.array([row["embedding"] for row in rows]),
+            )
+            save_json(
+                [row["pmid"] for row in rows],
+                output_dir / f"embeddings_{i}_{i + 50000}.ids.json",
+            )
+
+
 if __name__ == "__main__":
     import asyncio
     from pathlib import Path
@@ -420,5 +441,15 @@ if __name__ == "__main__":
     @typer_async
     async def indexes() -> None:
         await create_indexes()
+
+
+    @app.command(name="export-embeddings")
+    @typer_async
+    async def export_embeddings(
+        output_dir: Annotated[
+            Path, typer.Argument(help="The path to the directory to export the embeddings to.")
+        ] = PROJECT_DATA_EMBEDDINGS_DIR_EXPORT,
+    ) -> None:
+        await _export_embeddings(output_dir)
 
     asyncio.run(app())
