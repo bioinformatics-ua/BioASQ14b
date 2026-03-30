@@ -128,6 +128,8 @@ async def insert_articles(
 
     async with semaphore or asyncio.Semaphore(1), (pool or await get_pool()).acquire() as conn:
         async with conn.transaction():
+            await conn.execute("SET temp_buffers = '256MB'")
+
             await conn.execute(
                 "CREATE TEMP TABLE _tmp_articles (pmid bigint, full_text text) ON COMMIT DROP"
             )

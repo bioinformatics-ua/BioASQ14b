@@ -5,6 +5,9 @@ service:
 
 storage:
   storage_path: /qdrant/storage
+  on_disk_payload: false
+  incoming_shard_transfers_limit: null
+  outgoing_shard_transfers_limit: null
 
 gpu:
   indexing: true

@@ -26,7 +26,7 @@ from bioasq.phase_a.reranker.experiments import (
     run_llama_experiments_command,
 )
 from bioasq.phase_a.retrieval.cli import app as hybrid_retrieve_app
-from bioasq.phase_b.generation.generate import generate_command
+# from bioasq.phase_b.generation.generate import generate_command
 
 app: typer.Typer = typer.Typer(
     name="bioasq",
@@ -82,7 +82,7 @@ phase_a_app.command(name="run-llama-experiments")(run_llama_experiments_command)
 # ---------------------------------------------------------------------------
 # Phase-B commands
 # ---------------------------------------------------------------------------
-phase_b_app.command(name="generate")(generate_command)
+# phase_b_app.command(name="generate")(generate_command)
 
 # ---------------------------------------------------------------------------
 # Data commands
