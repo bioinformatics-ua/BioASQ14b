@@ -1,29 +1,31 @@
-"""Negative document mining via BM25 retrieval.
+"""Negative document mining via hybrid retrieval (BM25 + dense, year-scoped).
 
-For each training question, retrieves top-K BM25 results from the
-question's baseline index, excludes positive documents, and outputs
-negatives with text and scores.
-
-Refactored from ``phaseA-BM25/negatives.py``.
+For each training question, retrieves top-K candidates from the question's
+baseline year using hybrid RRF (BM25 + Qdrant dense), excludes positive
+documents, and outputs negatives with text and scores.
 """
 
-from __future__ import annotations
-
 import re
-from typing import TYPE_CHECKING, Annotated
+from pathlib import Path
+from typing import Annotated
 
 import msgspec
 import typer
 from tqdm import tqdm
 
+from bioasq.common import PROJECT_DATA_DIR
+from bioasq.common.aliases import DocumentId, QuestionId
+from bioasq.common.types import DocumentWithScore
 from bioasq.common.utils import typer_async
-from bioasq.data.database import bm25_search
+from bioasq.phase_a.retrieval.pipeline import hybrid_retrieve_rrf
+from bioasq.phase_a.retrieval.query_encoder import default_tei_embed_url
 
-if TYPE_CHECKING:
-    from pathlib import Path
 
-    from bioasq.common.aliases import DocumentId, QuestionId
-    from bioasq.common.types import DocumentWithScore
+class PositiveDoc(msgspec.Struct, frozen=True):
+    """A positive document reference."""
+
+    id: DocumentId
+    text: str = ""
 
 
 class TrainingQuestion(msgspec.Struct):
@@ -33,13 +35,6 @@ class TrainingQuestion(msgspec.Struct):
     body: str
     documents: list[PositiveDoc] = []
     baseline: str = ""
-
-
-class PositiveDoc(msgspec.Struct, frozen=True):
-    """A positive document reference."""
-
-    id: DocumentId
-    text: str = ""
 
 
 class NegativeMiningOutput(msgspec.Struct):
@@ -57,13 +52,20 @@ app = typer.Typer()
 @app.command()
 @typer_async
 async def mine_negatives(
-    training_file: Annotated[Path, typer.Argument(..., help="Training JSONL file.", exists=True)],
+    training_file: Annotated[Path, typer.Argument(..., help="Training JSONL file.")],
     output_file: Annotated[
-        Path, typer.Option("../data/negatives.jsonl", "-o", help="Output JSONL.")
-    ],
-    num_results: Annotated[int, typer.Option(100, "-n", help="Negatives per question.")],
+        Path,
+        typer.Option(..., "-o", "--output", help="Output JSONL."),
+    ] = PROJECT_DATA_DIR / "negatives.jsonl",
+    num_results: Annotated[
+        int, typer.Option(..., "-n", "--num-results", help="Negatives per question.")
+    ] = 100,
+    embed_url: Annotated[
+        str,
+        typer.Option(..., "-e", "--embed-url", help="TEI embed endpoint URL."),
+    ] = default_tei_embed_url(),
 ) -> None:
-    """Mine BM25 negatives for training questions."""
+    """Mine hybrid (BM25 + dense) negatives for training questions, scoped to baseline year."""
 
     print(f"Loading training data from '{training_file}'...")
     decoder = msgspec.json.Decoder(TrainingQuestion)
@@ -76,14 +78,17 @@ async def mine_negatives(
             year: int | None = int(year_match.group(1)) if year_match else None
 
             pos_docs_ids: set[DocumentId] = {doc.id for doc in question.documents}
-            neg_docs = (
-                await bm25_search(
-                    question.body,
-                    topk=num_results + 100,
-                    year=year,
-                    exclude_ids=pos_docs_ids,
-                )
-            )[:num_results]
+            candidates = await hybrid_retrieve_rrf(
+                question.id,
+                question.body,
+                year=year,
+                bm25_topk=num_results + 100,
+                semantic_topk=num_results + 100,
+                embed_url=embed_url,
+                exclude_ids=pos_docs_ids,
+                rrf_k=100,
+            )
+            neg_docs = candidates[:num_results]
 
             output = NegativeMiningOutput(
                 id=question.id,

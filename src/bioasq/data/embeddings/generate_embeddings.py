@@ -8,11 +8,11 @@ and ``<stem>.ids.json`` (same-length list of PMIDs / document ids as strings).
 TEI returns embeddings in the same order as ``inputs``, so rows align with ids.
 
 Docker usage examples:
-docker run --device nvidia.com/gpu=0 -p 8080:80 -v $PWD/tei-volume:/data --pull always \
+docker run --device nvidia.com/gpu=0 -p 8080:80 -v ~/tei-volume:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
   --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
 
-docker run --device nvidia.com/gpu=1 -p 8081:80 -v $PWD/tei-volume:/data --pull always \
+docker run --device nvidia.com/gpu=1 -p 8081:80 -v ~/tei-volume:/data --pull always \
   ghcr.io/huggingface/text-embeddings-inference:86-1.9 \
   --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
 """
@@ -27,24 +27,27 @@ import numpy as np
 import typer
 from tqdm.asyncio import tqdm
 
+from bioasq.common import PROJECT_DATA_DIR
 from bioasq.common.io import load_collection, save_json
 from bioasq.common.types import Document
 from bioasq.common.utils import typer_async
 from bioasq.data.database import (
     add_baseline_ids,
+    get_pool,
     insert_articles,
-    update_article_embedding,
 )
+from bioasq.data.qdrant_store import upload_embeddings
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable
 
-    from bioasq.common.aliases import DocumentId
-
 
 app = typer.Typer()
 
-ENDPOINTS = ["http://localhost:8080/embed", "http://localhost:8081/embed"]
+ENDPOINTS = [
+    "http://localhost:8080/embed",
+    "http://localhost:8081/embed",
+]  # Add more if you have more TEI instances
 MAX_EMBEDDINGS_PER_GPU = 16
 N_GPUS = len(ENDPOINTS)
 
@@ -61,7 +64,7 @@ async def call_tei(
 async def process_chunk_async(
     documents: list[Document],
     output_file: Path | None = None,
-    insert_into_db: Literal["insert", "update", "none"] = "none",
+    insert_into_db: Literal["all", "embeddings", "none"] = "none",
     tei_batch_size: int = 16,
 ) -> None:
     semaphore = asyncio.Semaphore(MAX_EMBEDDINGS_PER_GPU * N_GPUS)  # This is the LIMIT of TEI
@@ -93,15 +96,14 @@ async def process_chunk_async(
 
         try:
             match insert_into_db:
-                case "insert":
+                case "all":
                     print("Inserting articles and embeddings into database")
                     await insert_articles(documents, embeddings)
-                    print("PIXA2 Adding baseline ids")
                     await add_baseline_ids(2026, ordered_ids)
-                case "update":
+                    await upload_embeddings((ordered_ids, embeddings))
+                case "embeddings":
                     print("Updating embeddings in database")
-                    for id_, embedding in zip(ordered_ids, embeddings, strict=True):
-                        await update_article_embedding(id_, embedding)
+                    await upload_embeddings((ordered_ids, embeddings))
                 case "none":
                     pass
 
@@ -120,11 +122,11 @@ async def main(
     output_dir.mkdir(parents=True, exist_ok=True)
     year = baseline.name.split("_")[-1].replace(".jsonl", "")  # TODO THIS CAN BE SHIT
 
-    current_chunk: list[tuple[DocumentId, str]] = []
+    current_chunk: list[Document] = []
     chunk_count = 0
 
-    for id_, text in tqdm(load_collection(baseline, None, id_present=True), desc="Total Progress"):
-        current_chunk.append((id_, text))
+    for doc in tqdm(load_collection(baseline, None), desc="Total Progress"):
+        current_chunk.append(doc)
 
         if len(current_chunk) == chunk_size:
             out_path = (
@@ -148,6 +150,43 @@ async def main(
         remainder_ids_path = out_path.with_name(f"{out_path.stem}.ids.json")
         if not out_path.exists() or not remainder_ids_path.exists():
             await process_chunk_async(current_chunk, out_path)
+
+
+@app.command()
+@typer_async
+async def generate_missing(
+    qdrant_ids_file: Annotated[
+        Path, typer.Argument(help="JSON file with PMIDs already in Qdrant (from dump-ids command).")
+    ] = PROJECT_DATA_DIR / Path("qdrant_ids.json"),
+    chunk_size: Annotated[int, typer.Option(help="Rows per shard.")] = 50_000,
+) -> None:
+    """
+    Generate embeddings for articles missing from Qdrant.
+
+    Load the Qdrant IDs from *qdrant_ids_file* (produced by the dump-ids command),
+    diff against Postgres, and embed+upload only the missing ones.
+    """
+    import orjson
+
+    existing_ids: set[int] = {int(x) for x in orjson.loads(qdrant_ids_file.read_bytes())}
+    print(f"Loaded {len(existing_ids):,} existing Qdrant IDs from {qdrant_ids_file}")
+
+    pool = await get_pool()
+    async with pool.acquire() as conn, conn.transaction():
+        cursor = conn.cursor("SELECT pmid, full_text FROM articles ORDER BY pmid")
+        current_chunk: list[Document] = []
+        cursor_generator = (row async for row in cursor)
+
+        async for row in tqdm(cursor_generator, desc="Total Progress"):
+            if int(row["pmid"]) in existing_ids:
+                continue
+            current_chunk.append(Document(pmid=int(row["pmid"]), full_text=row["full_text"]))
+            if len(current_chunk) == chunk_size:
+                await process_chunk_async(current_chunk, insert_into_db="embeddings")
+                current_chunk = []
+
+        if current_chunk:
+            await process_chunk_async(current_chunk, insert_into_db="embeddings")
 
 
 if __name__ == "__main__":

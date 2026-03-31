@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import os
-from pathlib import Path  # noqa: TC003
+from pathlib import Path
 from typing import Annotated, cast
 
 import asyncpg
@@ -21,7 +21,7 @@ import numpy as np
 import typer
 from tqdm import tqdm
 
-from bioasq.common import PROJECT_DATA_EMBEDDINGS_DIR_EXPORT
+from bioasq.common import PROJECT_DATA_DIR, PROJECT_DATA_EMBEDDINGS_DIR_EXPORT
 from bioasq.common.io import load_json
 
 _QDRANT_URL_ENV = "BIOASQ_QDRANT_URL"
@@ -85,9 +85,7 @@ def _shard_pairs(embeddings_dir: Path) -> list[tuple[Path, Path]]:
     return pairs
 
 
-async def _fetch_first_years(
-    conn: asyncpg.Connection, pmids: list[int]
-) -> dict[int, int]:
+async def _fetch_first_years(conn: asyncpg.Connection, pmids: list[int]) -> dict[int, int]:
     """Return {pmid: min_year} for the given PMIDs from ids_per_baseline."""
     rows = await conn.fetch(
         "SELECT pmid, MIN(year) AS first_year FROM ids_per_baseline"
@@ -98,7 +96,8 @@ async def _fetch_first_years(
 
 
 async def upload_embeddings(
-    embeddings_dir: Path,
+    embeddings: Path
+    | tuple[list[int], np.ndarray],  # dir |  (ids, vectors) pair for single-batch upload
     *,
     collection: str = _COLLECTION,
     url: str | None = None,
@@ -135,53 +134,80 @@ async def upload_embeddings(
     pg_conn: asyncpg.Connection = await asyncpg.connect(dsn=resolved_db_url)
 
     try:
-        pairs = _shard_pairs(embeddings_dir)
-        if not pairs:
-            raise FileNotFoundError(f"No embedding shards found in {embeddings_dir}")
-
-        probe: np.ndarray = np.load(pairs[0][0], mmap_mode="r")
-        vector_size: int = probe.shape[1]
-        per_upsert = _points_per_upsert(batch_size, vector_size, prefer_grpc=use_grpc)
-        print(
-            f"Vector size: {vector_size}  |  Shards: {len(pairs)}  |  Collection: {collection}\n"
-            f"prefer_grpc={use_grpc}  grpc_port={gp}  points_per_upsert={per_upsert}  "
-            f"(logical batch_size={batch_size})",
-        )
-
-        if not await client.collection_exists(collection):
-            await client.create_collection(
-                collection_name=collection,
-                vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+        if isinstance(embeddings, tuple):
+            pmids, vecs = embeddings
+            vecs = vecs.astype(np.float32)
+            vector_size = vecs.shape[1]
+            per_upsert = _points_per_upsert(batch_size, vector_size, prefer_grpc=use_grpc)
+            print(
+                f"Uploading {len(pmids)} embeddings to collection '{collection}' "
+                f"via {'gRPC' if use_grpc else 'REST'}",
             )
+            if not await client.collection_exists(collection):
+                await client.create_collection(
+                    collection_name=collection,
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+                )
+            for start in tqdm(range(0, len(pmids), per_upsert), desc="Uploading", unit="batch"):
+                chunk_pmids = pmids[start : start + per_upsert]
+                chunk_vecs = vecs[start : start + per_upsert]
+                first_years = await _fetch_first_years(pg_conn, chunk_pmids)
+                await client.upsert(
+                    collection_name=collection,
+                    points=Batch(
+                        ids=chunk_pmids,  # pyright: ignore[reportArgumentType]
+                        vectors=chunk_vecs.tolist(),
+                        payloads=[
+                            {"pmid": pid, "first_year": first_years.get(pid)} for pid in chunk_pmids
+                        ],
+                    ),
+                )
+        else:
+            pairs = _shard_pairs(embeddings)
+            if not pairs:
+                raise FileNotFoundError(f"No embedding shards found in {embeddings}")
+            probe: np.ndarray = np.load(pairs[0][0], mmap_mode="r")
+            vector_size = probe.shape[1]
+            per_upsert = _points_per_upsert(batch_size, vector_size, prefer_grpc=use_grpc)
+            print(
+                f"Vector size: {vector_size}  |  Shards: {len(pairs)}"
+                f"  |  Collection: {collection}\n"
+                f"prefer_grpc={use_grpc}  grpc_port={gp}  points_per_upsert={per_upsert}  "
+                f"(logical batch_size={batch_size})",
+            )
+            if not await client.collection_exists(collection):
+                await client.create_collection(
+                    collection_name=collection,
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+                )
+            for npy, ids in tqdm(pairs, desc="Uploading shards", unit="shard"):
+                shard_vecs: np.ndarray = np.load(npy).astype(np.float32)
+                shard_pmids = cast("list[int]", load_json(ids))
 
-        for npy_path, ids_path in tqdm(pairs, desc="Uploading shards", unit="shard"):
-            embeddings: np.ndarray = np.load(npy_path).astype(np.float32)
-            pmids = cast("list[int]", load_json(ids_path))
+                for start in tqdm(
+                    range(0, len(shard_pmids), batch_size),
+                    desc=npy.name,
+                    leave=False,
+                    unit="batch",
+                ):
+                    batch_pmids = shard_pmids[start : start + batch_size]
+                    batch_vecs = shard_vecs[start : start + batch_size]
+                    first_years = await _fetch_first_years(pg_conn, batch_pmids)
 
-            for start in tqdm(
-                range(0, len(pmids), batch_size),
-                desc=npy_path.name,
-                leave=False,
-                unit="batch",
-            ):
-                batch_pmids = pmids[start : start + batch_size]
-                batch_vecs = embeddings[start : start + batch_size]
-                first_years = await _fetch_first_years(pg_conn, batch_pmids)
-
-                for sub in range(0, len(batch_pmids), per_upsert):
-                    chunk_pmids = batch_pmids[sub : sub + per_upsert]
-                    chunk_vecs = batch_vecs[sub : sub + per_upsert]
-                    await client.upsert(
-                        collection_name=collection,
-                        points=Batch(
-                            ids=chunk_pmids,  # pyright: ignore[reportArgumentType]
-                            vectors=chunk_vecs.tolist(),
-                            payloads=[
-                                {"pmid": pid, "first_year": first_years.get(pid)}
-                                for pid in chunk_pmids
-                            ],
-                        ),
-                    )
+                    for sub in range(0, len(batch_pmids), per_upsert):
+                        chunk_pmids = batch_pmids[sub : sub + per_upsert]
+                        chunk_vecs = batch_vecs[sub : sub + per_upsert]
+                        await client.upsert(
+                            collection_name=collection,
+                            points=Batch(
+                                ids=chunk_pmids,  # pyright: ignore[reportArgumentType]
+                                vectors=chunk_vecs.tolist(),
+                                payloads=[
+                                    {"pmid": pid, "first_year": first_years.get(pid)}
+                                    for pid in chunk_pmids
+                                ],
+                            ),
+                        )
     finally:
         await pg_conn.close()
         await client.close()
@@ -215,14 +241,13 @@ def upload_embeddings_command(
     prefer_grpc: Annotated[
         bool,
         typer.Option(
-            True,
             "--grpc/--no-grpc",
             help="Use gRPC for upserts (recommended; avoids REST ~32 MiB JSON limit).",
         ),
     ] = True,
     grpc_port: Annotated[
         int,
-        typer.Option(6334, help=f"gRPC port (default: env {_GRPC_PORT_ENV} or 6334)."),
+        typer.Option(help=f"gRPC port (default: env {_GRPC_PORT_ENV} or 6334)."),
     ] = 6334,
     timeout: Annotated[
         int,
@@ -244,5 +269,55 @@ def upload_embeddings_command(
     )
 
 
+async def dump_qdrant_ids(
+    output: Path,
+    *,
+    collection: str = _COLLECTION,
+    url: str | None = None,
+    batch_size: int = 10_000,
+) -> None:
+    """Scroll all point IDs from Qdrant and write them to *output* as a JSON array."""
+    from qdrant_client import AsyncQdrantClient
+
+    client = AsyncQdrantClient(url=url or _qdrant_url(), timeout=300)
+    try:
+        total = (await client.get_collection(collection)).points_count
+        ids: list[int] = []
+        offset = None
+        with tqdm(total=total, desc="Scrolling Qdrant IDs", unit="pts") as bar:
+            while True:
+                result, offset = await client.scroll(
+                    collection_name=collection,
+                    limit=batch_size,
+                    offset=offset,
+                    with_payload=False,
+                    with_vectors=False,
+                )
+                ids.extend(int(p.id) for p in result)
+                bar.update(len(result))
+                if offset is None:
+                    break
+        print(f"Writing {len(ids):,} IDs to {output}")
+        from bioasq.common.io import save_json
+
+        save_json(ids, output)
+    finally:
+        await client.close()
+
+
+def dump_ids_command(
+    output: Annotated[Path, typer.Argument(help="Output .json file path.")] = Path(
+        PROJECT_DATA_DIR / "qdrant_ids.json"
+    ),
+    collection: Annotated[str, typer.Option()] = _COLLECTION,
+    url: Annotated[str | None, typer.Option()] = None,
+) -> None:
+    """Dump all Qdrant point IDs to a JSON file for diffing against Postgres."""
+    import asyncio
+
+    asyncio.run(dump_qdrant_ids(output, collection=collection, url=url))
+
+
 if __name__ == "__main__":
-    upload_embeddings_command()
+    dump_ids_command()
+    # upload_embeddings_command()

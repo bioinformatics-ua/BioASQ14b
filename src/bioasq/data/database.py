@@ -10,21 +10,24 @@ The articles table has the following columns:
 - embedding: the embedding of the article
 """
 
-from pathlib import Path
-
 import asyncio
 import os
-from typing import Annotated, overload
+from pathlib import Path
+from typing import Annotated
 
 import asyncpg
 import numpy as np
 from asyncpg import Pool
 from pgvector.asyncpg import register_vector
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import FieldCondition, Filter, HasIdCondition, Range
+from qdrant_client.models import FieldCondition, Filter, HasIdCondition
 from tqdm.asyncio import tqdm
 
-from bioasq.common import PROJECT_DATA_BASELINES_DIR, PROJECT_DATA_EMBEDDINGS_DIR, PROJECT_DATA_EMBEDDINGS_DIR_EXPORT
+from bioasq.common import (
+    PROJECT_DATA_BASELINES_DIR,
+    PROJECT_DATA_EMBEDDINGS_DIR,
+    PROJECT_DATA_EMBEDDINGS_DIR_EXPORT,
+)
 from bioasq.common.aliases import DocumentId
 from bioasq.common.io import load_collection_ids, save_json
 from bioasq.common.types import Document, DocumentWithScore
@@ -207,7 +210,7 @@ async def bm25_search(
         if year is not None:
             rows = await conn.fetch(
                 """
-                SELECT a.pmid, a.full_text, a.full_text <@> $1 AS score
+                SELECT a.pmid, a.full_text, a.full_text <@> to_bm25query($1, 'articles_bm25_idx') AS score
                 FROM articles a
                 JOIN ids_per_baseline b ON a.pmid = b.pmid AND b.year = $4
                 WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
@@ -238,22 +241,11 @@ async def bm25_search(
     return [_row_to_bm25_result(r) for r in rows]
 
 
-async def update_article_embedding(article_id: int, embedding: np.ndarray) -> None:
-    """Set the embedding vector for an article."""
-    pool = await get_pool()
-    async with pool.acquire() as conn:
-        await conn.execute(
-            "UPDATE articles SET embedding = $1 WHERE pmid = $2",
-            embedding,
-            article_id,
-        )
-
-
 async def vss_search(
     embedding: np.ndarray,
     topk: int | None = 10,
     *,
-    year: int | None = None,
+    include_ids: set[DocumentId] | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[tuple[DocumentId, float]]:
     """Vector similarity search (cosine via Qdrant). Returns (pmid, similarity).
@@ -266,22 +258,23 @@ async def vss_search(
 
     must: list[FieldCondition] = []
     must_not = []
-    if year is not None:
-        must.append(FieldCondition(key="first_year", range=Range(lte=year)))
     if exclude_ids:
         must_not.append(HasIdCondition(has_id=[int(x) for x in exclude_ids]))
 
     filter_ = Filter(must=must or None, must_not=must_not or None) if (must or must_not) else None
 
-    hits = await client.search(
+    print(embedding.astype(np.float32).tolist())
+    hits = await client.query_points(
         collection_name=_QDRANT_COLLECTION,
-        query_vector=embedding.astype(np.float32).tolist(),
+        query=embedding.astype(np.float32).tolist(),
         limit=lim,
         query_filter=filter_,
         with_payload=False,
         with_vectors=False,
     )
-    return [(DocumentId(str(hit.id)), float(hit.score)) for hit in hits]
+    print(hits.points)
+    raise Exception("Stop here")
+    return [(DocumentId(str(point.id)), float(point.score)) for point in hits.points]
 
 
 async def semantic_search(
@@ -384,6 +377,23 @@ async def _export_embeddings(output_dir: Path) -> None:
             )
 
 
+async def add_payload_to_qdrant(collection: str = _QDRANT_COLLECTION) -> None:
+    client = await get_qdrant_client()
+    pool = await get_pool()
+    async with pool.acquire() as conn, conn.transaction():
+        print("Fetching IDs and years from database")
+        cursor_ = conn.cursor(
+            "SELECT pmid, array_agg(year) as years FROM ids_per_baseline GROUP BY pmid",
+        )
+        docs = (d async for d in cursor_)
+        async for row in tqdm(docs, desc="Adding payload to Qdrant", unit="row"):
+            await client.set_payload(
+                collection_name=collection,
+                payload={"years": row["years"]},
+                points=[row["pmid"]],
+            )
+
+
 if __name__ == "__main__":
     import asyncio
     from pathlib import Path
@@ -475,7 +485,6 @@ if __name__ == "__main__":
     async def indexes() -> None:
         await create_indexes()
 
-
     @app.command(name="export-embeddings")
     @typer_async
     async def export_embeddings(
@@ -484,5 +493,10 @@ if __name__ == "__main__":
         ] = PROJECT_DATA_EMBEDDINGS_DIR_EXPORT,
     ) -> None:
         await _export_embeddings(output_dir)
+
+    @app.command(name="add-payload-to-qdrant")
+    @typer_async
+    async def add_payload_to_qdrant_() -> None:
+        await add_payload_to_qdrant()
 
     asyncio.run(app())
