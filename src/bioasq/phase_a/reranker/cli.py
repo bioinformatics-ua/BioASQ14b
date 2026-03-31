@@ -8,13 +8,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Annotated, Any, Literal, cast
+from typing import Annotated, Literal
 
 import orjson
 import torch
 import typer
 from torch.utils.data import DataLoader
-from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 from bioasq.common.config import create_training_config, set_seed
 from bioasq.common.metrics import DEFAULT_RETRIEVAL_METRICS
@@ -245,7 +244,7 @@ def train_command(
         remove_unused_columns=(mode == "pointwise"),
     )
     if torch.cuda.is_available() and torch.cuda.device_count() > 1:
-        training_args._n_gpu = 1 # noqa: SLF001
+        training_args._n_gpu = 1  # noqa: SLF001
 
     trainer_cls = get_trainer_cls(mode)
     trainer = trainer_cls(
@@ -299,7 +298,9 @@ def evaluate_command(
     ] = None,
 ) -> None:
     """Run inference and evaluate a reranker model on validation data."""
-    val_files_list = [Path(p.strip()) for p in val_files.split(",") if p.strip()] if val_files else None
+    val_files_list = (
+        [Path(p.strip()) for p in val_files.split(",") if p.strip()] if val_files else None
+    )
 
     if num_workers < 0:
         raise typer.BadParameter("num_workers must be >= 0")
@@ -380,9 +381,11 @@ def evaluate_command(
 
 def inference_command(
     model_name: Annotated[str, typer.Option(help="Model or checkpoint path")],
-    revision: Annotated[str, typer.Option(help="Revision of the model")],
     questions_path: Annotated[Path, typer.Option(help="JSON with questions in BioASQ format")],
     output_path: Annotated[Path, typer.Option(help="Path to save predictions in BioASQ format")],
+    revision: Annotated[
+        str | None, typer.Option(help="Revision of the model (ignored for local paths)")
+    ] = None,
     batch_size: Annotated[int, typer.Option()] = 64,
     max_length: Annotated[int, typer.Option()] = 512,
     max_docs: Annotated[int, typer.Option(help="Max candidates per question")] = 100,
@@ -390,7 +393,7 @@ def inference_command(
         Literal["float32", "bfloat16", "float16"],
         typer.Option(help="Inference data type: float32, bfloat16, or float16"),
     ] = "bfloat16",
-    top_k: Annotated[int, typer.Option(help="Top-k documents per question in output")] = 10, # noqa: ARG001
+    top_k: Annotated[int, typer.Option(help="Top-k documents per question in output")] = 10,  # noqa: ARG001
 ) -> None:
     """Run inference on a reranker model and save predictions in BioASQ format."""
     if not questions_path.exists():
@@ -429,9 +432,9 @@ def inference_command(
 
     if len(inference_dataset) == 0:
         typer.echo(
-          "You must provide a question or data_path representing JSON queries"
-        ". Ensure each question has 'documents', 'neg_docs', or 'bm25' with {id, text} entries."
-    )
+            "You must provide a question or data_path representing JSON queries"
+            ". Ensure each question has 'documents', 'neg_docs', or 'bm25' with {id, text} entries."
+        )
         raise typer.Exit(1)
 
     collator = RankingCollator(tokenizer=tokenizer)

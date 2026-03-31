@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ranx import Run
-from ranx.fusion import rrf
+from ranx.fusion import rrf, wsum
 
 from bioasq.common.types import DocumentWithScore
 
@@ -46,6 +46,41 @@ def fuse_retrieval_lists_rrf(
         return []
 
     fused = rrf(runs, k=rrf_k, name="rrf_bm25_dense")
+    fused.sort()
+    scores: dict[str, float] = dict(fused.to_dict()[qid])
+    ordered = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)
+    return [
+        DocumentWithScore(pmid=doc_id, full_text=text_by_pmid[doc_id], score=fused_score)
+        for doc_id, fused_score in ordered
+    ]
+
+
+def fuse_retrieval_lists_wsum(
+    qid: QuestionId,
+    named_lists: Sequence[tuple[str, Sequence[DocumentWithScore]]],
+    *,
+    weights: Sequence[float],
+) -> list[DocumentWithScore]:
+    """Fuse ranked lists with weighted sum (ranx ``wsum``)."""
+    text_by_pmid: dict[DocumentId, str] = {}
+    runs: list[Run] = []
+    for run_name, docs in named_lists:
+        for d in docs:
+            text_by_pmid.setdefault(d.pmid, d.full_text)
+        if docs:
+            runs.append(
+                Run({qid: {d.pmid: float(d.score) for d in docs}}, name=run_name),
+            )
+
+    if not runs:
+        return []
+    if len(runs) == 1:
+        for _, docs in named_lists:
+            if docs:
+                return sorted(docs, key=lambda d: d.score, reverse=True)
+        return []
+
+    fused = wsum(runs, weights=list(weights), name="wsum_bm25_dense")
     fused.sort()
     scores: dict[str, float] = dict(fused.to_dict()[qid])
     ordered = sorted(scores.items(), key=lambda kv: kv[1], reverse=True)

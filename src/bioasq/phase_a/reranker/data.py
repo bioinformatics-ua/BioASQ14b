@@ -715,13 +715,13 @@ def create_inference_dataset_from_bioasq_json(
 
     with questions_path.open() as f:
         content: str = f.read().strip()
-        if content.startswith("{"):
+        try:
             data: dict[str, list[dict[str, str | list[dict[str, str]]]]] = json.loads(
                 content
             )
             questions = data.get("questions", [])
-        else:
-            for line in content.splitlines():
+        except json.JSONDecodeError:
+            for line in content.split("\n"):
                 line = line.strip()
                 if line:
                     questions.append(json.loads(line))

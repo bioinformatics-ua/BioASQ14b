@@ -17,14 +17,16 @@ from typing import Annotated
 
 import asyncpg
 import numpy as np
+import orjson
 from asyncpg import Pool
 from pgvector.asyncpg import register_vector
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import FieldCondition, Filter, HasIdCondition
+from qdrant_client.models import Filter, HasIdCondition
 from tqdm.asyncio import tqdm
 
 from bioasq.common import (
     PROJECT_DATA_BASELINES_DIR,
+    PROJECT_DATA_DIR,
     PROJECT_DATA_EMBEDDINGS_DIR,
     PROJECT_DATA_EMBEDDINGS_DIR_EXPORT,
 )
@@ -226,7 +228,7 @@ async def bm25_search(
         else:
             rows = await conn.fetch(
                 """
-                SELECT pmid, full_text, full_text <@> $1 AS score
+                SELECT pmid, full_text, full_text <@> to_bm25query($1, 'articles_bm25_idx') AS score
                 FROM articles
                 WHERE ($3::bigint[] IS NULL OR cardinality($3::bigint[]) = 0
                        OR pmid != ALL($3::bigint[]))
@@ -248,22 +250,16 @@ async def vss_search(
     include_ids: set[DocumentId] | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[tuple[DocumentId, float]]:
-    """Vector similarity search (cosine via Qdrant). Returns (pmid, similarity).
-
-    When *year* is provided, only articles whose ``first_year`` payload field
-    is <= *year* are considered (i.e. articles present in that year's baseline).
-    """
+    """Vector similarity search (cosine via Qdrant). Returns (pmid, similarity)."""
     client = await get_qdrant_client()
     lim = topk if topk is not None else 10
 
-    must: list[FieldCondition] = []
     must_not = []
     if exclude_ids:
         must_not.append(HasIdCondition(has_id=[int(x) for x in exclude_ids]))
 
-    filter_ = Filter(must=must or None, must_not=must_not or None) if (must or must_not) else None
+    filter_ = Filter(must_not=must_not) if must_not else None
 
-    print(embedding.astype(np.float32).tolist())
     hits = await client.query_points(
         collection_name=_QDRANT_COLLECTION,
         query=embedding.astype(np.float32).tolist(),
@@ -272,9 +268,7 @@ async def vss_search(
         with_payload=False,
         with_vectors=False,
     )
-    print(hits.points)
-    raise Exception("Stop here")
-    return [(DocumentId(str(point.id)), float(point.score)) for point in hits.points]
+    return [(str(point.id), float(point.score)) for point in hits.points]
 
 
 async def semantic_search(
@@ -284,23 +278,41 @@ async def semantic_search(
     year: int | None = None,
     exclude_ids: set[DocumentId] | None = None,
 ) -> list[DocumentWithScore]:
-    """Dense retrieval via Qdrant, hydrates full_text from Postgres."""
-    ranked = await vss_search(query_embedding, topk, year=year, exclude_ids=exclude_ids)
+    """Dense retrieval via Qdrant, hydrates full_text from Postgres.
+
+    When *year* is provided, fetches extra candidates from Qdrant and then
+    filters by year using ``ids_per_baseline`` in Postgres (since Qdrant
+    payload-based year filtering is unavailable).
+    """
+    fetch_k = max(topk * 2, 200) if year is not None else topk
+    ranked = await vss_search(query_embedding, fetch_k, exclude_ids=exclude_ids)
     if not ranked:
         return []
     pmid_ints = [int(pmid) for pmid, _ in ranked]
     pool = await get_pool()
     async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT pmid, full_text FROM articles WHERE pmid = ANY($1)",
-            pmid_ints,
-        )
+        if year is not None:
+            rows = await conn.fetch(
+                """
+                SELECT a.pmid, a.full_text
+                FROM articles a
+                JOIN ids_per_baseline b ON a.pmid = b.pmid AND b.year = $1
+                WHERE a.pmid = ANY($2)
+                """,
+                year,
+                pmid_ints,
+            )
+        else:
+            rows = await conn.fetch(
+                "SELECT pmid, full_text FROM articles WHERE pmid = ANY($1)",
+                pmid_ints,
+            )
     texts: dict[str, str] = {str(r["pmid"]): r["full_text"] for r in rows}
     return [
         DocumentWithScore(pmid=pmid, full_text=texts[pmid], score=score)
         for pmid, score in ranked
         if pmid in texts
-    ]
+    ][:topk]
 
 
 async def lookup_by_pmid(article_id: DocumentId) -> list[tuple[DocumentId, float]]:
@@ -345,7 +357,7 @@ async def get_pmids_per_baseline(year: int) -> list[DocumentId]:
             "SELECT pmid FROM ids_per_baseline WHERE year = $1",
             year,
         )
-    return [DocumentId(row["pmid"]) for row in rows]
+    return [str(row["pmid"]) for row in rows]
 
 
 async def get_baselines_per_pmid(pmid: DocumentId) -> list[int]:
@@ -377,20 +389,49 @@ async def _export_embeddings(output_dir: Path) -> None:
             )
 
 
-async def add_payload_to_qdrant(collection: str = _QDRANT_COLLECTION) -> None:
+async def add_payload_to_qdrant(
+    collection: str = _QDRANT_COLLECTION,
+    chunk_size: int = 10000,
+    cursor_batch: int = 50000,
+) -> None:
+    from collections import defaultdict
+
     client = await get_qdrant_client()
     pool = await get_pool()
+
+    groups: dict[tuple[int, ...], list[int]] = defaultdict(list)
+    qdrant_ids: set[int] = set(orjson.loads((PROJECT_DATA_DIR / "qdrant_ids.json").read_text()))
+    not_found: list[int] = []
+
     async with pool.acquire() as conn, conn.transaction():
-        print("Fetching IDs and years from database")
+        print("Fetching IDs and years from database via cursor")
         cursor_ = conn.cursor(
-            "SELECT pmid, array_agg(year) as years FROM ids_per_baseline GROUP BY pmid",
+            "SELECT pmid, array_agg(year ORDER BY year) as years "
+            "FROM ids_per_baseline GROUP BY pmid",
+            prefetch=cursor_batch,
         )
-        docs = (d async for d in cursor_)
-        async for row in tqdm(docs, desc="Adding payload to Qdrant", unit="row"):
+        async for row in tqdm((d async for d in cursor_), desc="Grouping PMIDs", unit="row"):
+            if row["pmid"] not in qdrant_ids:
+                not_found.append(row["pmid"])
+                continue
+            key = tuple(row["years"])
+            groups[key].append(row["pmid"])
+
+    print(f"Grouped into {len(groups)} distinct year-arrays")
+    print("ids not found", not_found)
+
+    for years_tuple, pmids in tqdm(
+        groups.items(), desc="Adding payload to Qdrant", unit="group", position=0
+    ):
+        years_list = list(years_tuple)
+        for i in tqdm(
+            range(0, len(pmids), chunk_size), desc="Processing chunks", unit="chunk", position=1
+        ):
+            chunk = pmids[i : i + chunk_size]
             await client.set_payload(
                 collection_name=collection,
-                payload={"years": row["years"]},
-                points=[row["pmid"]],
+                payload={"years": years_list},
+                points=chunk,
             )
 
 

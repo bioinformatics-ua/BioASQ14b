@@ -86,7 +86,7 @@ async def mine_negatives(
                 semantic_topk=num_results + 100,
                 embed_url=embed_url,
                 exclude_ids=pos_docs_ids,
-                rrf_k=100,
+                rrf_k=60,
             )
             neg_docs = candidates[:num_results]
 
