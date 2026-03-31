@@ -1,11 +1,6 @@
 """Prompt builders for the quorum debate and final answer synthesis."""
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from bioasq.phase_b.quorum._types import AgreementLevel, DebateTurn
+from bioasq.phase_b.quorum._types import AgreementLevel, DebateTurn
 
 # ---------------------------------------------------------------------------
 # System prompt
@@ -119,7 +114,7 @@ informed by the reasoning developed in the debate.
 _TYPE_INSTRUCTIONS: dict[str, str] = {
     "yesno": (
         '- `exact_answer` must be exactly `"yes"` or `"no"`.\n'
-        "- `ideal_answer` is a concise explanatory paragraph (1–3 sentences)."
+        "- `ideal_answer` is a concise explanatory paragraph (1-3 sentences)."
     ),
     "factoid": (
         "- `exact_answer` is a JSON array of candidate entity strings "

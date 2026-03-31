@@ -16,9 +16,8 @@ assumes they are already loaded.
 """
 
 import random
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from bioasq.phase_b.quorum import AgreementLevel
 from bioasq.phase_b.quorum._types import (
     AGREEMENT_RANK,
     DebateTurn,
@@ -31,6 +30,9 @@ from bioasq.phase_b.quorum.prompts import (
     build_debate_turn_messages,
     build_final_answer_messages,
 )
+
+if TYPE_CHECKING:
+    from bioasq.phase_b.quorum import AgreementLevel
 
 
 class Debate:
