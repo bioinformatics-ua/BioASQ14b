@@ -17,9 +17,6 @@ Computes two categories of metrics:
   - Per-model agreement analysis
 """
 
-from __future__ import annotations
-
-import json
 import statistics
 from pathlib import Path
 from typing import Annotated, Any
@@ -33,7 +30,7 @@ from bioasq.phase_b.evaluation.metrics import (
     mean_f1_list,
     mrr_factoid,
 )
-from bioasq.phase_b.quorum.types import AGREEMENT_RANK
+from bioasq.phase_b.quorum._types import AGREEMENT_RANK
 
 # ---------------------------------------------------------------------------
 # Data loading helpers
@@ -160,11 +157,12 @@ def _bertscore(
     model_type: str = "microsoft/deberta-xlarge-mnli",
 ) -> dict[str, Any]:
     """Compute BERTScore F1 for ideal answers."""
+    bertscore_metric: Any
     try:
         import evaluate
 
         bertscore_metric = evaluate.load("bertscore")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         return {"error": f"BERTScore unavailable: {exc}"}
 
     preds: list[str] = []
@@ -194,11 +192,13 @@ def _bertscore(
     if not preds:
         return {"precision": 0.0, "recall": 0.0, "f1": 0.0, "n_scored": 0}
 
-    results = bertscore_metric.compute(
+    results = bertscore_metric.compute(  # type: ignore[reportCallIssue]
         predictions=preds,
         references=refs,
         model_type=model_type,
     )
+    if results is None:
+        return {"precision": 0.0, "recall": 0.0, "f1": 0.0, "n_scored": 0}
 
     per_question: dict[str, dict[str, float]] = {}
     for i, qid in enumerate(qids):
@@ -321,11 +321,13 @@ def _agreement_trajectory(turns: list[dict[str, Any]]) -> dict[str, Any]:
     trajectory: list[dict[str, float]] = []
     for rnd in sorted(by_round):
         values = by_round[rnd]
-        trajectory.append({
-            "round": rnd,
-            "mean_agreement": statistics.mean(values),
-            "n_turns": len(values),
-        })
+        trajectory.append(
+            {
+                "round": rnd,
+                "mean_agreement": statistics.mean(values),
+                "n_turns": len(values),
+            }
+        )
 
     return {"per_round": trajectory}
 
@@ -540,6 +542,13 @@ def evaluate_command(
 
     # Save JSON report
     if output is not None:
+        # Build per-question conversation map from quorum output.
+        conversations: dict[str, list[dict[str, Any]]] = {}
+        for q in quorum_questions:
+            qid = str(q.get("id", ""))
+            meta = q.get("quorum_meta", {})
+            conversations[qid] = meta.get("debate", [])
+
         report: dict[str, Any] = {
             "answer_quality": {
                 "rouge": {k: v for k, v in rouge.items() if k != "per_question"},
@@ -548,6 +557,7 @@ def evaluate_command(
             "debate_process": process,
             "per_question": {
                 "rouge": rouge.get("per_question", {}),
+                "conversations": conversations,
             },
         }
         if bertscore_result and "error" not in bertscore_result:
@@ -558,5 +568,9 @@ def evaluate_command(
             report["answer_quality"]["bertscore"] = bertscore_result
 
         output.parent.mkdir(parents=True, exist_ok=True)
-        output.write_text(json.dumps(report, indent=2, ensure_ascii=False, default=float))
+        output.write_bytes(orjson.dumps(report))
         typer.echo(f"Report saved to {output}")
+
+
+if __name__ == "__main__":
+    evaluate_app()

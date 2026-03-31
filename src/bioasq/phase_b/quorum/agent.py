@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from bioasq.phase_b.quorum.focuses import Focus, assign_focuses
-from bioasq.phase_b.quorum.parsing import extract_last_json
-from bioasq.phase_b.quorum.types import (
+from bioasq.phase_b.quorum._types import (
     AGREEMENT_RANK,
     AgreementLevel,
     ParsedAgentResponse,
 )
+from bioasq.phase_b.quorum.focuses import Focus, assign_focuses
+from bioasq.phase_b.quorum.parsing import extract_last_json
 
 if TYPE_CHECKING:
     from bioasq.phase_b.backends.base import BaseModelBackend
@@ -55,9 +55,9 @@ class Agent:
         for attempt in range(self.max_retries):
             try:
                 return self.backend.generate_chat(messages)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 last_exc = exc
-                wait = 2 ** attempt
+                wait = 2**attempt
                 print(
                     f"  [retry] Agent {self.agent_id} attempt {attempt + 1}/{self.max_retries} "
                     f"failed ({exc!r}), waiting {wait}s…",
@@ -98,10 +98,10 @@ def parse_agent_response(raw: str) -> ParsedAgentResponse:
 
     opinion: str = str(parsed.get("opinion", raw.strip() or "(no opinion provided)"))
 
-    raw_agreement = str(parsed.get("agreement", _DEFAULT_AGREEMENT)).lower().strip()
-    agreement: AgreementLevel = (
-        raw_agreement if raw_agreement in _VALID_AGREEMENT else _DEFAULT_AGREEMENT  # type: ignore[assignment]
+    raw_agreement: AgreementLevel = cast(
+        "AgreementLevel", str(parsed.get("agreement", _DEFAULT_AGREEMENT)).lower().strip()
     )
+    agreement = raw_agreement if raw_agreement in _VALID_AGREEMENT else _DEFAULT_AGREEMENT
 
     request_more_context: bool = bool(parsed.get("request_more_context", False))
 

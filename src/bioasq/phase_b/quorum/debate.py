@@ -18,17 +18,18 @@ assumes they are already loaded.
 import random
 from typing import Any
 
+from bioasq.phase_b.quorum import AgreementLevel
+from bioasq.phase_b.quorum._types import (
+    AGREEMENT_RANK,
+    DebateTurn,
+    ParsedFinalAnswer,
+    QuorumResult,
+)
 from bioasq.phase_b.quorum.agent import Agent, parse_agent_response
 from bioasq.phase_b.quorum.parsing import extract_last_json
 from bioasq.phase_b.quorum.prompts import (
     build_debate_turn_messages,
     build_final_answer_messages,
-)
-from bioasq.phase_b.quorum.types import (
-    AGREEMENT_RANK,
-    DebateTurn,
-    ParsedFinalAnswer,
-    QuorumResult,
 )
 
 
@@ -112,7 +113,7 @@ class Debate:
                 print("=" * 60)
 
             order = self._shuffled_agents()
-            round_agreements: list[str] = []
+            round_agreements: list[AgreementLevel] = []
 
             for agent in order:
                 turn = self._run_agent_turn(agent, round_num)

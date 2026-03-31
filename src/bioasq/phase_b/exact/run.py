@@ -140,7 +140,6 @@ def main(
         float, typer.Option(default=0.85, help="GPU memory utilization")
     ],
     max_model_len: Annotated[int, typer.Option(default=8192, help="Maximum model length")],
-    enforce_eager: Annotated[bool, typer.Option(default=False, help="Enforce eager mode")],
     request_delay: Annotated[
         float,
         typer.Option(
@@ -195,7 +194,6 @@ def main(
             tensor_parallel_size=tensor_parallel_size,
             gpu_memory_utilization=gpu_memory_utilization,
             max_model_len=max_model_len,
-            enforce_eager=enforce_eager,
         )
         if backend == "local"
         else OpenRouterBackend(

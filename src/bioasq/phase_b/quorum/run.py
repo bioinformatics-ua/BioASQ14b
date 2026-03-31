@@ -120,13 +120,13 @@ def run_quorum(
     data: Annotated[Path, typer.Option("--data", "-d", help="BioASQ JSONL or JSON input file.")],
     out: Annotated[Path, typer.Option("--out", "-o", help="Output JSON file for results.")],
     models: Annotated[
-        str,
+        list[str],
         typer.Option(
             "--models",
             "-m",
             help="Comma-separated list of OpenRouter model names.",
         ),
-    ] = "google/gemini-2.5-flash",
+    ],
     num_agents: Annotated[
         int, typer.Option("--num-agents", "-n", help="Number of debate agents.")
     ] = 4,
@@ -146,7 +146,7 @@ def run_quorum(
     request_delay: Annotated[
         float,
         typer.Option("--request-delay", help="Seconds between API requests (rate limiting)."),
-    ] = 0.5,
+    ] = 10,
     seed: Annotated[
         int | None, typer.Option("--seed", help="Random seed for reproducibility.")
     ] = None,
@@ -159,11 +159,6 @@ def run_quorum(
     """Run the agent quorum debate to generate answers for BioASQ questions."""
     from bioasq.phase_b.quorum.agent import build_agents
     from bioasq.phase_b.quorum.debate import Debate
-
-    model_list = [m.strip() for m in models.split(",") if m.strip()]
-    if not model_list:
-        typer.echo("Error: at least one model must be specified.", err=True)
-        raise typer.Exit(1)
 
     id_filter: set[str] | None = None
     if question_ids:
@@ -178,17 +173,17 @@ def run_quorum(
         raise typer.Exit(1)
 
     typer.echo(f"Loaded {len(questions)} question(s).")
-    typer.echo(f"Models: {model_list}")
+    typer.echo(f"Models: {models}")
     typer.echo(
         f"Agents: {num_agents}  |  Max rounds: {max_rounds}  |  Max docs: {max_docs or 'all'}"
     )
 
-    backends = _build_backends(model_list, max_tokens, temperature, request_delay)
+    backends = _build_backends(models, max_tokens, temperature, request_delay)
     rng = random.Random(seed)
 
     results: list[dict[str, Any]] = []
 
-    for idx, question in enumerate(questions, start=1):
+    for idx, question in enumerate(questions[:5], start=1):
         q_id = str(question.get("id", f"q{idx}"))
         q_body = str(question.get("body", ""))
         q_type = str(question.get("type", "summary"))
@@ -213,7 +208,7 @@ def run_quorum(
         )
 
         # Fresh agents per question (resets participation flags).
-        agents = build_agents(num_agents, model_list, backends)
+        agents = build_agents(num_agents, models, backends)
 
         debate = Debate(
             question_id=q_id,
@@ -249,7 +244,7 @@ def run_quorum(
                     "consensus_reached": result["consensus_reached"],
                     "docs_injected": result["docs_injected"],
                     "num_agents": num_agents,
-                    "models": model_list,
+                    "models": models,
                     "debate": result["debate"],
                 },
             }
@@ -261,3 +256,7 @@ def run_quorum(
 
     for backend in backends:
         backend.unload()
+
+
+if __name__ == "__main__":
+    app()

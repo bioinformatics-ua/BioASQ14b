@@ -55,7 +55,6 @@ class VLLMBackend(BaseModelBackend):
             gpu_memory_utilization=self.gpu_memory_utilization,
             max_model_len=self.max_model_len,
             trust_remote_code=True,
-            enforce_eager=True,
         )
         print("Model loaded.")
 
@@ -63,30 +62,31 @@ class VLLMBackend(BaseModelBackend):
         """Generate a single completion."""
         return self.generate_batch([prompt])[0]
 
-    def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
-        """Generate using the model's chat template."""
-        if self._llm is None:
-            msg: str = "Model is not loaded. Call load() first."
-            raise RuntimeError(msg)
-        outputs = self._llm.chat(  # type: ignore[union-attr]
-            messages=[list(messages)],
-            sampling_params=self.sampling_params,
-            use_tqdm=False,
-        )
-        return outputs[0].outputs[0].text
+    # def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
+    #     """Generate using the model's chat template."""
+    #     if self._llm is None:
+    #         msg: str = "Model is not loaded. Call load() first."
+    #         raise RuntimeError(msg)
+    #     outputs = self._llm.generate(
+    #         messages=[list(messages)],
+    #         sampling_params=self.sampling_params,
+    #         use_tqdm=False,
+    #     )
+    #     return outputs[0].outputs[0].text
 
     def _truncate_prompt(self, prompt: str) -> str:
         """Truncate prompt to fit within context window."""
         if self._llm is None:
             return prompt
-        tokenizer = self._llm.get_tokenizer()  # type: ignore[union-attr]
+        tokenizer = self._llm.get_tokenizer()
         max_new_tokens: int = self.sampling_params.max_tokens or 16
         max_input: int = self.max_model_len - max_new_tokens
         ids: list[int] = tokenizer.encode(prompt)
         if len(ids) <= max_input:
             return prompt
         ids = ids[:max_input]
-        return tokenizer.decode(ids)
+        s = tokenizer.decode(ids)
+        return s if isinstance(s, str) else s[0]
 
     def generate_batch(self, prompts: Sequence[str]) -> list[str]:
         """Run inference on a batch of prompts."""

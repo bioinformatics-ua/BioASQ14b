@@ -18,15 +18,15 @@ FOCUSES
     The pool of available thinking focuses (analytical, evidence-based, …).
 """
 
-from bioasq.phase_b.quorum.agent import Agent, build_agents
-from bioasq.phase_b.quorum.debate import Debate
-from bioasq.phase_b.quorum.focuses import FOCUSES, Focus
-from bioasq.phase_b.quorum.types import (
+from bioasq.phase_b.quorum._types import (
     AgreementLevel,
     DebateTurn,
     QuorumConfig,
     QuorumResult,
 )
+from bioasq.phase_b.quorum.agent import Agent, build_agents
+from bioasq.phase_b.quorum.debate import Debate
+from bioasq.phase_b.quorum.focuses import FOCUSES, Focus
 
 __all__ = [
     "FOCUSES",
