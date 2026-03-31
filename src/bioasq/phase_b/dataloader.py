@@ -43,16 +43,13 @@ class BioASQDataLoader:
                 "id": q["id"],
                 "body": q["body"],
                 "type": q["type"],
-                # Documents are raw PubMed URLs at this stage — resolve them
-                # separately with lookup_abstract_B.py before running inference
                 "documents": q.get("documents", []),
                 "snippets": [s["text"] for s in q.get("snippets", [])],
-                "ideal_answer": q.get("ideal_answer") or None,  # arr
-                # exact_answer format differs by type:
+                "ideal_answer": q.get("ideal_answer") or None,
                 "exact_answer": q.get("exact_answer") or None,
             }
             for line in self.path.open("rb")
-            if (q := orjson.loads(line).strip())
+            if (stripped := line.strip()) and (q := orjson.loads(stripped))
         ]
 
     def __iter__(self) -> Iterator[dict]:
