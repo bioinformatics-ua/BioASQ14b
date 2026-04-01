@@ -1,10 +1,13 @@
 import gc
+import re
 from collections.abc import Sequence
 
 import torch
 from vllm import LLM, SamplingParams
 
 from bioasq.phase_b.backends.base import BaseModelBackend
+
+_THINK_RE = re.compile(r"<think>.*?</think>\s*", re.DOTALL)
 
 
 class VLLMBackend(BaseModelBackend):
@@ -32,7 +35,7 @@ class VLLMBackend(BaseModelBackend):
         max_new_tokens: int = 1000,
         temperature: float = 0.5,
         tensor_parallel_size: int = 1,
-        gpu_memory_utilization: float = 0.90,
+        gpu_memory_utilization: float = 0.10,
         max_model_len: int = 8192,
     ) -> None:
         self.model_path: str = model_path
@@ -51,8 +54,8 @@ class VLLMBackend(BaseModelBackend):
         print(f"Loading model from {self.model_path}...")
         self._llm = LLM(
             model=self.model_path,
-            tensor_parallel_size=self.tensor_parallel_size,
-            gpu_memory_utilization=self.gpu_memory_utilization,
+            # tensor_parallel_size=self.tensor_parallel_size,
+            # gpu_memory_utilization=0.8,  # self.gpu_memory_utilization,
             max_model_len=self.max_model_len,
             trust_remote_code=True,
         )
@@ -62,17 +65,23 @@ class VLLMBackend(BaseModelBackend):
         """Generate a single completion."""
         return self.generate_batch([prompt])[0]
 
-    # def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
-    #     """Generate using the model's chat template."""
-    #     if self._llm is None:
-    #         msg: str = "Model is not loaded. Call load() first."
-    #         raise RuntimeError(msg)
-    #     outputs = self._llm.generate(
-    #         messages=[list(messages)],
-    #         sampling_params=self.sampling_params,
-    #         use_tqdm=False,
-    #     )
-    #     return outputs[0].outputs[0].text
+    def generate_chat(self, messages: Sequence[dict[str, str]]) -> str:
+        """Generate using the model's chat template."""
+        if self._llm is None:
+            msg: str = "Model is not loaded. Call load() first."
+            raise RuntimeError(msg)
+        outputs = self._llm.chat(
+            messages=[list(messages)],  # type: ignore[arg-type]
+            sampling_params=self.sampling_params,
+            use_tqdm=False,
+        )
+        return self._strip_thinking(outputs[0].outputs[0].text)
+
+    @staticmethod
+    def _strip_thinking(text: str) -> str:
+        """Remove ``<think>…</think>`` blocks emitted by thinking models."""
+        stripped = _THINK_RE.sub("", text)
+        return stripped.strip() if stripped.strip() else text.strip()
 
     def _truncate_prompt(self, prompt: str) -> str:
         """Truncate prompt to fit within context window."""

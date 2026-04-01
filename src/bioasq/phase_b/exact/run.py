@@ -106,7 +106,7 @@ def main(
     ],
     backend: Annotated[
         Literal["local", "openrouter"],
-        typer.Option(default="local", choices=["local", "openrouter"]),
+        typer.Option(default="openrouter", choices=["local", "openrouter"]),
     ],
     num_snippets: Annotated[
         int, typer.Option(default=5, help="Number of snippets to use for context")

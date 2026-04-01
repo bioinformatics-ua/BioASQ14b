@@ -19,6 +19,7 @@ data/lookup*.json
 data/BioASQ-task*bPhase*-testset*.json*
 data/band_aid
 data/bm25
+data/quorum
 
 data/quality
 !data/quality/.keep
@@ -88,3 +89,7 @@ scripts/B04
 tmp.py
 __pycache__/
 nohup.out
+
+src/bioasq/phase_a/reranker/outputs
+src/bioasq/phase_a/reranker/wandb
+src/wandb

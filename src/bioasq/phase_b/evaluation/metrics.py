@@ -180,8 +180,13 @@ def mrr_factoid(predictions: dict, ground_truth: list[dict]) -> dict:
             continue
 
         # Gold answers — normalise for comparison
-        # Factoid gold is a flat list like ["Bazex syndrome"]
-        gold_set = {_normalise(g) for g in gold_items}
+        # Factoid gold can be a nested list of synonyms like [["Bazex syndrome", "Bazex"]]
+        gold_set: set[str] = set()
+        for g in gold_items:
+            if isinstance(g, list):
+                gold_set.update(_normalise(syn) for syn in g)
+            else:
+                gold_set.add(_normalise(g))
 
         candidates = predictions[qid].get("exact_answer") or []
         if isinstance(candidates, str):
