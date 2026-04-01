@@ -24,7 +24,8 @@ class DebateTurn(TypedDict):
     model: str
     opinion: str
     agreement: AgreementLevel
-    request_more_context: bool
+    documents_shown: list[int]
+    kept_documents: list[int]
 
 
 class QuorumResult(TypedDict):
@@ -35,7 +36,8 @@ class QuorumResult(TypedDict):
     debate: list[DebateTurn]
     rounds: int
     consensus_reached: bool
-    docs_injected: int
+    total_docs: int
+    docs_per_sample: int
     question_id: str
     question_type: str
 
@@ -55,6 +57,7 @@ class QuorumConfig(TypedDict, total=False):
     models: list[str]
     max_rounds: int
     max_docs: int
+    docs_per_sample: int
     request_delay: float
     max_tokens: int
     temperature: float
@@ -76,7 +79,7 @@ class ParsedAgentResponse(TypedDict):
 
     opinion: str
     agreement: AgreementLevel
-    request_more_context: bool
+    kept_documents: list[int]
     raw: str
 
 

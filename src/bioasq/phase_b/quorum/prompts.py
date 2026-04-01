@@ -25,7 +25,16 @@ _DEBATE_TURN_TEMPLATE = """\
 
 ---
 
-### Context documents ({num_docs} injected so far)
+### Your document sample ({num_shown} of {total_docs} total documents)
+
+You are viewing a **subset** of the available evidence documents. Other agents \
+may have seen different subsets. Documents are identified by a stable ID \
+(e.g. Document 3) that is consistent across all agents and rounds.
+
+Documents you list in `kept_documents` will be guaranteed to appear in your \
+next round. Remaining slots will be filled with other documents from the pool \
+(possibly ones you have seen before). If you keep **all** {num_shown} documents, \
+you will receive one additional document slot next round.
 
 {context}
 
@@ -45,25 +54,32 @@ _DEBATE_TURN_TEMPLATE = """\
 
 ### Your task
 
-1. Reason about the answer to the question using your thinking approach.
-2. If other agents have already contributed, engage with their reasoning — \
-reinforce what is sound, correct what is wrong, and fill gaps.
-3. Decide whether you need additional documents to form a confident opinion.
-4. Rate how much you agree with the current direction of the debate.
+1. Reason carefully about the answer using your thinking approach and the \
+documents available to you.
+2. **Engage critically with other agents.** If they cite evidence you have not \
+seen, weigh their claims against your own documents. If you disagree, explain \
+what specific evidence or reasoning undermines their position. If you agree, \
+strengthen the argument with additional evidence from your documents.
+3. Decide which documents are most relevant and should be retained for the next \
+round. You may keep **zero or more** of the documents shown to you.
+4. Rate your agreement with the emerging consensus.
 
 **Agreement scale:**
-- `"strongly_agree"` — fully confident; the debate is converging on the correct, \
-complete answer.
+- `"strongly_agree"` — fully confident; the answer is correct and complete.
 - `"agree"` — the direction is right, but some refinement remains.
 - `"disagree"` — important aspects are missing or the direction needs correction.
 - `"strongly_disagree"` — the current direction is wrong and needs significant revision.
+
+**Only output `"strongly_agree"` when you are genuinely confident the answer is \
+correct, complete, and well-supported by evidence. Premature agreement weakens \
+the final answer.**
 
 **Respond with a single JSON object — no text outside it:**
 
 ```json
 {{
   "opinion": "<your detailed reasoning and position>",
-  "request_more_context": <true | false>,
+  "kept_documents": [<IDs of documents to retain, e.g. 3, 7>],
   "agreement": "<strongly_disagree | disagree | agree | strongly_agree>"
 }}
 ```\
@@ -145,12 +161,13 @@ _FORMAT_SPECS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 
-def _format_context(documents: list[str]) -> str:
+def _format_context(documents: list[tuple[int, str]]) -> str:
+    """Format documents as numbered blocks with stable 1-based IDs."""
     if not documents:
-        return "(No context documents available yet.)"
+        return "(No documents in your current sample.)"
     parts: list[str] = []
-    for i, doc in enumerate(documents, start=1):
-        parts.append(f"**Document {i}:**\n{doc.strip()}")
+    for doc_id, doc in documents:
+        parts.append(f"**Document {doc_id}:**\n{doc.strip()}")
     return "\n\n".join(parts)
 
 
@@ -200,7 +217,8 @@ def _format_history(
 def build_debate_turn_messages(
     question: str,
     question_type: str,
-    injected_docs: list[str],
+    indexed_docs: list[tuple[int, str]],
+    total_docs: int,
     history: list[DebateTurn],
     focus_description: str,
     max_history_turns: int | None = None,
@@ -209,8 +227,9 @@ def build_debate_turn_messages(
     user_content = _DEBATE_TURN_TEMPLATE.format(
         question=question,
         question_type=question_type,
-        num_docs=len(injected_docs),
-        context=_format_context(injected_docs),
+        num_shown=len(indexed_docs),
+        total_docs=total_docs,
+        context=_format_context(indexed_docs),
         history=_format_history(history, max_full_turns=max_history_turns),
         focus_description=focus_description,
     )
@@ -223,15 +242,17 @@ def build_debate_turn_messages(
 def build_final_answer_messages(
     question: str,
     question_type: str,
-    injected_docs: list[str],
+    all_documents: list[str],
     turns: list[DebateTurn],
 ) -> list[dict[str, str]]:
     """Build the chat message list for final answer synthesis."""
+    # Synthesis sees all documents with their stable 1-based IDs.
+    indexed = [(i + 1, doc) for i, doc in enumerate(all_documents)]
     debate_summary = _summarise_debate(turns)
     user_content = _FINAL_ANSWER_BASE.format(
         question=question,
         question_type=question_type,
-        context=_format_context(injected_docs),
+        context=_format_context(indexed),
         debate_summary=debate_summary,
         type_instructions=_TYPE_INSTRUCTIONS.get(question_type, ""),
         format_spec=_FORMAT_SPECS.get(question_type, _FORMAT_SPECS["summary"]),

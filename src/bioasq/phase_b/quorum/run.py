@@ -19,7 +19,11 @@ Usage examples::
         --out results/quorum_out.json
 """
 
-import json
+import os
+
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 import random
 from pathlib import Path
 from typing import Annotated, Any
@@ -27,6 +31,7 @@ from typing import Annotated, Any
 import orjson
 import typer
 
+from bioasq.phase_b.backends.base import BaseModelBackend
 from bioasq.phase_b.quorum.evaluate import evaluate_app
 
 app = typer.Typer(
@@ -64,7 +69,8 @@ def _build_backends(
     max_tokens: int,
     temperature: float,
     request_delay: float,
-) -> list[Any]:
+    local_max_tokens: int | None = None,
+) -> list[BaseModelBackend]:
     """Instantiate and load one backend per model.
 
     Model strings use ``"backend:model_name"`` format, e.g.
@@ -73,7 +79,7 @@ def _build_backends(
     """
     from bioasq.phase_b.backends.cloud import OpenRouterBackend
 
-    backends = []
+    backends: list[BaseModelBackend] = []
     for spec in models:
         if ":" in spec:
             backend_type, model_name = spec.split(":", 1)
@@ -83,9 +89,9 @@ def _build_backends(
         if backend_type == "local":
             from bioasq.phase_b.backends.local import VLLMBackend
 
-            backend: Any = VLLMBackend(
+            backend = VLLMBackend(
                 model_path=model_name,
-                max_new_tokens=max_tokens,
+                max_new_tokens=local_max_tokens if local_max_tokens is not None else max_tokens,
                 temperature=temperature,
                 tensor_parallel_size=2,
             )
@@ -129,24 +135,34 @@ def run_quorum(
     ],
     num_agents: Annotated[
         int, typer.Option("--num-agents", "-n", help="Number of debate agents.")
-    ] = 4,
+    ] = 6,
     max_rounds: Annotated[
         int, typer.Option("--max-rounds", help="Maximum debate rounds per question.")
     ] = 8,
-    max_docs: Annotated[
-        int | None,
-        typer.Option("--max-docs", help="Maximum documents to inject per question (default: all)."),
-    ] = None,
+    docs_per_sample: Annotated[
+        int,
+        typer.Option(
+            "--docs-per-sample",
+            help="Number of documents each agent sees per round (initial n).",
+        ),
+    ] = 3,
     max_tokens: Annotated[
-        int, typer.Option("--max-tokens", help="Max tokens per LLM response.")
-    ] = 1024,
+        int, typer.Option("--max-tokens", help="Max tokens per LLM response (cloud backends).")
+    ] = 2048,
+    local_max_tokens: Annotated[
+        int,
+        typer.Option(
+            "--local-max-tokens",
+            help="Max tokens for local vLLM backends (defaults to --max-tokens if omitted).",
+        ),
+    ] = 128000,
     temperature: Annotated[
         float, typer.Option("--temperature", help="Sampling temperature.")
     ] = 0.5,
     request_delay: Annotated[
         float,
         typer.Option("--request-delay", help="Seconds between API requests (rate limiting)."),
-    ] = 10,
+    ] = 0.05,
     seed: Annotated[
         int | None, typer.Option("--seed", help="Random seed for reproducibility.")
     ] = None,
@@ -154,6 +170,16 @@ def run_quorum(
     question_ids: Annotated[
         str | None,
         typer.Option("--ids", help="Comma-separated question IDs to process (default: all)."),
+    ] = None,
+    synthesizer_model: Annotated[
+        str | None,
+        typer.Option(
+            "--synthesizer-model",
+            help=(
+                "Model for the final synthesis step (e.g. 'openrouter:google/gemini-2.5-pro'). "
+                "If omitted, the first debate agent is used."
+            ),
+        ),
     ] = None,
 ) -> None:
     """Run the agent quorum debate to generate answers for BioASQ questions."""
@@ -175,11 +201,17 @@ def run_quorum(
     typer.echo(f"Loaded {len(questions)} question(s).")
     typer.echo(f"Models: {models}")
     typer.echo(
-        f"Agents: {num_agents}  |  Max rounds: {max_rounds}  |  Max docs: {max_docs or 'all'}"
+        f"Agents: {num_agents}  |  Max rounds: {max_rounds}  |  Docs/sample: {docs_per_sample}"
     )
 
-    backends = _build_backends(models, max_tokens, temperature, request_delay)
+    backends = _build_backends(models, max_tokens, temperature, request_delay, local_max_tokens)
     rng = random.Random(seed)
+
+    synthesizer_backend: BaseModelBackend | None = None
+    if synthesizer_model:
+        [synthesizer_backend] = _build_backends(
+            [synthesizer_model], max_tokens, temperature, request_delay, local_max_tokens
+        )
 
     results: list[dict[str, Any]] = []
 
@@ -216,10 +248,11 @@ def run_quorum(
             question_type=q_type,
             documents=documents,
             agents=agents,
+            docs_per_sample=docs_per_sample,
             max_rounds=max_rounds,
-            max_docs=max_docs or len(documents),
             verbose=verbose,
             rng=random.Random(rng.randint(0, 2**32 - 1)),
+            synthesizer_backend=synthesizer_backend,
         )
 
         result = debate.run()
@@ -228,7 +261,7 @@ def run_quorum(
             typer.echo(
                 f"\n  → Consensus: {result['consensus_reached']}  "
                 f"Rounds: {result['rounds']}  "
-                f"Docs used: {result['docs_injected']}"
+                f"Total docs: {result['total_docs']}"
             )
             typer.echo(f"  → Ideal answer: {result['ideal_answer'][:120]}…")
 
@@ -242,7 +275,8 @@ def run_quorum(
                 "quorum_meta": {
                     "rounds": result["rounds"],
                     "consensus_reached": result["consensus_reached"],
-                    "docs_injected": result["docs_injected"],
+                    "total_docs": result["total_docs"],
+                    "docs_per_sample": result["docs_per_sample"],
                     "num_agents": num_agents,
                     "models": models,
                     "debate": result["debate"],
@@ -251,11 +285,15 @@ def run_quorum(
         )
 
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps({"questions": results}, indent=2, ensure_ascii=False))
+    out.write_bytes(
+        orjson.dumps({"questions": results}, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS)
+    )
     typer.echo(f"\nResults written to {out}")
 
     for backend in backends:
         backend.unload()
+    if synthesizer_backend is not None:
+        synthesizer_backend.unload()
 
 
 if __name__ == "__main__":

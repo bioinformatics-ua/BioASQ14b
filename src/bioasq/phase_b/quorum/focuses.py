@@ -21,7 +21,7 @@ FOCUSES: list[Focus] = [
         description=(
             "Approach this by systematically decomposing the evidence. "
             "Identify premises, logical chains, and conclusions. "
-            "Prioritise internal consistency and logical validity. "
+            "Prioritize internal consistency and logical validity. "
             "Flag any unjustified inferential leaps."
         ),
     ),
@@ -40,13 +40,15 @@ FOCUSES: list[Focus] = [
             "Challenge the direction the debate is taking. "
             "Seek gaps in the evidence, alternative interpretations, confounding factors, "
             "and methodological limitations. "
-            "Ask: what assumptions are being made, and what would falsify this answer?"
+            "Ask: what assumptions are being made, and what would falsify this answer? "
+            "However, don't be a negationist — if the evidence is strong, "
+            "acknowledge and agree with it, but explain what would be needed to reach agreement."
         ),
     ),
     Focus(
         name="integrative",
         description=(
-            "Synthesise information across all available sources. "
+            "Synthesize information across all available sources. "
             "Seek converging evidence and reconcile apparent contradictions. "
             "Identify the most robust conclusion that is consistent with the full body of evidence."
         ),
@@ -55,7 +57,7 @@ FOCUSES: list[Focus] = [
         name="pragmatic",
         description=(
             "Focus on the most direct, actionable answer to the question as posed. "
-            "Prioritise precision and clarity. "
+            "Prioritize precision and clarity. "
             "Avoid over-qualification. "
             "What is the most defensible, concise answer given the evidence?"
         ),

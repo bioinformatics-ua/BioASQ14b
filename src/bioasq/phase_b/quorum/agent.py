@@ -89,10 +89,16 @@ def parse_agent_response(raw: str) -> ParsedAgentResponse:
     parsed = extract_last_json(raw)
 
     if parsed is None:
+        print(
+            "  [parse warning] Failed to parse JSON from agent response, "
+            "falling back to defaults. Raw response was:\n"
+            f"{raw}",
+            flush=True,
+        )
         return ParsedAgentResponse(
             opinion=raw.strip() or "(no opinion provided)",
             agreement=_DEFAULT_AGREEMENT,
-            request_more_context=False,
+            kept_documents=[],
             raw=raw,
         )
 
@@ -103,12 +109,19 @@ def parse_agent_response(raw: str) -> ParsedAgentResponse:
     )
     agreement = raw_agreement if raw_agreement in _VALID_AGREEMENT else _DEFAULT_AGREEMENT
 
-    request_more_context: bool = bool(parsed.get("request_more_context", False))
+    raw_kept = parsed.get("kept_documents", [])
+    kept_documents: list[int] = []
+    if isinstance(raw_kept, list):
+        for item in raw_kept:
+            try:
+                kept_documents.append(int(item))
+            except (TypeError, ValueError):
+                pass
 
     return ParsedAgentResponse(
         opinion=opinion,
         agreement=agreement,
-        request_more_context=request_more_context,
+        kept_documents=kept_documents,
         raw=raw,
     )
 

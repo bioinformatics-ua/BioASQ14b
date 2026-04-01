@@ -260,9 +260,13 @@ def _process_metrics(questions: list[dict[str, Any]]) -> dict[str, Any]:
             consensus_count += 1
 
         docs_injected = meta.get("docs_injected", 0)
-        docs_available = len(q.get("documents", []))
+        total_docs = meta.get("total_docs", 0)
+        docs_available = total_docs or len(q.get("documents", []))
         if docs_available > 0:
-            context_ratios.append(docs_injected / docs_available)
+            # For backwards compat: if docs_injected is present, use it;
+            # otherwise fall back to total_docs / docs_available.
+            ratio = docs_injected / docs_available if docs_injected else 1.0
+            context_ratios.append(ratio)
 
         for turn in meta.get("debate", []):
             all_turns.append(turn)
