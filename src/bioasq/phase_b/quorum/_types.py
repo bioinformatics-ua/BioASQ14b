@@ -15,6 +15,13 @@ AGREEMENT_RANK: dict[AgreementLevel, int] = {
 }
 
 
+class QuorumDocument(TypedDict):
+    """A document shown to the quorum, including attached snippets."""
+
+    text: str
+    snippets: list[str]
+
+
 class DebateTurn(TypedDict):
     """A single turn by one agent in the debate."""
 

@@ -27,6 +27,7 @@ import orjson
 import typer
 
 from bioasq.phase_b.backends.base import BaseModelBackend
+from bioasq.phase_b.quorum._types import QuorumDocument
 from bioasq.phase_b.quorum.evaluate import evaluate_app
 
 app = typer.Typer(
@@ -107,18 +108,39 @@ def _build_backends(
     return backends
 
 
-def _extract_documents(question: dict[str, Any]) -> list[str]:
-    """Extract ordered document texts from a question dict."""
+def _extract_documents(question: dict[str, Any]) -> list[QuorumDocument]:
+    """Extract ordered documents and bind snippets by source document ID."""
     raw_docs = question.get("documents", [])
-    texts: list[str] = []
+    snippets_by_doc_id: dict[str, list[str]] = {}
+
+    for raw_snippet in question.get("snippets", []):
+        doc_id = raw_snippet.get("document").rstrip("/").split("/")[-1]
+        snippet = raw_snippet.get("text")
+        if doc_id is None or snippet is None:
+            continue
+        snippets_by_doc_id.setdefault(doc_id, []).append(snippet)
+
+    documents: list[QuorumDocument] = []
     for doc in raw_docs:
-        if isinstance(doc, dict):
-            text = doc.get("text", "")
-            if text:
-                texts.append(str(text))
-        elif isinstance(doc, str) and doc.strip():
-            texts.append(doc)
-    return texts
+        if not isinstance(doc, dict):
+            print(f"Warning: skipping invalid document (not a dict): {doc}")
+            continue
+
+        text = doc.get("text", "")
+        if not isinstance(text, str) or not text.strip():
+            print(f"Warning: skipping document with invalid or empty text: {doc}")
+            continue
+
+        source_id = doc.get("id").rstrip("/").split("/")[-1]
+        documents.append(
+            {
+                "text": text.strip(),
+                "snippets": list(snippets_by_doc_id.get(source_id, []))
+                if source_id is not None
+                else [],
+            }
+        )
+    return documents
 
 
 @app.command(name="run")
@@ -245,7 +267,7 @@ def run_quorum(
                 continue
 
             typer.echo(
-                f"\n[{idx}/{len(questions) - 1}] {q_id} ({q_type})  — {len(documents)} docs available"
+                f"\n[{idx}/{len(questions) - 1}] {q_id} ({q_type}) — {len(documents)} docs in total"
             )
 
             # Fresh agents per question (resets participation flags).

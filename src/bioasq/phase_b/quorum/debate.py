@@ -27,6 +27,7 @@ from bioasq.phase_b.quorum._types import (
     AGREEMENT_RANK,
     DebateTurn,
     ParsedFinalAnswer,
+    QuorumDocument,
     QuorumResult,
 )
 from bioasq.phase_b.quorum.agent import Agent, parse_agent_response
@@ -52,8 +53,8 @@ class Debate:
     question_type:
         One of ``"yesno"``, ``"factoid"``, ``"list"``, ``"summary"``.
     documents:
-        Ordered list of document texts (abstracts).  Each document is assigned
-        a stable 1-based ID corresponding to its position in this list.
+        Ordered list of documents with attached snippets. Each document is
+        assigned a stable 1-based ID corresponding to its position in this list.
     agents:
         List of :class:`~bioasq.phase_b.quorum.agent.Agent` instances.
     docs_per_sample:
@@ -79,7 +80,7 @@ class Debate:
         question_id: str,
         question_body: str,
         question_type: str,
-        documents: list[str],
+        documents: list[QuorumDocument],
         agents: list[Agent],
         docs_per_sample: int = 3,
         max_rounds: int = 10,
@@ -199,7 +200,7 @@ class Debate:
     # Document sampling
     # ------------------------------------------------------------------
 
-    def _sample_docs_for_agent(self, agent: Agent) -> list[tuple[int, str]]:
+    def _sample_docs_for_agent(self, agent: Agent) -> list[tuple[int, QuorumDocument]]:
         """Build the document sample for *agent* this round.
 
         Kept documents are included first; remaining slots are filled by
@@ -229,7 +230,7 @@ class Debate:
         self,
         agent: Agent,
         turn: DebateTurn,
-        shown_docs: list[tuple[int, str]],
+        shown_docs: list[tuple[int, QuorumDocument]],
     ) -> None:
         """Update the agent's kept documents and sample size."""
         agent_id = agent.agent_id
@@ -272,7 +273,7 @@ class Debate:
         self,
         agent: Agent,
         round_num: int,
-        indexed_docs: list[tuple[int, str]],
+        indexed_docs: list[tuple[int, QuorumDocument]],
     ) -> DebateTurn:
         messages = build_debate_turn_messages(
             question=self.question_body,
@@ -332,7 +333,7 @@ class Debate:
         if self._synthesizer_backend is not None:
             raw = self._synthesizer_backend.generate_chat(messages)
         else:
-            raw = self.agents[0].generate(messages)
+            raw = self.agents[0].generate(messages) or ""
         return _parse_final_answer(raw, self.question_type)
 
 

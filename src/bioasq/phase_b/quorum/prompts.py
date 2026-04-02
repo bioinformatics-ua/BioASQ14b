@@ -1,6 +1,10 @@
 """Prompt builders for the quorum debate and final answer synthesis."""
 
-from bioasq.phase_b.quorum._types import AgreementLevel, DebateTurn
+from bioasq.phase_b.quorum._types import (
+    AgreementLevel,
+    DebateTurn,
+    QuorumDocument,
+)
 
 # ---------------------------------------------------------------------------
 # System prompt
@@ -150,8 +154,14 @@ _TYPE_INSTRUCTIONS: dict[str, str] = {
 
 _FORMAT_SPECS: dict[str, str] = {
     "yesno": '{\n  "ideal_answer": "<explanatory paragraph>",\n  "exact_answer": "yes"\n}',
-    "factoid": '{\n  "ideal_answer": "<explanatory sentence>",\n  "exact_answer": ["entity1", "entity2"]\n}',
-    "list": '{\n  "ideal_answer": "<explanatory paragraph>",\n  "exact_answer": [["item1"], ["item2"]]\n}',
+    "factoid": (
+        '{\n  "ideal_answer": "<explanatory sentence>",\n'
+        '  "exact_answer": ["entity1", "entity2"]\n}'
+    ),
+    "list": (
+        '{\n  "ideal_answer": "<explanatory paragraph>",\n'
+        '  "exact_answer": [["item1"], ["item2"]]\n}'
+    ),
     "summary": '{\n  "ideal_answer": "<comprehensive paragraph>"\n}',
 }
 
@@ -161,13 +171,24 @@ _FORMAT_SPECS: dict[str, str] = {
 # ---------------------------------------------------------------------------
 
 
-def _format_context(documents: list[tuple[int, str]]) -> str:
+def _format_context(documents: list[tuple[int, QuorumDocument]]) -> str:
     """Format documents as numbered blocks with stable 1-based IDs."""
     if not documents:
         return "(No documents in your current sample.)"
+
     parts: list[str] = []
     for doc_id, doc in documents:
-        parts.append(f"**Document {doc_id}:**\n{doc.strip()}")
+        header = f"**Document {doc_id}:**"
+
+        block_parts = [header, f"Text: {doc['text'].strip()}"]
+        if doc["snippets"]:
+            formatted_snippets = "\n".join(
+                f"Snippet {index} - {snippet}"
+                for index, snippet in enumerate(doc["snippets"], start=1)
+            )
+            block_parts.append(f"Attached snippets:\n{formatted_snippets}")
+
+        parts.append("\n".join(block_parts))
     return "\n\n".join(parts)
 
 
@@ -217,7 +238,7 @@ def _format_history(
 def build_debate_turn_messages(
     question: str,
     question_type: str,
-    indexed_docs: list[tuple[int, str]],
+    indexed_docs: list[tuple[int, QuorumDocument]],
     total_docs: int,
     history: list[DebateTurn],
     focus_description: str,
@@ -242,7 +263,7 @@ def build_debate_turn_messages(
 def build_final_answer_messages(
     question: str,
     question_type: str,
-    all_documents: list[str],
+    all_documents: list[QuorumDocument],
     turns: list[DebateTurn],
 ) -> list[dict[str, str]]:
     """Build the chat message list for final answer synthesis."""

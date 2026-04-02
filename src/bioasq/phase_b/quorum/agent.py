@@ -1,11 +1,11 @@
 """Agent definition and model-assignment logic for the quorum debate."""
 
-from __future__ import annotations
-
+import contextlib
 import time
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
+from bioasq.phase_b.backends.base import BaseModelBackend
 from bioasq.phase_b.quorum._types import (
     AGREEMENT_RANK,
     AgreementLevel,
@@ -13,9 +13,6 @@ from bioasq.phase_b.quorum._types import (
 )
 from bioasq.phase_b.quorum.focuses import Focus, assign_focuses
 from bioasq.phase_b.quorum.parsing import extract_last_json
-
-if TYPE_CHECKING:
-    from bioasq.phase_b.backends.base import BaseModelBackend
 
 # ---------------------------------------------------------------------------
 # Agent
@@ -51,12 +48,10 @@ class Agent:
 
     def generate(self, messages: list[dict[str, str]]) -> str | None:
         """Generate with exponential-backoff retry on transient failures."""
-        last_exc: Exception | None = None
         for attempt in range(self.max_retries):
             try:
                 return self.backend.generate_chat(messages)
             except Exception as exc:
-                last_exc = exc
                 wait = 2**attempt
                 print(
                     f"  [retry] Agent {self.agent_id} attempt {attempt + 1}/{self.max_retries} "
@@ -119,10 +114,8 @@ def parse_agent_response(raw: str | None) -> ParsedAgentResponse:
     kept_documents: list[int] = []
     if isinstance(raw_kept, list):
         for item in raw_kept:
-            try:
+            with contextlib.suppress(TypeError, ValueError):
                 kept_documents.append(int(item))
-            except (TypeError, ValueError):
-                pass
 
     return ParsedAgentResponse(
         opinion=opinion,
