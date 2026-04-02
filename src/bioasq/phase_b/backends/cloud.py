@@ -30,11 +30,13 @@ class OpenRouterBackend(BaseModelBackend):
         max_tokens: int = 1000,
         temperature: float = 0.5,
         request_delay: float = 0.0,
+        base_url: str | None = None,
     ) -> None:
         self.model: str = model
         self.max_tokens: int = max_tokens
         self.temperature: float = temperature
         self.request_delay: float = request_delay
+        self.base_url: str = base_url or "https://openrouter.ai/api/v1"
         self._client: object | None = None
 
     def load(self) -> None:
@@ -47,7 +49,7 @@ class OpenRouterBackend(BaseModelBackend):
             raise RuntimeError(msg)
 
         self._client = OpenAI(
-            base_url="https://openrouter.ai/api/v1",
+            base_url=self.base_url,
             api_key=api_key,
         )
         print(f"OpenRouter client ready (model={self.model}).")

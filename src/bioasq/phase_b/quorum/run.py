@@ -19,11 +19,6 @@ Usage examples::
         --out results/quorum_out.json
 """
 
-import os
-
-os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-
 import random
 from pathlib import Path
 from typing import Annotated, Any
@@ -73,16 +68,17 @@ def _build_backends(
 ) -> list[BaseModelBackend]:
     """Instantiate and load one backend per model.
 
-    Model strings use ``"backend:model_name"`` format, e.g.
-    ``"openrouter:google/gemini-2.5-flash"`` or ``"local:google/medgemma-27b-text-it"``.
+    Model strings use ``"backend|model_name"`` format, e.g.
+    ``"openrouter|google/gemini-2.5-flash"`` or ``"local|google/medgemma-27b-text-it"``, or
+    ``"external|192.168.1.2:8080|google/medgemma-27b-text-it"`` for custom OpenAI-based endpoints.
     If no prefix is given, defaults to ``"openrouter"``.
     """
     from bioasq.phase_b.backends.cloud import OpenRouterBackend
 
     backends: list[BaseModelBackend] = []
     for spec in models:
-        if ":" in spec:
-            backend_type, model_name = spec.split(":", 1)
+        if "|" in spec:
+            backend_type, model_name = spec.split("|", 1)
         else:
             backend_type, model_name = "openrouter", spec
 
@@ -96,11 +92,15 @@ def _build_backends(
                 tensor_parallel_size=2,
             )
         else:
+            base_url, model_name = (
+                model_name.split("|", 1) if backend_type == "external" else (None, model_name)
+            )
             backend = OpenRouterBackend(
                 model=model_name,
                 max_tokens=max_tokens,
                 temperature=temperature,
                 request_delay=request_delay,
+                base_url=base_url,
             )
         backend.load()
         backends.append(backend)
@@ -124,7 +124,7 @@ def _extract_documents(question: dict[str, Any]) -> list[str]:
 @app.command(name="run")
 def run_quorum(
     data: Annotated[Path, typer.Option("--data", "-d", help="BioASQ JSONL or JSON input file.")],
-    out: Annotated[Path, typer.Option("--out", "-o", help="Output JSON file for results.")],
+    out: Annotated[Path, typer.Option("--out", "-o", help="Output JSONL file for results.")],
     models: Annotated[
         list[str],
         typer.Option(
@@ -148,7 +148,7 @@ def run_quorum(
     ] = 3,
     max_tokens: Annotated[
         int, typer.Option("--max-tokens", help="Max tokens per LLM response (cloud backends).")
-    ] = 2048,
+    ] = 64000,
     local_max_tokens: Annotated[
         int,
         typer.Option(
@@ -214,59 +214,60 @@ def run_quorum(
         )
 
     results: list[dict[str, Any]] = []
+    out.parent.mkdir(parents=True, exist_ok=True)
 
-    for idx, question in enumerate(questions[:5], start=1):
-        q_id = str(question.get("id", f"q{idx}"))
-        q_body = str(question.get("body", ""))
-        q_type = str(question.get("type", "summary"))
-        documents = _extract_documents(question)
+    with out.open("w+b") as f:
+        for idx, question in enumerate(questions, start=1):
+            q_id = str(question.get("id", f"q{idx}"))
+            q_body = str(question.get("body", ""))
+            q_type = str(question.get("type", "summary"))
+            documents = _extract_documents(question)
 
-        if not documents:
-            typer.echo(f"[{idx}/{len(questions)}] {q_id}: no documents — skipping.")
-            results.append(
-                {
-                    "id": q_id,
-                    "type": q_type,
-                    "body": q_body,
-                    "error": "no_documents",
-                    "ideal_answer": "",
-                    "exact_answer": None,
-                }
-            )
-            continue
+            if not documents:
+                typer.echo(f"[{idx}/{len(questions)}] {q_id}: no documents — skipping.")
+                results.append(
+                    {
+                        "id": q_id,
+                        "type": q_type,
+                        "body": q_body,
+                        "error": "no_documents",
+                        "ideal_answer": "",
+                        "exact_answer": None,
+                    }
+                )
+                continue
 
-        typer.echo(
-            f"\n[{idx}/{len(questions)}] {q_id} ({q_type})  — {len(documents)} docs available"
-        )
-
-        # Fresh agents per question (resets participation flags).
-        agents = build_agents(num_agents, models, backends)
-
-        debate = Debate(
-            question_id=q_id,
-            question_body=q_body,
-            question_type=q_type,
-            documents=documents,
-            agents=agents,
-            docs_per_sample=docs_per_sample,
-            max_rounds=max_rounds,
-            verbose=verbose,
-            rng=random.Random(rng.randint(0, 2**32 - 1)),
-            synthesizer_backend=synthesizer_backend,
-        )
-
-        result = debate.run()
-
-        if verbose:
             typer.echo(
-                f"\n  → Consensus: {result['consensus_reached']}  "
-                f"Rounds: {result['rounds']}  "
-                f"Total docs: {result['total_docs']}"
+                f"\n[{idx}/{len(questions)}] {q_id} ({q_type})  — {len(documents)} docs available"
             )
-            typer.echo(f"  → Ideal answer: {result['ideal_answer'][:120]}…")
 
-        results.append(
-            {
+            # Fresh agents per question (resets participation flags).
+            agents = build_agents(num_agents, models, backends)
+
+            debate = Debate(
+                question_id=q_id,
+                question_body=q_body,
+                question_type=q_type,
+                documents=documents,
+                agents=agents,
+                docs_per_sample=docs_per_sample,
+                max_rounds=max_rounds,
+                verbose=verbose,
+                rng=random.Random(rng.randint(0, 2**32 - 1)),
+                synthesizer_backend=synthesizer_backend,
+            )
+
+            result = debate.run()
+
+            if verbose:
+                typer.echo(
+                    f"\n  → Consensus: {result['consensus_reached']}  "
+                    f"Rounds: {result['rounds']}  "
+                    f"Total docs: {result['total_docs']}"
+                )
+                typer.echo(f"  → Ideal answer: {result['ideal_answer'][:120]}…")
+
+            result = {
                 "id": q_id,
                 "type": q_type,
                 "body": q_body,
@@ -282,12 +283,17 @@ def run_quorum(
                     "debate": result["debate"],
                 },
             }
-        )
+            results.append(result)
 
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_bytes(
-        orjson.dumps({"questions": results}, option=orjson.OPT_INDENT_2 | orjson.OPT_NON_STR_KEYS)
+            f.write(orjson.dumps(result, option=orjson.OPT_NON_STR_KEYS) + b"\n")
+
+    out.with_suffix(".final.json").write_bytes(
+        orjson.dumps(
+            {"questions": results},
+            option=orjson.OPT_NON_STR_KEYS | orjson.OPT_INDENT_2,
+        )
     )
+
     typer.echo(f"\nResults written to {out}")
 
     for backend in backends:

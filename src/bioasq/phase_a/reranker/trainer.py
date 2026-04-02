@@ -64,7 +64,8 @@ class EarlyStoppingOnGradNorm(TrainerCallback):
         _args: TrainingArguments,
         _state: TrainerState,
         control: TrainerControl,
-        logs: dict[str, float] | None = None,
+        logs: dict[str, int | float] | None = None,
+        **kwargs: object,
     ) -> None:
         if logs is None or "grad_norm" not in logs:
             return
@@ -100,6 +101,7 @@ class PointwiseRerankerTrainer(Trainer):
         model: torch.nn.Module,
         inputs: RankingBatch,
         return_outputs: bool = False,
+        **kwargs: object,
     ) -> torch.Tensor | tuple[torch.Tensor, SequenceClassifierOutput]:
         labels: list[int] | list[str] | ModelInputs = inputs.pop("labels")  # type: ignore[assignment]
         inputs.pop("id", None)
@@ -129,6 +131,7 @@ class PairwiseRerankerTrainer(Trainer):
         inputs: PairwiseBatch,
         _prediction_loss_only: bool,
         _ignore_keys: list[str] | None = None,
+        **kwargs: object,
     ) -> tuple[torch.Tensor, None, None]:
         inputs = self._prepare_inputs(inputs)  # type: ignore[assignment]
         with torch.no_grad():
@@ -141,6 +144,7 @@ class PairwiseRerankerTrainer(Trainer):
         model: torch.nn.Module,
         inputs: PairwiseBatch,
         return_outputs: bool = False,
+        **kwargs: object,
     ) -> torch.Tensor | tuple[torch.Tensor, SequenceClassifierOutput]:
         pos_inputs: ModelInputs = inputs["pos_inputs"]
         neg_inputs: ModelInputs = inputs["neg_inputs"]
@@ -181,6 +185,7 @@ class MultiNegativePairwiseRerankerTrainer(Trainer):
         inputs: MultiNegBatch,
         _prediction_loss_only: bool,
         _ignore_keys: list[str] | None = None,
+        **kwargs: object,
     ) -> tuple[torch.Tensor, None, None]:
         inputs = self._prepare_inputs(inputs)  # type: ignore[assignment]
         with torch.no_grad():
@@ -193,6 +198,7 @@ class MultiNegativePairwiseRerankerTrainer(Trainer):
         model: torch.nn.Module,
         inputs: MultiNegBatch,
         return_outputs: bool = False,
+        **kwargs: object,
     ) -> torch.Tensor | tuple[torch.Tensor, SequenceClassifierOutput]:
         pos_inputs: ModelInputs = inputs["pos_inputs"]  # type: ignore[assignment]
         neg_inputs: list[ModelInputs] = inputs["neg_inputs"]  # type: ignore[assignment]

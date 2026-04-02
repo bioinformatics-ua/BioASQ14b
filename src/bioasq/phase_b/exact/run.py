@@ -90,64 +90,62 @@ def parse_summary_ideal(text: str) -> tuple[bool, str | None]:
 @app.command()
 def main(
     input_: Annotated[Path, typer.Argument(..., help="Input file path")],
-    output: Annotated[
-        Path | None, typer.Option(default=None, help="Output file path (single prompt mode)")
-    ],
-    output_dir: Annotated[
-        Path | None, typer.Option(default=None, help="Output directory (multi-prompt grid mode)")
-    ],
-    model: Annotated[str | None, typer.Option(default=None, help="Model name")],
     prompt_ids: Annotated[
         list[str],
         typer.Option(
             help="One or more prompt IDs to run with one model load, e.g. 1 2 3 4."
             "Use 'all' to run every prompt in the prompts file.",
         ),
-    ],
+    ] = ["6"],
+    output: Annotated[
+        Path | None, typer.Option(..., help="Output file path (single prompt mode)")
+    ] = None,
+    output_dir: Annotated[
+        Path | None, typer.Option(..., help="Output directory (multi-prompt grid mode)")
+    ] = None,
+    model: Annotated[str | None, typer.Option(..., help="Model name")] = None,
     backend: Annotated[
         Literal["local", "openrouter"],
-        typer.Option(default="openrouter", choices=["local", "openrouter"]),
-    ],
+        typer.Option(),
+    ] = "openrouter",
     num_snippets: Annotated[
-        int, typer.Option(default=5, help="Number of snippets to use for context")
-    ],
+        int, typer.Option(..., help="Number of snippets to use for context")
+    ] = 5,
     prompts_file: Annotated[
         Path,
-        typer.Option(
-            default=str(Path(__file__).parent / "prompts_exact.json"), help="Prompts file path"
-        ),
-    ],
+        typer.Option(..., help="Prompts file path"),
+    ] = Path(__file__).parent / "prompts_exact.json",
     max_tokens: Annotated[
-        int, typer.Option(default=500, help="Maximum number of tokens to generate")
-    ],
-    temperature: Annotated[float, typer.Option(default=0.0, help="Temperature for generation")],
+        int, typer.Option(..., help="Maximum number of tokens to generate")
+    ] = 500,
+    temperature: Annotated[float, typer.Option(..., help="Temperature for generation")] = 0.0,
     types: Annotated[
         list[Literal["yesno", "factoid", "list", "summary"]],
         typer.Option(
-            default=["yesno", "factoid", "list"],
+            ...,
             help="Question types to run. summary → ideal_answer paragraph JSON.",
         ),
-    ],
+    ] = ["yesno", "factoid", "list"],
     context_source: Annotated[
         Literal["abstracts", "snippets"],
         typer.Option(
-            default="abstracts",
+            ...,
             help="abstracts = Phase A+ golden docs; snippets = Phase B passages.",
         ),
-    ],
-    tensor_parallel_size: Annotated[int, typer.Option(default=1, help="Tensor parallel size")],
+    ] = "abstracts",
+    tensor_parallel_size: Annotated[int, typer.Option(..., help="Tensor parallel size")] = 1,
     gpu_memory_utilization: Annotated[
-        float, typer.Option(default=0.85, help="GPU memory utilization")
-    ],
-    max_model_len: Annotated[int, typer.Option(default=8192, help="Maximum model length")],
+        float, typer.Option(..., help="GPU memory utilization")
+    ] = 0.85,
+    max_model_len: Annotated[int, typer.Option(..., help="Maximum model length")] = 8192,
     request_delay: Annotated[
         float,
         typer.Option(
-            default=0.0,
+            ...,
             help="Seconds between requests — "
             "use ~4.0 for free OpenRouter models (16 req/min limit).",
         ),
-    ],
+    ] = 0.0,
 ) -> None:
     loader = BioASQDataLoader(path=input_)
     prompts: Prompts = orjson.loads(prompts_file.read_text())
@@ -163,7 +161,7 @@ def main(
 
     # In grid mode: compute output path per (pid, qtype) and skip existing files
     def grid_output_path(pid: str, qtype: str) -> Path:
-        return Path(output_dir) / f"{model_slug}_p{pid}_{context_source}_{qtype}.json"
+        return output_dir / f"{model_slug}_p{pid}_{context_source}_{qtype}.json"
 
     # Determine which (pid, qtype) combos still need work
     combos_to_run: list[tuple[str, str]] = []

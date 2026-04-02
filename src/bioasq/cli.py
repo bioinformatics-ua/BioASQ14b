@@ -19,8 +19,7 @@ from pathlib import Path
 import typer
 
 # Standalone evaluation script (BM25 / Dense / Hybrid comparison)
-from scripts.evaluate_retrieval import app as eval_retrieval_app
-
+# from scripts.evaluate_retrieval import app as eval_retrieval_app
 from bioasq.data.qdrant_store import upload_embeddings_command
 from bioasq.phase_a.bm25.negatives import app as negatives_app
 from bioasq.phase_a.reranker.cli import evaluate_command, inference_command, train_command
@@ -70,7 +69,7 @@ app.add_typer(phase_a_app, name="phase-a")
 app.add_typer(phase_b_app, name="phase-b")
 app.add_typer(bm25_app, name="bm25")
 app.add_typer(data_app, name="data")
-app.add_typer(eval_retrieval_app, name="evaluate-retrieval")
+# app.add_typer(eval_retrieval_app, name="evaluate-retrieval")
 
 # ---------------------------------------------------------------------------
 # Phase-A Reranker commands

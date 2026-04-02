@@ -92,7 +92,9 @@ def run_inference(
                 doc_id: str = (
                     batch_doc_ids[i] if isinstance(batch_doc_ids[i], str) else str(batch_doc_ids[i])
                 )
-                run_dict[qid][doc_id] = float(scores[i])
+                if not doc_id:  # TODO CHECK THIS
+                    continue
+                run_dict[qid][doc_id] = float(-scores[i])
 
                 if inspect_samples > 0 and inspected < inspect_samples:
                     decoded: str = ""

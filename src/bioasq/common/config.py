@@ -128,7 +128,9 @@ def setup_wandb(
     """
     os.environ["WANDB_NAME"] = name
     os.environ["WANDB_RUN_ID"] = get_wandb_run_id(name)
-    os.environ["WANDB_API_KEY"] = "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"
+    os.environ["WANDB_API_KEY"] = (
+        "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"
+    )
     os.environ["WANDB_RESUME"] = "allow"
     os.environ["WANDB_PROJECT"] = project
     os.environ["WANDB_LOG_MODEL"] = "false"

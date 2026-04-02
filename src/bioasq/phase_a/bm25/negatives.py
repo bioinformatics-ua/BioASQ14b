@@ -17,7 +17,7 @@ from bioasq.common import PROJECT_DATA_DIR
 from bioasq.common.aliases import DocumentId, QuestionId
 from bioasq.common.types import DocumentWithScore
 from bioasq.common.utils import typer_async
-from bioasq.phase_a.retrieval.pipeline import hybrid_retrieve_rrf
+from bioasq.phase_a.retrieval.pipeline import hybrid_retrieve
 from bioasq.phase_a.retrieval.query_encoder import default_tei_embed_url
 
 
@@ -78,7 +78,7 @@ async def mine_negatives(
             year: int | None = int(year_match.group(1)) if year_match else None
 
             pos_docs_ids: set[DocumentId] = {doc.id for doc in question.documents}
-            candidates = await hybrid_retrieve_rrf(
+            candidates, _, _ = await hybrid_retrieve(
                 question.id,
                 question.body,
                 year=year,

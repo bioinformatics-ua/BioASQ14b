@@ -30,6 +30,7 @@ data/quantity
 data/val_data
 !data/val_data/.keep
 
+data/batch02
 
 data/similarity_results
 !data/similarity_results/.keep

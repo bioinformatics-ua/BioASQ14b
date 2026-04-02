@@ -95,6 +95,7 @@ class BasicSamplePreprocessing:
             str(sample["doc_text"]),
             truncation="only_second" if "label" in sample else True,
             max_length=self.model_max_length,
+            return_token_type_ids=True,
         )
 
         result: Sample = cast("Sample", dict(inputs))

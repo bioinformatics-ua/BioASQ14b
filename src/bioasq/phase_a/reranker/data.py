@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import msgspec
-from torch.utils.data import IterableDataset
+from torch.utils.data import Dataset, IterableDataset
 
 from bioasq.common.aliases import (
     Collection,
@@ -32,7 +32,6 @@ from bioasq.common.aliases import (
     Sample,
     SliceDataset,
 )
-from torch.utils.data import Dataset
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -497,6 +496,17 @@ class BioASQPairwiseEvalDataset(Dataset[ProcessedSample]):
 # ---------------------------------------------------------------------------
 
 
+def _normalize_doc(doc: dict[str, str]) -> dict[str, str]:
+    """Normalise document dict to ``{"id": ..., "text": ...}`` format.
+
+    Handles alternative key names (``pmid`` → ``id``, ``full_text`` → ``text``).
+    """
+    return {
+        "id": str(doc.get("id") or doc.get("pmid", "")),
+        "text": str(doc.get("text") or doc.get("full_text", "")),
+    }
+
+
 def _get_docs_key(question: dict[str, str | list[dict[str, str]]]) -> str | None:
     """Identify the key containing document candidates."""
     for key in ("documents", "neg_docs", "bm25"):
@@ -595,8 +605,9 @@ def create_bioasq_datasets(
             )
             docs_list.extend(docs)
 
-        # Add negatives (level 0)
-        neg_docs: list[dict[str, str]] = q_data.get("neg_docs", [])  # type: ignore[assignment]
+        # Add negatives (level 0) – normalise keys to {id, text}
+        raw_neg_docs: list[dict[str, str]] = q_data.get("neg_docs", [])  # type: ignore[assignment]
+        neg_docs: list[dict[str, str]] = [_normalize_doc(d) for d in raw_neg_docs]
         if 0 not in entry:
             entry[0] = []
         neg_list: list[dict[str, str]] = cast("list[dict[str, str]]", entry[0])

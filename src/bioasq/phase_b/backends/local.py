@@ -54,7 +54,7 @@ class VLLMBackend(BaseModelBackend):
         print(f"Loading model from {self.model_path}...")
         self._llm = LLM(
             model=self.model_path,
-            # tensor_parallel_size=self.tensor_parallel_size,
+            tensor_parallel_size=self.tensor_parallel_size,
             # gpu_memory_utilization=0.8,  # self.gpu_memory_utilization,
             max_model_len=self.max_model_len,
             trust_remote_code=True,

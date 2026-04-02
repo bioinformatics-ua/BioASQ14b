@@ -5,15 +5,16 @@ Migrated from `phaseA-reranker/refactored-trainer/run_experiments.py`
 and `run_llama_experiments.py`.
 """
 
-from __future__ import annotations
-
 import json
 import os
+
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
 from pathlib import Path
 
 import torch
 import typer
-import wandb
 from torch.utils.data import DataLoader
 from transformers import (
     AutoModelForSequenceClassification,
@@ -23,6 +24,8 @@ from transformers import (
     TrainingArguments,
 )
 
+import wandb
+from bioasq.common import PROJECT_DATA_DIR
 from bioasq.common.config import get_wandb_run_id, set_seed, setup_wandb
 from bioasq.common.metrics import DEFAULT_RETRIEVAL_METRICS
 from bioasq.phase_a.reranker.data import create_bioasq_datasets
@@ -205,7 +208,7 @@ def _run_experiment(
 
     preprocessor = get_preprocessor("basic", tokenizer=tokenizer, max_length=512)
     use_expanded_pos = bool(config.get("expanded_pos_path"))
-    sampler_cls = get_sampler("exponential" if use_expanded_pos else "basicv2")
+    sampler_cls = get_sampler("exponential" if use_expanded_pos else "shifter")
 
     iterator = get_iterator(
         mode=config["mode"],
@@ -224,7 +227,7 @@ def _run_experiment(
         all_data_path=config["train_neg_path"],
         iterator=iterator,
         test_sample_preprocessing=preprocessor,  # type: ignore[arg-type]
-        val_files=config["val_files"] if config.get("full_data", False) else None,
+        val_files=config["val_files"],  #  if config.get("full_data", False) else None,
     )
 
     output_dir = _output_dir(model_name, run_name)
@@ -236,13 +239,19 @@ def _run_experiment(
         output_dir=output_dir,
         run_name=run_name,
         num_train_epochs=config["epochs"],
-        per_device_train_batch_size=config["batch_size"],
-        per_device_eval_batch_size=config["batch_size"] * 2,
+        per_device_train_batch_size=config.get("per_device_train_batch_size", config["batch_size"]),
+        per_device_eval_batch_size=config.get(
+            "per_device_eval_batch_size", config["batch_size"] * 2
+        ),
+        gradient_accumulation_steps=config.get("gradient_accumulation_steps", 1),
         learning_rate=config["learning_rate"],
         logging_steps=50,
-        eval_strategy="epoch",
-        save_strategy="epoch",
+        eval_strategy="steps",
+        eval_steps=250,
+        save_strategy="steps",
+        save_steps=500,
         bf16=True,
+        gradient_checkpointing=config.get("gradient_checkpointing", False),
         remove_unused_columns=False,
         report_to=config["report_to"],
     )
@@ -255,6 +264,15 @@ def _run_experiment(
         else eval_pairwise
     )
 
+    callbacks = []
+    if config.get("early_stop_on_grad", True):
+        callbacks.append(
+            EarlyStoppingOnGradNorm(
+                grad_norm_threshold=config.get("grad_norm_threshold", 1e-6),
+                patience=config.get("grad_norm_patience", 5),
+            )
+        )
+
     trainer = trainer_cls(
         model=model,
         args=training_args,
@@ -262,6 +280,7 @@ def _run_experiment(
         eval_dataset=eval_ds,
         data_collator=collator,
         margin=1.0,  # type: ignore[call-arg]
+        callbacks=callbacks,
     )
 
     trainer.train()
@@ -294,7 +313,7 @@ def _run_experiment(
     )
 
     qrels_dict = test_ds.get_qrels()
-    val_files_list = config.get("val_files") or []
+    val_files_list = [str(p) for p in (config.get("val_files") or [])]
     per_file = _load_qids_per_val_file(val_files_list) if val_files_list else None
     results = evaluate_run(
         run_dict,
@@ -309,7 +328,7 @@ def _run_experiment(
         "val_files": val_files_list,
     }
     result_path = f"{output_dir}/ranx_results.json"
-    with Path(result_path, "w").open() as f:
+    with Path(result_path).open("w") as f:
         json.dump(metadata | results, f, indent=4)
 
     print(f"Metrics for {model_name}: {results['total']}\\n")
@@ -317,18 +336,22 @@ def _run_experiment(
 
 
 def _run_inference_only(model_name: str, config: dict, run_name: str | None = None) -> dict:
-    output_dir = _output_dir(model_name, run_name)
-    model_path = Path(_output_dir(model_name, run_name))
-
-    load_path = model_name
-    if model_path.exists():
-        latest_ckpt = _find_latest_checkpoint(model_path)
-        if latest_ckpt is not None:
-            load_path = str(latest_ckpt)
-        elif (model_path / "model.safetensors").exists() or (
-            model_path / "pytorch_model.bin"
-        ).exists():
-            load_path = str(model_path)
+    direct_path = Path(model_name)
+    if direct_path.is_absolute() and direct_path.exists():
+        output_dir = str(direct_path)
+        load_path = str(direct_path)
+    else:
+        output_dir = _output_dir(model_name, run_name)
+        model_path = Path(output_dir)
+        load_path = model_name
+        if model_path.exists():
+            latest_ckpt = _find_latest_checkpoint(model_path)
+            if latest_ckpt is not None:
+                load_path = str(latest_ckpt)
+            elif (model_path / "model.safetensors").exists() or (
+                model_path / "pytorch_model.bin"
+            ).exists():
+                load_path = str(model_path)
 
     print(f"--- Inference-only for: {model_name} (loading from {load_path}) ---")
 
@@ -377,7 +400,7 @@ def _run_inference_only(model_name: str, config: dict, run_name: str | None = No
     save_predictions(run_dict, output_dir)
 
     qrels_dict = test_ds.get_qrels()
-    val_files_list = config.get("val_files") or []
+    val_files_list = [str(p) for p in (config.get("val_files") or [])]
     per_file = _load_qids_per_val_file(val_files_list) if val_files_list else None
     results = evaluate_run(
         run_dict,
@@ -391,7 +414,7 @@ def _run_inference_only(model_name: str, config: dict, run_name: str | None = No
         "val_files": val_files_list,
     }
     result_path = f"{output_dir}/ranx_results.json"
-    with Path(result_path, "w").open() as f:
+    with Path(result_path).open("w") as f:
         json.dump(metadata | results, f, indent=4)
 
     print(f"Metrics for {model_name}: {results['total']}\\n")
@@ -451,8 +474,10 @@ def _run_llama_experiment(model_name: str, config: dict, run_name: str | None = 
         per_device_eval_batch_size=config["batch_size"] * 2,
         learning_rate=config["learning_rate"],
         logging_steps=50,
-        eval_strategy="epoch",
-        save_strategy="epoch",
+        eval_strategy="steps",
+        eval_steps=100,
+        save_strategy="steps",
+        save_steps=100,
         bf16=True,
         remove_unused_columns=False,
         report_to=config["report_to"],
@@ -522,7 +547,7 @@ def _run_llama_experiment(model_name: str, config: dict, run_name: str | None = 
     )
 
     qrels_dict = test_ds.get_qrels()
-    val_files_list = config.get("val_files") or []
+    val_files_list = [str(p) for p in (config.get("val_files") or [])]
     per_file = _load_qids_per_val_file(val_files_list) if val_files_list else None
     results = evaluate_run(
         run_dict,
@@ -537,7 +562,7 @@ def _run_llama_experiment(model_name: str, config: dict, run_name: str | None = 
         "val_files": val_files_list,
     }
     result_path = f"{output_dir}/ranx_results.json"
-    with Path(result_path, "w").open() as f:
+    with Path(result_path).open("w") as f:
         json.dump(metadata | results, f, indent=4)
 
     print(f"Metrics for {model_name}: {results['total']}\\n")
@@ -545,20 +570,25 @@ def _run_llama_experiment(model_name: str, config: dict, run_name: str | None = 
 
 
 def _run_llama_inference_only(model_name: str, config: dict, run_name: str | None = None) -> dict:
-    if run_name is None:
-        run_name = f"{model_name}-E{config['epochs']}-S{config['num_neg_samples']}-M{config['mode']}-L{config.get('loss_type', 'margin')}"  # noqa: E501
-    output_dir = _output_dir(model_name, run_name, is_llama=True)
-    model_path = Path(output_dir)
-
-    load_path = model_name
-    if model_path.exists():
-        latest_ckpt = _find_latest_checkpoint(model_path)
-        if latest_ckpt is not None:
-            load_path = str(latest_ckpt)
-        elif (model_path / "model.safetensors").exists() or (
-            model_path / "pytorch_model.bin"
-        ).exists():
-            load_path = str(model_path)
+    direct_path = Path(model_name)
+    if direct_path.is_absolute() and direct_path.exists():
+        # model_name is a direct local path (e.g. a checkpoint dir)
+        output_dir = str(direct_path)
+        load_path = str(direct_path)
+    else:
+        if run_name is None:
+            run_name = f"{model_name}-E{config['epochs']}-S{config['num_neg_samples']}-M{config['mode']}-L{config.get('loss_type', 'margin')}"  # noqa: E501
+        output_dir = _output_dir(model_name, run_name, is_llama=True)
+        model_path = Path(output_dir)
+        load_path = model_name
+        if model_path.exists():
+            latest_ckpt = _find_latest_checkpoint(model_path)
+            if latest_ckpt is not None:
+                load_path = str(latest_ckpt)
+            elif (model_path / "model.safetensors").exists() or (
+                model_path / "pytorch_model.bin"
+            ).exists():
+                load_path = str(model_path)
 
     print(f"--- Inference-only for: {model_name} (loading from {load_path}) ---")
 
@@ -610,7 +640,7 @@ def _run_llama_inference_only(model_name: str, config: dict, run_name: str | Non
     save_predictions(run_dict, output_dir)
 
     qrels_dict = test_ds.get_qrels()
-    val_files_list = config.get("val_files") or []
+    val_files_list = [str(p) for p in (config.get("val_files") or [])]
     per_file = _load_qids_per_val_file(val_files_list) if val_files_list else None
     results = evaluate_run(
         run_dict,
@@ -624,7 +654,7 @@ def _run_llama_inference_only(model_name: str, config: dict, run_name: str | Non
         "val_files": val_files_list,
     }
     result_path = f"{output_dir}/ranx_results.json"
-    with Path(result_path, "w").open() as f:
+    with Path(result_path).open("w") as f:
         json.dump(metadata | results, f, indent=4)
 
     print(f"Metrics for {model_name}: {results['total']}\\n")
@@ -649,33 +679,44 @@ def run_experiments_command(
     else:
         # Default fallback corresponding to run_experiments.py
         models_to_test = [
-            "ncbi/MedCPT-Cross-Encoder",
-            "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
+            # "google/medgemma-4b-pt"
+            # "ncbi/MedCPT-Cross-Encoder",
+            # "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
             "michiyasunaga/BioLinkBERT-base",
             "michiyasunaga/BioLinkBERT-large",
-            "pritamdeka/S-PubMedBert-MS-MARCO",
-            "monologg/biobert_v1.1_pubmed",
-            "nboost/pt-biobert-base-msmarco",
+            # "pritamdeka/S-PubMedBert-MS-MARCO",
+            # "monologg/biobert_v1.1_pubmed",
+            # "nboost/pt-biobert-base-msmarco",
             "cross-encoder/ms-marco-MiniLM-L-6-v2",
             "BAAI/bge-reranker-base",
             "BAAI/bge-reranker-v2-m3",
         ]
+
+        # models_to_test = [
+        #     "/home/ucloud/BioASQ13B/src/outputs/google_medgemma-4b-pt/medgemma-4b-pt-E2-S1-Mpairwise-Lmargin-FullData-/checkpoint-100",
+        # ]
+
         config = {
             "mode": "pairwise",
             "num_neg_samples": 1,
             "loss_type": "margin",
             "report_to": "wandb",
-            "epochs": 2,
-            "batch_size": 16,
+            "epochs": 1,
+            "batch_size": 32,
+            "per_device_train_batch_size": 32,
+            "per_device_eval_batch_size": 32,
+            "gradient_accumulation_steps": 1,
+            "gradient_checkpointing": True,
             "learning_rate": 2e-5,
-            "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
-            "train_neg_path": "../../data/negatives.jsonl", #TODO DELETED
-            "full_data": True, # ALWAYS TRUEEE
+            "train_pos_path": PROJECT_DATA_DIR
+            / "quality/training14b_inflated_clean_wContents.jsonl",
+            "train_neg_path": PROJECT_DATA_DIR / "negatives_fixed.jsonl",
+            "full_data": False,  # ALWAYS TRUEEE
             "val_files": [
-                "../../data/val_data/13B3_golden.json",
-                "../../data/val_data/13B1_golden.json",
-                "../../data/val_data/13B2_golden.json",
-                "../../data/val_data/13B4_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B1_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B2_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B3_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B4_golden.json",
             ],
         }
 
@@ -717,19 +758,30 @@ def run_experiments_command(
                 )
                 all_results[model_name] = results["total"]
             else:
-                wandb.init(
-                    project=os.environ.get("WANDB_PROJECT", "bioasq-14b-phaseA-reranker"),
-                    name=run_name,
-                    id=get_wandb_run_id(run_name),
-                    resume="allow",
-                )
-                results = _run_experiment(
-                    model_name=model_name,
-                    config=config,
-                    run_name=run_name,
-                    model_path=model_path,
-                )
-                all_results[model_name] = results["total"]
+                try:
+                    wandb.init(
+                        project=os.environ.get("WANDB_PROJECT", "bioasq-14b-phaseA-reranker"),
+                        name=run_name,
+                        id=get_wandb_run_id(run_name),
+                        resume="allow",
+                    )
+                    results = _run_experiment(
+                        model_name=model_name,
+                        config=config,
+                        run_name=run_name,
+                        model_path=model_path,
+                    )
+                    all_results[model_name] = results["total"]
+                except KeyboardInterrupt:
+                    print(f"Experiment for {model_name} interrupted by user.")
+                    print("Doing inference")
+                    results = _run_inference_only(
+                        model_name=model_name,
+                        config=config,
+                        run_name=run_name,
+                    )
+                    all_results[model_name] = results["total"]
+
         except Exception as e:
             print(f"Failed to run {model_name}: {e}")
             failed_models.append(model_name)
@@ -738,7 +790,7 @@ def run_experiments_command(
                 wandb.finish()
 
     print(f"Failed models: {failed_models}")
-    with Path("all_models_evaluation.json", "a").open() as f:
+    with Path("all_models_evaluation.json").open("a") as f:
         json.dump(all_results, f, indent=4)
 
 
@@ -760,7 +812,8 @@ def run_llama_experiments_command(
     else:
         # Default fallback corresponding to run_llama_experiments.py
         models_to_test = [
-            "nvidia/llama-nemotron-rerank-1b-v2",
+            # "nvidia/llama-nemotron-rerank-1b-v2",
+            "/home/ucloud/BioASQ13B/src/bioasq/phase_a/reranker/outputs/nvidia_llama-nemotron-rerank-1b-v2_llama/llama-nemotron-rerank-1b-v2-E2-S4-Mmulti_neg_pairwise-Linfonce-FullData-/checkpoint-1100"
         ]
         config = {
             "mode": "multi_neg_pairwise",
@@ -775,14 +828,15 @@ def run_llama_experiments_command(
             "epochs": 2,
             "batch_size": 4,
             "learning_rate": 1e-4,
-            "train_pos_path": "../../data/quality/training14b_inflated_clean_wContents.jsonl",
-            "train_neg_path": "../../data/negatives.jsonl",
-            "expanded_pos_path": "../../data/quality/training14b_expanded.jsonl",
+            "train_pos_path": PROJECT_DATA_DIR
+            / "quality/training14b_inflated_clean_wContents.jsonl",
+            "train_neg_path": PROJECT_DATA_DIR / "negatives.jsonl",
+            # "expanded_pos_path": PROJECT_DATA_DIR / "quality/training14b_expanded.jsonl",
             "val_files": [
-                "../../data/val_data/13B3_golden.json",
-                "../../data/val_data/13B1_golden.json",
-                "../../data/val_data/13B2_golden.json",
-                "../../data/val_data/13B4_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B1_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B2_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B3_golden.json",
+                PROJECT_DATA_DIR / "val_data/13B4_golden.json",
             ],
         }
 
@@ -813,12 +867,7 @@ def run_llama_experiments_command(
                 )
                 all_results[model_name] = results["total"]
             else:
-                wandb.init(
-                    project=os.environ.get("WANDB_PROJECT", "bioasq-14b-phaseA-reranker"),
-                    name=run_name,
-                    id=get_wandb_run_id(run_name),
-                    resume="allow",
-                )
+                setup_wandb(run_name)
                 results = _run_llama_experiment(
                     model_name=model_name,
                     config=config,
@@ -833,5 +882,5 @@ def run_llama_experiments_command(
                 wandb.finish()
 
     print(f"Failed models: {failed_models}")
-    with Path("all_models_evaluation_llama.json", "a").open() as f:
+    with Path("all_models_evaluation_llama.json").open("a") as f:
         json.dump(all_results, f, indent=4)

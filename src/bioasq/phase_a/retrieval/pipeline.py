@@ -1,15 +1,17 @@
 """End-to-end hybrid retrieval and optional multi-reranker fusion."""
 
-from __future__ import annotations
-
 import asyncio
 from collections.abc import Awaitable, Callable, Sequence
+from dataclasses import dataclass
+from typing import overload
 
-import numpy as np  # noqa: TC002
+import numpy as np
+from numba.core.types.containers import NamedTuple
 
 from bioasq.common.aliases import DocumentId, QuestionId, RunDict
 from bioasq.common.types import DocumentWithScore
 from bioasq.data.database import bm25_search, semantic_search
+from bioasq.phase_a.retrieval import fuse_retrieval_lists_wsum
 from bioasq.phase_a.retrieval.fusion import fuse_rerank_run_dicts, fuse_retrieval_lists_rrf
 from bioasq.phase_a.retrieval.query_encoder import embed_queries_tei
 
@@ -19,20 +21,30 @@ type RerankerFn = Callable[
 ]
 
 
-async def hybrid_retrieve_rrf(
+@dataclass
+class SplitRetrievalResult:
+    """Holds BM25 and dense results separately before fusion."""
+
+    bm25_docs: list[DocumentWithScore]
+    dense_docs: list[DocumentWithScore]
+
+
+async def hybrid_retrieve(
     qid: QuestionId,
     query_text: str,
     *,
     year: int | None = None,
-    bm25_topk: int = 100,
-    semantic_topk: int = 100,
+    bm25_topk: int = 200,
+    semantic_topk: int = 200,
     query_embedding: np.ndarray | None = None,
     embed_url: str | None = None,
     exclude_ids: set[DocumentId] | None = None,
     rrf_k: int = 60,
-) -> list[DocumentWithScore]:
+) -> tuple[list[DocumentWithScore], list[DocumentWithScore], list[DocumentWithScore]]:
     """
     Parallel BM25 + dense DB search, then RRF fusion.
+
+    Returns a tuple of (RRF-fused, WSum-fused, BM25-only) results.
 
     If ``query_embedding`` is omitted, encodes ``query_text`` via TEI
     (:func:`embed_queries_tei`).  Pass *year* to restrict both searches to
@@ -43,14 +55,28 @@ async def hybrid_retrieve_rrf(
         query_embedding = mat[0]
 
     bm25_task = bm25_search(query_text, topk=bm25_topk, year=year, exclude_ids=exclude_ids)
-    dense_task = semantic_search(query_embedding, topk=semantic_topk, year=year, exclude_ids=exclude_ids)
+    dense_task = semantic_search(
+        query_embedding, topk=semantic_topk, year=year, exclude_ids=exclude_ids
+    )
     bm25_docs, dense_docs = await asyncio.gather(bm25_task, dense_task)
+    bm25_docs = [d for d in bm25_docs if len(d.full_text) > 200]
+    dense_docs = [d for d in dense_docs if len(d.full_text) > 200]
 
-    return fuse_retrieval_lists_rrf(
+    bm25_docs = bm25_docs[:100]
+    dense_docs = dense_docs[:100]
+
+    rrf_docs = fuse_retrieval_lists_rrf(
         qid,
         [("bm25", bm25_docs), ("dense", dense_docs)],
         rrf_k=rrf_k,
     )
+
+    wsum_docs = fuse_retrieval_lists_wsum(
+        qid,
+        [("bm25", bm25_docs), ("dense", dense_docs)],
+        weights=[0.6, 0.4],
+    )
+    return rrf_docs, wsum_docs, bm25_docs
 
 
 async def apply_rerankers_and_fuse(
@@ -87,3 +113,101 @@ async def apply_rerankers_and_fuse(
         for doc_id, fs in ordered
         if doc_id in text_by_pmid
     ]
+
+
+async def hybrid_retrieve_split(
+    qid: QuestionId,
+    query_text: str,
+    *,
+    year: int | None = None,
+    bm25_topk: int = 100,
+    semantic_topk: int = 100,
+    query_embedding: np.ndarray | None = None,
+    embed_url: str | None = None,
+    exclude_ids: set[DocumentId] | None = None,
+) -> SplitRetrievalResult:
+    """Parallel BM25 + dense DB search, returning results separately (not fused).
+
+    Use this when the reranker was trained on BM25 data only — rerank the
+    BM25 candidates, then fuse with raw dense via :func:`rerank_bm25_then_fuse`.
+    """
+    if query_embedding is None:
+        mat = await embed_queries_tei([query_text], embed_url=embed_url)
+        query_embedding = mat[0]
+
+    bm25_task = bm25_search(query_text, topk=bm25_topk, year=year, exclude_ids=exclude_ids)
+    dense_task = semantic_search(
+        query_embedding, topk=semantic_topk, year=year, exclude_ids=exclude_ids
+    )
+    bm25_docs, dense_docs = await asyncio.gather(bm25_task, dense_task)
+
+    return SplitRetrievalResult(
+        bm25_docs=sorted(bm25_docs, key=lambda d: d.score, reverse=True),
+        dense_docs=sorted(dense_docs, key=lambda d: d.score, reverse=True),
+    )
+
+
+async def rerank_bm25_then_fuse(
+    qid: QuestionId,
+    query_text: str,
+    split: SplitRetrievalResult,
+    rerankers: Sequence[RerankerFn],
+    *,
+    rrf_k: int = 60,
+) -> list[DocumentWithScore]:
+    """Rerank only BM25 candidates, then RRF-fuse with raw dense scores.
+
+    Avoids feeding dense-retrieved documents to a reranker that was trained
+    exclusively on BM25 inputs, which would produce unreliable scores and
+    bury potentially relevant dense-only results.
+
+    Strategy:
+      1. Apply reranker(s) to BM25 candidates only → reranked BM25 run
+      2. Build a raw dense run from original dense retrieval scores
+      3. RRF-fuse the two runs → final hybrid ranking
+    """
+    bm25_docs = split.bm25_docs
+    dense_docs = split.dense_docs
+
+    # Collect text for final output
+    text_by_pmid: dict[str, str] = {}
+    for d in bm25_docs:
+        text_by_pmid.setdefault(d.pmid, d.full_text)
+    for d in dense_docs:
+        text_by_pmid.setdefault(d.pmid, d.full_text)
+
+    # Rerank BM25 candidates
+    if rerankers:
+        reranked_runs: list[RunDict] = []
+        for rank_fn in rerankers:
+            scores = await rank_fn(qid, query_text, bm25_docs)
+            reranked_runs.append({qid: {doc_id: float(s) for doc_id, s in scores.items()}})
+        reranked_bm25 = fuse_rerank_run_dicts(reranked_runs, rrf_k=rrf_k).get(qid, {})
+    else:
+        reranked_bm25 = {d.pmid: float(d.score) for d in bm25_docs}
+
+    # Raw dense scores
+    dense_scores = {d.pmid: float(d.score) for d in dense_docs}
+
+    # RRF-fuse reranked BM25 with raw dense
+    fused = fuse_retrieval_lists_rrf(
+        qid,
+        [
+            (
+                "reranked_bm25",
+                [
+                    DocumentWithScore(pmid=pid, full_text=text_by_pmid.get(pid, ""), score=s)
+                    for pid, s in reranked_bm25.items()
+                ],
+            ),
+            (
+                "dense",
+                [
+                    DocumentWithScore(pmid=pid, full_text=text_by_pmid.get(pid, ""), score=s)
+                    for pid, s in dense_scores.items()
+                ],
+            ),
+        ],
+        rrf_k=rrf_k,
+    )
+    return fused

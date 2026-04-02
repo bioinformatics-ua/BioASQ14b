@@ -72,8 +72,9 @@ class RankingCollator:
     def __call__(
         self, batch: list[TokenisedSample]
     ) -> dict[str, BatchEncoding | list[int] | list[str]]:
+        common_keys: set[str] = set(batch[0]).intersection(*(set(item) for item in batch[1:]))
         grouped: dict[str, list[list[int] | int | str]] = {
-            key: [i[key] for i in batch] for key in batch[0]
+            key: [i[key] for i in batch] for key in common_keys
         }
 
         if self.model_inputs is None:

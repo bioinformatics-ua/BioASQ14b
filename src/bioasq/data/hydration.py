@@ -1,7 +1,7 @@
 """
 Hydrate BioASQ predictions with baseline document text (title + abstract).
 
-Uses DuckDB for fast batch lookups instead of file seeking (process_golden.py style).
+Uses database for fast batch lookups instead of file seeking (process_golden.py style).
 Same logic as data/process_golden.py but significantly faster via indexed DB queries.
 """
 
@@ -36,19 +36,19 @@ async def main(
     out_file: Annotated[
         Path | None,
         typer.Option(
-            None,
+            ...,
             "-o",
             "--out",
-            help="Output jsonl path. Default: input name with '_hydrated.jsonl'.",
+            help="Output jsonl path. Default: input name with '.hydrated.jsonl'.",
         ),
-    ],
+    ] = None,
 ) -> None:
-    """Inject baseline document text into BioASQ predictions using DuckDB for fast lookups."""
+    """Inject baseline document text into BioASQ predictions using database for fast lookups."""
     if not file.exists():
         raise FileNotFoundError(f"Predictions file '{file}' not found.")
 
     if out_file is None:
-        out_file = file.parent / file.name.replace(".json", "_hydrated.jsonl")
+        out_file = file.with_suffix(".hydrated.jsonl")
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     print("Load BioASQ file...")
@@ -67,7 +67,7 @@ async def main(
             if pmid:
                 all_pmids.add(str(pmid))
 
-    print(f"Batch fetch {len(all_pmids)} documents from DuckDB...")
+    print(f"Batch fetch {len(all_pmids)} documents from database...")
 
     batch_texts = {pmid: await get_article_by_id(int(pmid)) for pmid in all_pmids}
     not_found: list[tuple[str, str]] = []

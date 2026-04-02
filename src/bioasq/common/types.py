@@ -28,6 +28,7 @@ class QuestionType(StrEnum):
 # Core domain objects
 # ---------------------------------------------------------------------------
 
+
 class DocumentOriginal(msgspec.Struct, frozen=True):
     """A PubMed document (article)."""
 
@@ -43,7 +44,7 @@ class Document(msgspec.Struct, frozen=True):
     full_text: str
 
 
-class DocumentWithScore(Document):
+class DocumentWithScore(Document, frozen=True):
     """A PubMed document (article) with its BM25 retrieval score."""
 
     score: float = 0.0
