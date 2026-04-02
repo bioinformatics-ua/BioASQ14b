@@ -49,7 +49,7 @@ class Agent:
     def has_participated(self) -> bool:
         return self._participated
 
-    def generate(self, messages: list[dict[str, str]]) -> str:
+    def generate(self, messages: list[dict[str, str]]) -> str | None:
         """Generate with exponential-backoff retry on transient failures."""
         last_exc: Exception | None = None
         for attempt in range(self.max_retries):
@@ -64,9 +64,7 @@ class Agent:
                     flush=True,
                 )
                 time.sleep(wait)
-        raise RuntimeError(
-            f"Agent {self.agent_id} failed after {self.max_retries} attempts"
-        ) from last_exc
+        return None
 
     def mark_participated(self) -> None:
         self._participated = True
@@ -80,12 +78,20 @@ _VALID_AGREEMENT: set[str] = set(AGREEMENT_RANK.keys())
 _DEFAULT_AGREEMENT: AgreementLevel = "disagree"
 
 
-def parse_agent_response(raw: str) -> ParsedAgentResponse:
+def parse_agent_response(raw: str | None) -> ParsedAgentResponse:
     """Parse the JSON output from an agent's debate turn.
 
     Falls back to sane defaults when the model output is malformed so the
     debate loop is never broken by a single bad response.
     """
+    if raw is None or not raw.strip():
+        return ParsedAgentResponse(
+            opinion="(no opinion provided)",
+            agreement=_DEFAULT_AGREEMENT,
+            kept_documents=[],
+            raw=raw or "",
+        )
+
     parsed = extract_last_json(raw)
 
     if parsed is None:

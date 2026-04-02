@@ -19,8 +19,8 @@ from collections.abc import Mapping, Sequence
 
 import orjson
 
-from bioasq.common.protocols import BaseModelBackend
 from bioasq.common.types import SynthesisResult
+from bioasq.phase_b.backends.base import BaseModelBackend
 
 # Exact answer type: can be a string, list of strings, list of synonym lists, or None
 type ExactAnswer = list[str] | list[list[str]] | str | None

@@ -181,6 +181,13 @@ def run_quorum(
             ),
         ),
     ] = None,
+    start_index: Annotated[
+        int, typer.Option("--start-index", help="Starting question index (for resuming).")
+    ] = 0,
+    end_index: Annotated[
+        int | None,
+        typer.Option("--end-index", help="Ending question index (exclusive, for resuming)."),
+    ] = None,
 ) -> None:
     """Run the agent quorum debate to generate answers for BioASQ questions."""
     from bioasq.phase_b.quorum.agent import build_agents
@@ -217,14 +224,14 @@ def run_quorum(
     out.parent.mkdir(parents=True, exist_ok=True)
 
     with out.open("w+b") as f:
-        for idx, question in enumerate(questions, start=1):
+        for idx, question in enumerate(questions[start_index:end_index], start=start_index):
             q_id = str(question.get("id", f"q{idx}"))
             q_body = str(question.get("body", ""))
             q_type = str(question.get("type", "summary"))
             documents = _extract_documents(question)
 
             if not documents:
-                typer.echo(f"[{idx}/{len(questions)}] {q_id}: no documents — skipping.")
+                typer.echo(f"[{idx}/{len(questions) - 1}] {q_id}: no documents — skipping.")
                 results.append(
                     {
                         "id": q_id,
@@ -238,7 +245,7 @@ def run_quorum(
                 continue
 
             typer.echo(
-                f"\n[{idx}/{len(questions)}] {q_id} ({q_type})  — {len(documents)} docs available"
+                f"\n[{idx}/{len(questions) - 1}] {q_id} ({q_type})  — {len(documents)} docs available"
             )
 
             # Fresh agents per question (resets participation flags).

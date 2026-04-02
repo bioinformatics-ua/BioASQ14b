@@ -90,6 +90,9 @@ def parse_summary_ideal(text: str) -> tuple[bool, str | None]:
 @app.command()
 def main(
     input_: Annotated[Path, typer.Argument(..., help="Input file path")],
+    output_dir: Annotated[
+        Path, typer.Option(..., help="Output directory (multi-prompt grid mode)")
+    ],
     prompt_ids: Annotated[
         list[str],
         typer.Option(
@@ -97,12 +100,6 @@ def main(
             "Use 'all' to run every prompt in the prompts file.",
         ),
     ] = ["6"],
-    output: Annotated[
-        Path | None, typer.Option(..., help="Output file path (single prompt mode)")
-    ] = None,
-    output_dir: Annotated[
-        Path | None, typer.Option(..., help="Output directory (multi-prompt grid mode)")
-    ] = None,
     model: Annotated[str | None, typer.Option(..., help="Model name")] = None,
     backend: Annotated[
         Literal["local", "openrouter"],
@@ -117,13 +114,14 @@ def main(
     ] = Path(__file__).parent / "prompts_exact.json",
     max_tokens: Annotated[
         int, typer.Option(..., help="Maximum number of tokens to generate")
-    ] = 500,
+    ] = 16384,
     temperature: Annotated[float, typer.Option(..., help="Temperature for generation")] = 0.0,
     types: Annotated[
-        list[Literal["yesno", "factoid", "list", "summary"]],
+        list[str],
         typer.Option(
             ...,
-            help="Question types to run. summary → ideal_answer paragraph JSON.",
+            help="Question types to run. summary ['yesno', 'factoid', 'list', 'summary']"
+            "→ ideal_answer paragraph JSON.",
         ),
     ] = ["yesno", "factoid", "list"],
     context_source: Annotated[
@@ -175,11 +173,6 @@ def main(
 
     if not combos_to_run:
         print("All outputs already exist — nothing to run.")
-        return
-
-    # Non-grid mode: single output file — skip if it already exists
-    if output and output.exists():
-        print(f"Output already exists: {output} — skipping.")
         return
 
     print(f"{len(combos_to_run)} combo(s) to run. Loading model...")
@@ -252,9 +245,8 @@ def main(
         print(f"Saved to {out}")
         saved_files.append(str(out))
 
-    backend.unload()
     print(f"Inference done. {len(saved_files)} file(s) saved.")
 
 
 if __name__ == "__main__":
-    main()
+    app()
