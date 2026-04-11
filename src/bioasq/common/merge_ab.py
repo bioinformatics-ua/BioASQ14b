@@ -27,10 +27,8 @@ def merge(phase_a: dict, quorum: dict, *, keep_meta: bool = False) -> dict:
 
         qb = quorum_by_id[qid]
         merged = dict(q)
-        if "ideal_answer" in qb:
-            merged["ideal_answer"] = qb["ideal_answer"]
-        if "exact_answer" in qb:
-            merged["exact_answer"] = qb["exact_answer"]
+        merged["ideal_answer"] = qb.get("ideal_answer", "")
+        merged["exact_answer"] = qb.get("exact_answer", "")
         if keep_meta and "quorum_meta" in qb:
             merged["quorum_meta"] = qb["quorum_meta"]
 
@@ -83,10 +81,8 @@ def _merge_from_judge(phase_a: dict, judge: dict) -> dict:
 
         jq = judge[qid]
         merged = dict(q)
-        if "ideal_answer" in jq:
-            merged["ideal_answer"] = jq["ideal_answer"]
-        if "exact_answer" in jq:
-            merged["exact_answer"] = jq["exact_answer"]
+        merged["ideal_answer"] = jq.get("ideal_answer", "")
+        merged["exact_answer"] = jq.get("exact_answer", "")
 
         merged_questions.append(merged)
 

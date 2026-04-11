@@ -1,5 +1,6 @@
 """Agent definition and model-assignment logic for the quorum debate."""
 
+import concurrent.futures
 import contextlib
 import time
 from dataclasses import dataclass, field
@@ -13,6 +14,51 @@ from bioasq.phase_b.quorum._types import (
 )
 from bioasq.phase_b.quorum.focuses import Focus, assign_focuses
 from bioasq.phase_b.quorum.parsing import extract_last_json
+
+# ---------------------------------------------------------------------------
+# Hallucination-detection helpers
+# ---------------------------------------------------------------------------
+
+
+def _is_repetitive(
+    text: str,
+    ngram_size: int = 6,
+    threshold: float = 0.15,
+) -> bool:
+    """Return True if *text* contains excessive repeated n-grams.
+
+    A model that has entered a repetition loop (a common hallucination
+    pattern) will produce the same word sequences over and over.  We
+    detect this by computing word-level n-grams and checking whether
+    the most frequent one occupies more than *threshold* of all n-gram
+    positions.
+
+    Parameters
+    ----------
+    text:
+        The raw LLM response string.
+    ngram_size:
+        Number of consecutive words that form one n-gram (default 6).
+    threshold:
+        Fraction of n-gram positions that a single n-gram must exceed
+        to be considered repetitive (default 0.15 = 15%).
+    """
+    words = text.split()
+    min_words = ngram_size * 4
+    if len(words) < min_words:
+        return False
+
+    ngrams = [tuple(words[i : i + ngram_size]) for i in range(len(words) - ngram_size + 1)]
+    if not ngrams:
+        return False
+
+    counts: dict[tuple, int] = {}
+    for ng in ngrams:
+        counts[ng] = counts.get(ng, 0) + 1
+
+    max_count = max(counts.values())
+    return (max_count / len(ngrams)) > threshold
+
 
 # ---------------------------------------------------------------------------
 # Agent
@@ -40,6 +86,10 @@ class Agent:
     model: str
     backend: BaseModelBackend
     max_retries: int = 3
+    generation_timeout: float = 120.0
+    """Seconds allowed per generation call.  0 disables the timeout."""
+    repetition_threshold: float = 0.15
+    """Max fraction of identical n-grams before a response is discarded."""
     _participated: bool = field(default=False, repr=False)
 
     @property
@@ -47,10 +97,23 @@ class Agent:
         return self._participated
 
     def generate(self, messages: list[dict[str, str]]) -> str | None:
-        """Generate with exponential-backoff retry on transient failures."""
+        """Generate with exponential-backoff retry on transient failures.
+
+        Returns ``None`` (treated as invalid JSON by the debate loop) when:
+        - all retries are exhausted,
+        - the call exceeds *generation_timeout* seconds (stuck / hallucinating), or
+        - the response is flagged as repetitive.
+        """
         for attempt in range(self.max_retries):
             try:
-                return self.backend.generate_chat(messages)
+                raw = self._call_with_timeout(messages)
+            except concurrent.futures.TimeoutError:
+                print(
+                    f"  [timeout] Agent {self.agent_id} timed out after "
+                    f"{self.generation_timeout:.0f}s — discarding as hallucination.",
+                    flush=True,
+                )
+                return None  # do not retry; model is likely stuck
             except Exception as exc:
                 wait = 2**attempt
                 print(
@@ -59,7 +122,32 @@ class Agent:
                     flush=True,
                 )
                 time.sleep(wait)
+                continue
+
+            if raw is not None and _is_repetitive(raw, threshold=self.repetition_threshold):
+                print(
+                    f"  [repetition] Agent {self.agent_id} response flagged as repetitive "
+                    f"— discarding as hallucination.",
+                    flush=True,
+                )
+                return None
+
+            return raw
         return None
+
+    def _call_with_timeout(self, messages: list[dict[str, str]]) -> str | None:
+        """Invoke the backend with an optional wall-clock timeout.
+
+        Raises ``concurrent.futures.TimeoutError`` if *generation_timeout* > 0
+        and the call exceeds that many seconds.
+        """
+        if self.generation_timeout <= 0:
+            return self.backend.generate_chat(messages)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self.backend.generate_chat, messages)
+            # Raises concurrent.futures.TimeoutError on expiry.
+            return future.result(timeout=self.generation_timeout)
 
     def mark_participated(self) -> None:
         self._participated = True
@@ -134,6 +222,8 @@ def build_agents(
     num_agents: int,
     models: list[str],
     backends: list[BaseModelBackend],
+    generation_timeout: float = 120.0,
+    repetition_threshold: float = 0.15,
 ) -> list[Agent]:
     """Create ``num_agents`` agents, distributing models and focuses evenly.
 
@@ -168,6 +258,8 @@ def build_agents(
                 focus=focuses[i],
                 model=models[model_idx],
                 backend=backends[model_idx],
+                generation_timeout=generation_timeout,
+                repetition_threshold=repetition_threshold,
             )
         )
 

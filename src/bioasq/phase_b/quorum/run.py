@@ -203,6 +203,27 @@ def run_quorum(
             ),
         ),
     ] = None,
+    generation_timeout: Annotated[
+        float,
+        typer.Option(
+            ...,
+            help=(
+                "Wall-clock seconds allowed per LLM call. "
+                "Responses that exceed this (or are detected as repetitive) are discarded "
+                "and treated as invalid JSON. Use 0 to disable."
+            ),
+        ),
+    ] = 60.0,
+    repetition_threshold: Annotated[
+        float,
+        typer.Option(
+            ...,
+            help=(
+                "Fraction of identical 6-word n-grams that triggers the hallucination "
+                "filter (0.0-1.0). Default 0.15 = 15%%. Use 1.0 to disable."
+            ),
+        ),
+    ] = 0.15,
     start_index: Annotated[
         int, typer.Option("--start-index", help="Starting question index (for resuming).")
     ] = 0,
@@ -271,7 +292,13 @@ def run_quorum(
             )
 
             # Fresh agents per question (resets participation flags).
-            agents = build_agents(num_agents, models, backends)
+            agents = build_agents(
+                num_agents,
+                models,
+                backends,
+                generation_timeout=generation_timeout,
+                repetition_threshold=repetition_threshold,
+            )
 
             debate = Debate(
                 question_id=q_id,
