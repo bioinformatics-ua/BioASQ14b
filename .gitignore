@@ -31,6 +31,7 @@ data/val_data
 !data/val_data/.keep
 
 data/batch02
+data/batch02-phaseb
 
 data/similarity_results
 !data/similarity_results/.keep
