@@ -12,6 +12,7 @@ class ToolName(StrEnum):
     GREP_CORPUS = "grep_corpus"
     READ_DOCUMENT = "read_document"
     PRUNE_CHUNKS = "prune_chunks"
+    INVALID = "__invalid_tool__"
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +36,14 @@ class ToolCallSpec:
 
 
 @dataclass(slots=True)
+class AgentStateSnapshot:
+    """Frozen view of model-visible documents for one tool execution."""
+
+    active_documents: dict[str, CorpusDocument] = field(default_factory=dict)
+    encountered_documents: dict[str, CorpusDocument] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
 class ToolResultEnvelope:
     """Recorded result for a tool call, used to rebuild model-visible context."""
 
@@ -42,6 +51,7 @@ class ToolResultEnvelope:
     name: ToolName
     content: str
     returned_documents: list[CorpusDocument] = field(default_factory=list)
+    pruned_pmids: list[str] = field(default_factory=list)
     error: bool = False
 
 
@@ -75,6 +85,7 @@ class AgentConfig:
     search_tool_token_budget: int = 4_096
     read_tool_token_budget: int = 4_096
     assistant_reserve_tokens: int = 2_048
+    soft_warning_ratio: float = 0.5
     hard_cutoff_ratio: float = 0.85
     search_candidate_pool_size: int = 50
     bm25_topk: int = 50

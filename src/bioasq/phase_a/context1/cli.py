@@ -87,6 +87,9 @@ async def retrieve(
     context_window_tokens: Annotated[
         int, typer.Option(help="Approximate model context budget used for chunk visibility.")
     ] = 32_768,
+    soft_warning_ratio: Annotated[
+        float, typer.Option(help="Soft warning ratio for visible document tokens.")
+    ] = 0.5,
     hard_cutoff_ratio: Annotated[
         float, typer.Option(help="Hard cutoff ratio for visible chunk tokens.")
     ] = 0.85,
@@ -118,6 +121,7 @@ async def retrieve(
         search_tool_token_budget=search_tool_token_budget,
         read_tool_token_budget=read_tool_token_budget,
         assistant_reserve_tokens=assistant_reserve_tokens,
+        soft_warning_ratio=soft_warning_ratio,
         hard_cutoff_ratio=hard_cutoff_ratio,
         search_candidate_pool_size=search_candidate_pool_size,
         bm25_topk=bm25_topk,

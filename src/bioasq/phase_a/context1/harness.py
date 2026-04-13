@@ -1,5 +1,6 @@
 """Context-1 style multi-step retrieval harness."""
 
+import asyncio
 import json
 import re
 from collections import defaultdict
@@ -12,6 +13,7 @@ from bioasq.phase_a.context1.store import Context1CorpusStore
 from bioasq.phase_a.context1.toolbox import Context1FastMCPToolbox
 from bioasq.phase_a.context1.types import (
     AgentConfig,
+    AgentStateSnapshot,
     CorpusDocument,
     FinalSelection,
     RetrievedDocument,
@@ -27,26 +29,48 @@ _FINAL_DOC_RE = re.compile(
 )
 
 _SYSTEM_PROMPT = """
-You are Context-1, a retrieval specialist operating over a biomedical literature corpus.
+You are a retrieval subagent in a multi-agent system.
+Your role is to identify and retrieve the most relevant documents from a
+biomedical literature corpus to help another agent answer questions.
+You do NOT answer questions yourself - you only find and rank relevant documents.
 
-Your job is to identify the most relevant PubMed articles for the user's question.
-You are not answering the question itself. You are ranking documents.
+Available Tools:
+- search_corpus(query): Hybrid semantic and keyword search over PMID-level
+    articles, followed by reranking.
+- grep_corpus(pattern): Text pattern matching over whole-article text.
+- read_document(document_id): Read specific document text that looks promising
+    but incomplete.
+- prune_chunks(chunk_ids): Remove irrelevant visible PMIDs to free context space.
 
-Available tools:
-- search_corpus(query): hybrid semantic and lexical search over PMID-level articles, then rerank.
-- grep_corpus(pattern): exact or regex search over whole-article text.
-- read_document(document_id): inspect the content of one promising PMID.
-- prune_chunks(chunk_ids): remove visible PMIDs from context if they are no longer useful.
+Your Process:
+- Break down the query into its key concepts and information needs.
+- For each key concept, develop a specific search strategy that targets that concept.
+- Consider what types of documents and evidence would be most helpful for answering the query.
+- Plan several distinct, non-overlapping search strategies that approach the
+    question from different angles.
+- Execute multiple tool calls in parallel when useful.
 
-Rules:
-- Prefer search_corpus before reading full documents.
-- Use grep_corpus when exact names, genes, proteins, compounds, or abbreviations matter.
-- Use read_document when a PMID already looks promising and you need more detail.
-- Keep only evidence that helps rank the final PMIDs; prune aggressively when context is crowded.
-- If the tool messages say the hard cutoff is reached, only prune_chunks or conclude.
-- Final output must contain only document tags in this exact form:
-<Document id={PMID}><Justification>brief evidence-grounded justification</Justification></Document>
-- Output up to 10 documents.
+After each round of tool use, consider:
+- What do I know from the currently visible documents?
+- What should I search for next that I have not already covered?
+- What should I prune because it is redundant, weak, or off-target?
+- Do I have enough information to return the best-ranked PMIDs, or are critical gaps still open?
+
+Tactics to Consider:
+- When a query fails, try different wording, concepts, or evidence types.
+- Avoid duplicate or redundant searches.
+- If the token budget is approaching the threshold, prune irrelevant documents proactively.
+- Follow explicit textual evidence rather than speculation.
+
+Output Format:
+Present final results in order from most relevant to least relevant and output
+only document tags in this exact form:
+<Document id={PMID}><Justification>
+Brief evidence-grounded explanation of why this document is relevant.
+</Justification></Document>
+
+Return up to 10 documents and do not include extra prose outside the final
+document tags.
 """.strip()
 
 
@@ -62,9 +86,13 @@ class AgentState:
     query: str
     turns: list[ConversationTurn] = field(default_factory=list)
     active_documents: dict[str, CorpusDocument] = field(default_factory=dict)
+    active_document_sources: dict[str, str] = field(default_factory=dict)
     encountered_documents: dict[str, CorpusDocument] = field(default_factory=dict)
     trajectory: list[dict[str, Any]] = field(default_factory=list)
     final_text: str = ""
+
+
+StateLike = AgentState | AgentStateSnapshot
 
 
 class Context1Agent:
@@ -126,19 +154,17 @@ class Context1Agent:
 
     async def _run_single_rollout(self, query: str, *, seed: int | None) -> RolloutResult:
         state = AgentState(query=query)
-        toolbox = Context1FastMCPToolbox(agent=self, state=state)
+        toolbox = Context1FastMCPToolbox(agent=self, state=self._snapshot_state(state))
         tools = await toolbox.openai_tools()
 
         for turn_index in range(self.config.max_turns):
             messages = self._build_messages(state)
-            if self._remaining_budget(state) <= 0 and state.active_documents:
+            budget_notice = self._budget_notice(state)
+            if budget_notice is not None and state.active_documents:
                 messages.append(
                     {
                         "role": "user",
-                        "content": (
-                            "The visible document budget is exhausted. "
-                            "Only call prune_chunks or conclude with final ranked documents."
-                        ),
+                        "content": budget_notice,
                     }
                 )
 
@@ -171,9 +197,8 @@ class Context1Agent:
                 assistant_content=model_turn.content.strip(),
                 tool_calls=model_turn.tool_calls,
             )
-            tool_results: list[ToolResultEnvelope] = []
-            for call in model_turn.tool_calls:
-                tool_results.append(await self._execute_tool_call(toolbox, call))
+            tool_results = await self._execute_tool_calls_in_parallel(model_turn.tool_calls, state)
+            self._apply_tool_results(state, tool_results)
             turn.tool_results = tool_results
             state.turns.append(turn)
             state.trajectory.append(
@@ -196,16 +221,49 @@ class Context1Agent:
             trajectory=state.trajectory,
         )
 
+    async def _execute_tool_calls_in_parallel(
+        self,
+        calls: list[ToolCallSpec],
+        state: AgentState,
+    ) -> list[ToolResultEnvelope]:
+        tasks = [
+            self._execute_tool_call(call, self._snapshot_state(state))
+            for call in calls
+        ]
+        return await asyncio.gather(*tasks)
+
     async def _execute_tool_call(
         self,
-        toolbox: Context1FastMCPToolbox,
         call: ToolCallSpec,
+        state_snapshot: AgentStateSnapshot,
     ) -> ToolResultEnvelope:
+        toolbox = Context1FastMCPToolbox(agent=self, state=state_snapshot)
         return await toolbox.execute(call)
+
+    def _apply_tool_results(
+        self,
+        state: AgentState,
+        tool_results: list[ToolResultEnvelope],
+    ) -> None:
+        for result in tool_results:
+            newly_visible = self._register_documents(state, result.returned_documents)
+            for document in newly_visible:
+                state.active_document_sources[document.pmid] = result.call_id
+
+        for result in tool_results:
+            for pmid in result.pruned_pmids:
+                state.active_documents.pop(pmid, None)
+                state.active_document_sources.pop(pmid, None)
+
+    def _snapshot_state(self, state: AgentState) -> AgentStateSnapshot:
+        return AgentStateSnapshot(
+            active_documents=dict(state.active_documents),
+            encountered_documents=dict(state.encountered_documents),
+        )
 
     def _register_documents(
         self,
-        state: AgentState,
+        state: StateLike,
         documents: list[CorpusDocument],
     ) -> list[CorpusDocument]:
         newly_visible: list[CorpusDocument] = []
@@ -258,8 +316,32 @@ class Context1Agent:
                 break
         return chosen
 
-    def _visible_tokens(self, state: AgentState) -> int:
+    def register_documents(
+        self,
+        state: StateLike,
+        documents: list[CorpusDocument],
+    ) -> list[CorpusDocument]:
+        return self._register_documents(state, documents)
+
+    def cap_documents(
+        self,
+        documents: list[CorpusDocument],
+        *,
+        budget: int,
+    ) -> list[CorpusDocument]:
+        return self._cap_documents(documents, budget=budget)
+
+    def remaining_budget(self, state: StateLike) -> int:
+        return self._remaining_budget(state)
+
+    def budget_line(self, state: StateLike) -> str:
+        return self._budget_line(state)
+
+    def _visible_tokens(self, state: StateLike) -> int:
         return sum(document.token_count for document in state.active_documents.values())
+
+    def _soft_warning_threshold(self) -> int:
+        return int(self.config.context_window_tokens * self.config.soft_warning_ratio)
 
     def _hard_cutoff(self) -> int:
         return (
@@ -267,13 +349,31 @@ class Context1Agent:
             - self.config.assistant_reserve_tokens
         )
 
-    def _remaining_budget(self, state: AgentState) -> int:
+    def _remaining_budget(self, state: StateLike) -> int:
         return max(0, self._hard_cutoff() - self._visible_tokens(state))
 
-    def _budget_line(self, state: AgentState) -> str:
+    def _budget_line(self, state: StateLike) -> str:
         visible = self._visible_tokens(state)
-        hard_cutoff = self._hard_cutoff()
-        return f"Visible document tokens: {visible}/{hard_cutoff}."
+        return (
+            f"[Token usage: {visible}/{self.config.context_window_tokens} | "
+            f"soft warning: {self._soft_warning_threshold()} | "
+            f"hard cutoff: {self._hard_cutoff()}]"
+        )
+
+    def _budget_notice(self, state: AgentState) -> str | None:
+        visible = self._visible_tokens(state)
+        if visible >= self._hard_cutoff():
+            return (
+                "Token usage is at the hard cutoff. "
+                "Only call prune_chunks or conclude with final ranked documents."
+            )
+        if visible >= self._soft_warning_threshold():
+            return (
+                "Token usage is above the soft warning threshold. "
+                "Prune irrelevant or redundant documents before continuing broad "
+                "search, or conclude if you already have enough evidence."
+            )
+        return None
 
     def _build_messages(self, state: AgentState) -> list[dict[str, Any]]:
         messages: list[dict[str, Any]] = [
@@ -311,28 +411,30 @@ class Context1Agent:
         return messages
 
     def _render_tool_result(self, result: ToolResultEnvelope, state: AgentState) -> str:
-        if not result.returned_documents:
-            return result.content
-        visible = [
-            document
-            for document in result.returned_documents
-            if document.pmid in state.active_documents
-        ]
-        if visible:
-            return "\n".join(
-                [
-                    result.content.split("\n\n", 1)[0],
-                    self._format_documents(visible),
-                    self._budget_line(state),
-                ]
-            )
-        return f"All documents returned by this tool call were pruned.\n{self._budget_line(state)}"
+        parts = [result.content]
+        if result.returned_documents:
+            visible = [
+                state.active_documents[document.pmid]
+                for document in result.returned_documents
+                if document.pmid in state.active_documents
+                and state.active_document_sources.get(document.pmid) == result.call_id
+            ]
+            if visible:
+                parts.append(self._format_documents(visible))
+            else:
+                parts.append("No documents from this tool call remain visible.")
+        parts.append(self.budget_line(state))
+        budget_notice = self._budget_notice(state)
+        if budget_notice is not None:
+            parts.append(budget_notice)
+        return "\n".join(parts)
 
     def _user_prompt(self, query: str) -> str:
         return (
-            "Retrieve the PubMed articles most relevant to this biomedical question.\n"
-            f"Question: {query}\n"
-            "Search iteratively, keep only useful evidence, and end with final document tags only."
+            "Here is the query you need to find documents for:\n"
+            f"<query>{query}</query>\n"
+            "Retrieve the PubMed articles most relevant to this biomedical "
+            "question, search iteratively, and end with final document tags only."
         )
 
     def _format_documents(self, documents: list[CorpusDocument]) -> str:
@@ -383,7 +485,10 @@ class Context1Agent:
 
     def _render_fallback_output(self, selections: list[FinalSelection]) -> str:
         return "\n".join(
-            f"<Document id={{{selection.pmid}}}><Justification>{selection.justification}</Justification></Document>"
+            (
+                f"<Document id={{{selection.pmid}}}><Justification>"
+                f"{selection.justification}</Justification></Document>"
+            )
             for selection in selections
         )
 
