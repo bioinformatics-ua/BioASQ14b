@@ -2,15 +2,17 @@
 
 from collections.abc import Sequence
 from dataclasses import replace
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import torch
-from transformers import PreTrainedModel, PreTrainedTokenizerBase
 
 from bioasq.phase_a.reranker.evaluate import extract_scores
 from bioasq.phase_a.reranker.model import load_reranker_model, resolve_inference_dtype
 
 from .types import CorpusDocument
+
+if TYPE_CHECKING:
+    from transformers import PreTrainedModel, PreTrainedTokenizerBase
 
 
 class Context1Reranker:
@@ -29,6 +31,7 @@ class Context1Reranker:
         self.model_name = model_name
         self.batch_size = batch_size
         self.max_length = max_length
+        self.effective_max_length = max_length
         self.device = torch.device(device)
         if self.device.type == "cuda" and not torch.cuda.is_available():
             self.device = torch.device("cpu")
@@ -47,6 +50,7 @@ class Context1Reranker:
             max_length=self.max_length,
             dtype=self.dtype,
         )
+        self.effective_max_length = int(self._tokenizer.model_max_length)
         model = cast("torch.nn.Module", self._model)
         self._model = cast("PreTrainedModel", model.to(self.device))
         self._model.eval()
@@ -68,7 +72,7 @@ class Context1Reranker:
                 [document.text for document in batch],
                 padding=True,
                 truncation="only_second",
-                max_length=self.max_length,
+                max_length=self.effective_max_length,
                 return_tensors="pt",
             )
             encoded = {

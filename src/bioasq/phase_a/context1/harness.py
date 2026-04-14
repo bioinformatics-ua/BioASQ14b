@@ -28,7 +28,8 @@ _FINAL_DOC_RE = re.compile(
     re.DOTALL,
 )
 
-_SYSTEM_PROMPT = """
+def _system_prompt(final_topk: int) -> str:
+    return f"""
 You are a retrieval subagent in a multi-agent system.
 Your role is to identify and retrieve the most relevant documents from a
 biomedical literature corpus to help another agent answer questions.
@@ -65,11 +66,11 @@ Tactics to Consider:
 Output Format:
 Present final results in order from most relevant to least relevant and output
 only document tags in this exact form:
-<Document id={PMID}><Justification>
+<Document id={{PMID}}><Justification>
 Brief evidence-grounded explanation of why this document is relevant.
 </Justification></Document>
 
-Return up to 10 documents and do not include extra prose outside the final
+Return up to {final_topk} documents and do not include extra prose outside the final
 document tags.
 """.strip()
 
@@ -184,6 +185,7 @@ class Context1Agent:
                 state.final_text = model_turn.content.strip()
                 selections = self._parse_final_documents(state.final_text)
                 if selections:
+                    selections = self._complete_selections(state, selections)
                     documents = await self._hydrate_documents(state, selections)
                     return RolloutResult(
                         selections=selections,
@@ -211,7 +213,7 @@ class Context1Agent:
                 }
             )
 
-        selections = self._fallback_selections(state)
+        selections = self._complete_selections(state, self._fallback_selections(state))
         documents = await self._hydrate_documents(state, selections)
         final_text = state.final_text or self._render_fallback_output(selections)
         return RolloutResult(
@@ -377,7 +379,7 @@ class Context1Agent:
 
     def _build_messages(self, state: AgentState) -> list[dict[str, Any]]:
         messages: list[dict[str, Any]] = [
-            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "system", "content": _system_prompt(self.config.final_topk)},
             {"role": "user", "content": self._user_prompt(state.query)},
         ]
 
@@ -466,6 +468,25 @@ class Context1Agent:
             if len(selections) >= self.config.final_topk:
                 break
         return selections
+
+    def _complete_selections(
+        self,
+        state: AgentState,
+        selections: list[FinalSelection],
+    ) -> list[FinalSelection]:
+        if len(selections) >= self.config.final_topk:
+            return selections[: self.config.final_topk]
+
+        completed = list(selections)
+        seen = {selection.pmid for selection in completed}
+        for fallback in self._fallback_selections(state):
+            if fallback.pmid in seen:
+                continue
+            completed.append(fallback)
+            seen.add(fallback.pmid)
+            if len(completed) >= self.config.final_topk:
+                break
+        return completed
 
     def _fallback_selections(self, state: AgentState) -> list[FinalSelection]:
         ranked_pmids = sorted(
