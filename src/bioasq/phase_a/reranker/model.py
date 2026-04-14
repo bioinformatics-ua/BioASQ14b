@@ -6,6 +6,7 @@ both training and inference entry points.
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -20,6 +21,45 @@ from transformers import (
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+
+_TOKENIZER_MAX_LENGTH_SENTINEL_THRESHOLD = 1_000_000
+
+
+def _coerce_supported_max_length(value: object) -> int | None:
+    """Return a finite positive max length or ``None``.
+
+    Hugging Face tokenizers sometimes expose effectively-unbounded lengths via a
+    very large sentinel integer. Those values should not participate in clamping.
+    """
+
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    if value <= 0 or value >= _TOKENIZER_MAX_LENGTH_SENTINEL_THRESHOLD:
+        return None
+    return value
+
+
+def resolve_effective_max_length(
+    requested_max_length: int,
+    *,
+    tokenizer_max_length: int | None = None,
+    config_max_position_embeddings: int | None = None,
+) -> int:
+    """Clamp a requested max length to the supported tokenizer/model ceiling."""
+
+    if requested_max_length <= 0:
+        msg: str = "requested_max_length must be positive"
+        raise ValueError(msg)
+
+    candidates: list[int] = [requested_max_length]
+    finite_tokenizer_max_length = _coerce_supported_max_length(tokenizer_max_length)
+    if finite_tokenizer_max_length is not None:
+        candidates.append(finite_tokenizer_max_length)
+    finite_config_max_length = _coerce_supported_max_length(config_max_position_embeddings)
+    if finite_config_max_length is not None:
+        candidates.append(finite_config_max_length)
+    return min(candidates)
 
 
 def sanitize_position_ids_buffers(model: torch.nn.Module) -> None:
@@ -126,9 +166,41 @@ def load_reranker_model(
     tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(
         model_name, trust_remote_code=True, **extra_kwargs
     )
-    tokenizer.model_max_length = max_length
 
     config = AutoConfig.from_pretrained(model_name, trust_remote_code=True, **extra_kwargs)
+    tokenizer_max_length = _coerce_supported_max_length(
+        getattr(tokenizer, "model_max_length", None)
+    )
+    config_max_position_embeddings = _coerce_supported_max_length(
+        getattr(config, "max_position_embeddings", None)
+    )
+    effective_max_length = resolve_effective_max_length(
+        max_length,
+        tokenizer_max_length=tokenizer_max_length,
+        config_max_position_embeddings=config_max_position_embeddings,
+    )
+    if effective_max_length != max_length:
+        supported_parts = [
+            f"tokenizer={tokenizer_max_length}"
+            for tokenizer_max_length in [tokenizer_max_length]
+            if tokenizer_max_length is not None
+        ] + [
+            f"model={config_max_position_embeddings}"
+            for config_max_position_embeddings in [config_max_position_embeddings]
+            if config_max_position_embeddings is not None
+        ]
+        supported_summary = (
+            ", ".join(supported_parts) if supported_parts else "available model metadata"
+        )
+        warnings.warn(
+            (
+                f"Requested reranker max_length={max_length} for {model_name!r} "
+                "exceeds supported length "
+                f"{effective_max_length} ({supported_summary}); clamping to avoid overlong inputs."
+            ),
+            stacklevel=2,
+        )
+    tokenizer.model_max_length = effective_max_length
     model: PreTrainedModel = AutoModelForSequenceClassification.from_pretrained(
         model_name,
         config=config,

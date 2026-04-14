@@ -15,6 +15,7 @@ from pathlib import Path
 
 import torch
 import typer
+import wandb
 from torch.utils.data import DataLoader
 from transformers import (
     AutoModelForSequenceClassification,
@@ -23,8 +24,8 @@ from transformers import (
     PreTrainedTokenizerBase,
     TrainingArguments,
 )
+from typer import Typer
 
-import wandb
 from bioasq.common import PROJECT_DATA_DIR
 from bioasq.common.config import get_wandb_run_id, set_seed, setup_wandb
 from bioasq.common.metrics import DEFAULT_RETRIEVAL_METRICS
@@ -38,6 +39,12 @@ from bioasq.phase_a.reranker.factory import (
     get_trainer_cls,
 )
 from bioasq.phase_a.reranker.trainer import EarlyStoppingOnGradNorm
+
+app = Typer(
+    name="experiments",
+    help="Commands for running reranker experiments on BioASQ Phase A.",
+    no_args_is_help=True,
+)
 
 
 # Shared Helpers
@@ -661,6 +668,7 @@ def _run_llama_inference_only(model_name: str, config: dict, run_name: str | Non
     return results
 
 
+@app.command(name="run-experiments")
 def run_experiments_command(
     inference_only: bool = typer.Option(
         False, "--inference-only", help="Skip training; run inference only (load from outputs)"
@@ -682,14 +690,14 @@ def run_experiments_command(
             # "google/medgemma-4b-pt"
             # "ncbi/MedCPT-Cross-Encoder",
             # "microsoft/BiomedNLP-PubMedBERT-base-uncased-abstract-fulltext",
-            "michiyasunaga/BioLinkBERT-base",
-            "michiyasunaga/BioLinkBERT-large",
+            # "michiyasunaga/BioLinkBERT-base",
+            # "michiyasunaga/BioLinkBERT-large",
             # "pritamdeka/S-PubMedBert-MS-MARCO",
             # "monologg/biobert_v1.1_pubmed",
-            # "nboost/pt-biobert-base-msmarco",
-            "cross-encoder/ms-marco-MiniLM-L-6-v2",
-            "BAAI/bge-reranker-base",
-            "BAAI/bge-reranker-v2-m3",
+            "nboost/pt-biobert-base-msmarco",
+            # "cross-encoder/ms-marco-MiniLM-L-6-v2",
+            # "BAAI/bge-reranker-base",
+            # "BAAI/bge-reranker-v2-m3",
         ]
 
         # models_to_test = [
@@ -794,6 +802,7 @@ def run_experiments_command(
         json.dump(all_results, f, indent=4)
 
 
+@app.command(name="run-llama-experiments")
 def run_llama_experiments_command(
     inference_only: bool = typer.Option(
         False, "--inference-only", help="Skip training; run inference only (load from outputs)"
@@ -884,3 +893,7 @@ def run_llama_experiments_command(
     print(f"Failed models: {failed_models}")
     with Path("all_models_evaluation_llama.json").open("a") as f:
         json.dump(all_results, f, indent=4)
+
+
+if __name__ == "__main__":
+    app()

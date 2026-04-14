@@ -106,9 +106,7 @@ def main(
         """Apply chat template to each conversation, strip leading <bos>."""
         texts = []
         for convo in examples["messages"]:
-            text = tokenizer.apply_chat_template(
-                convo, tokenize=False, add_generation_prompt=False
-            )
+            text = tokenizer.apply_chat_template(convo, tokenize=False, add_generation_prompt=False)
             # Unsloth adds <bos> during tokenization; avoid double <bos>
             texts.append(text.removeprefix("<bos>"))
         return {"text": texts}
@@ -146,7 +144,7 @@ def main(
         report_to=report_to,
         run_name=f"snippet-unsloth-r{lora_r}-lr{lr}",
         seed=seed,
-        max_seq_length=max_seq_length,
+        max_length=max_seq_length,
     )
 
     trainer = SFTTrainer(
@@ -170,7 +168,7 @@ def main(
     sample_labels = trainer.train_dataset[0]["labels"]
     n_masked = sum(1 for x in sample_labels if x == -100)
     n_total = len(sample_labels)
-    print(f"Masking check: {n_masked}/{n_total} tokens masked ({100*n_masked/n_total:.1f}%)")
+    print(f"Masking check: {n_masked}/{n_total} tokens masked ({100 * n_masked / n_total:.1f}%)")
 
     # ------------------------------------------------------------------
     # 7. Train

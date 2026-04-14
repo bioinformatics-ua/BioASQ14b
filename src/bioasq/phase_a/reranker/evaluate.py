@@ -94,7 +94,7 @@ def run_inference(
                 )
                 if not doc_id:  # TODO CHECK THIS
                     continue
-                run_dict[qid][doc_id] = float(-scores[i])
+                run_dict[qid][doc_id] = float(scores[i])
 
                 if inspect_samples > 0 and inspected < inspect_samples:
                     decoded: str = ""
