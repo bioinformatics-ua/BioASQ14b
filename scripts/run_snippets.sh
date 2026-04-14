@@ -44,14 +44,15 @@ TENSOR_PARALLEL_SIZE=2            # GPUs for vLLM
 RATIONALE_BATCH_SIZE=64           # vLLM batch size
 RATIONALE_DELAY=0.00001          # seconds between API calls (openrouter only)
 
-# LoRA training
-BASE_MODEL="google/gemma-4-31B"
+# LoRA training (Unsloth — default)
+BASE_MODEL="unsloth/gemma-4-31B"
+CHAT_TEMPLATE="gemma-4-thinking"  # "gemma-4" for standard
 LORA_R=16
 LORA_ALPHA=32
 EPOCHS=3
 BATCH_SIZE=1
 GRAD_ACCUM=8
-LR=1e-4
+LR=2e-4
 MAX_SEQ_LEN=2048
 
 # Inference
@@ -94,9 +95,26 @@ prepare() {
 }
 
 train() {
-    echo "=== Step 4: Train QLoRA ==="
-    uv run python -m bioasq.snippets.train_lora \
+    echo "=== Step 4: Train LoRA (Unsloth) ==="
+    uv run python -m bioasq.snippets.train_unsloth \
         --base-model "$BASE_MODEL" \
+        --train-data "${SNIPPET_DATA_DIR}/chat_train.jsonl" \
+        --val-data "${SNIPPET_DATA_DIR}/chat_val.jsonl" \
+        --output-dir "${SNIPPET_DATA_DIR}/lora_output" \
+        --chat-template "$CHAT_TEMPLATE" \
+        --lora-r "$LORA_R" \
+        --lora-alpha "$LORA_ALPHA" \
+        --epochs "$EPOCHS" \
+        --batch-size "$BATCH_SIZE" \
+        --gradient-accumulation "$GRAD_ACCUM" \
+        --lr "$LR" \
+        --max-seq-length "$MAX_SEQ_LEN"
+}
+
+train_legacy() {
+    echo "=== Step 4 (legacy): Train QLoRA (transformers+peft) ==="
+    uv run python -m bioasq.snippets.train_lora \
+        --base-model "google/gemma-4-31B" \
         --train-data "${SNIPPET_DATA_DIR}/chat_train.jsonl" \
         --val-data "${SNIPPET_DATA_DIR}/chat_val.jsonl" \
         --output-dir "${SNIPPET_DATA_DIR}/lora_output" \
@@ -134,10 +152,11 @@ evaluate() {
 # ----------------------------------------
 
 case "${1:-all}" in
-    prepare)  prepare ;;
-    train)    train ;;
-    extract)  extract ;;
-    evaluate) evaluate ;;
+    prepare)       prepare ;;
+    train)         train ;;
+    train-legacy)  train_legacy ;;
+    extract)       extract ;;
+    evaluate)      evaluate ;;
     all)
         prepare
         train
@@ -145,7 +164,7 @@ case "${1:-all}" in
         evaluate
         ;;
     *)
-        echo "Usage: $0 {prepare|train|extract|evaluate|all}"
+        echo "Usage: $0 {prepare|train|train-legacy|extract|evaluate|all}"
         exit 1
         ;;
 esac
