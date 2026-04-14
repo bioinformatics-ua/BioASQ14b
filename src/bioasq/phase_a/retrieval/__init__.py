@@ -10,6 +10,7 @@ from bioasq.phase_a.retrieval.pipeline import (
     apply_rerankers_and_fuse,
     hybrid_retrieve,
     hybrid_retrieve_split,
+    hybrid_retrieve_with_splare,
     rerank_bm25_then_fuse,
 )
 from bioasq.phase_a.retrieval.query_encoder import embed_queries_tei
@@ -21,7 +22,9 @@ __all__ = [
     "fuse_rerank_run_dicts",
     "fuse_retrieval_lists_rrf",
     "fuse_retrieval_lists_wsum",
+    "hybrid_retrieve",
     "hybrid_retrieve_rrf",
     "hybrid_retrieve_split",
+    "hybrid_retrieve_with_splare",
     "rerank_bm25_then_fuse",
 ]

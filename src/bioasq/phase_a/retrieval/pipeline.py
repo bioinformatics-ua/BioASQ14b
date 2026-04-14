@@ -3,10 +3,8 @@
 import asyncio
 from collections.abc import Awaitable, Callable, Sequence
 from dataclasses import dataclass
-from typing import overload
 
 import numpy as np
-from numba.core.types.containers import NamedTuple
 
 from bioasq.common.aliases import DocumentId, QuestionId, RunDict
 from bioasq.common.types import DocumentWithScore
@@ -14,6 +12,7 @@ from bioasq.data.database import bm25_search, semantic_search
 from bioasq.phase_a.retrieval import fuse_retrieval_lists_wsum
 from bioasq.phase_a.retrieval.fusion import fuse_rerank_run_dicts, fuse_retrieval_lists_rrf
 from bioasq.phase_a.retrieval.query_encoder import embed_queries_tei
+from bioasq.phase_a.splare.search import splare_search
 
 type RerankerFn = Callable[
     [QuestionId, str, list[DocumentWithScore]],
@@ -77,6 +76,76 @@ async def hybrid_retrieve(
         weights=[0.6, 0.4],
     )
     return rrf_docs, wsum_docs, bm25_docs
+
+
+async def hybrid_retrieve_with_splare(
+    qid: QuestionId,
+    query_text: str,
+    *,
+    year: int | None = None,
+    bm25_topk: int = 200,
+    semantic_topk: int = 200,
+    splare_topk: int = 200,
+    query_embedding: np.ndarray | None = None,
+    query_sparse: tuple[list[int], list[float]] | None = None,
+    embed_url: str | None = None,
+    exclude_ids: set[DocumentId] | None = None,
+    rrf_k: int = 60,
+) -> tuple[list[DocumentWithScore], list[DocumentWithScore], list[DocumentWithScore]]:
+    """
+    Parallel BM25 + dense + SPLARE search, then 3-way RRF fusion.
+
+    Returns a tuple of (RRF-3way-fused, RRF-2way-fused, BM25-only) results.
+
+    If ``query_sparse`` is omitted, encodes ``query_text`` via the local
+    SPLARE model (expensive — requires GPU). Pass pre-computed sparse vectors
+    when possible.
+    """
+    # Dense embedding
+    if query_embedding is None:
+        mat = await embed_queries_tei([query_text], embed_url=embed_url)
+        query_embedding = mat[0]
+
+    # SPLARE sparse embedding
+    if query_sparse is None:
+        from bioasq.phase_a.splare.query_encoder import encode_queries_splare
+
+        sparse_vecs = encode_queries_splare([query_text])
+        query_sparse = sparse_vecs[0]
+
+    bm25_task = bm25_search(query_text, topk=bm25_topk, year=year, exclude_ids=exclude_ids)
+    dense_task = semantic_search(
+        query_embedding, topk=semantic_topk, year=year, exclude_ids=exclude_ids
+    )
+    splare_task = splare_search(
+        query_sparse[0], query_sparse[1], topk=splare_topk, year=year, exclude_ids=exclude_ids
+    )
+
+    bm25_docs, dense_docs, splare_docs = await asyncio.gather(bm25_task, dense_task, splare_task)
+
+    bm25_docs = [d for d in bm25_docs if len(d.full_text) > 200]
+    dense_docs = [d for d in dense_docs if len(d.full_text) > 200]
+    splare_docs = [d for d in splare_docs if len(d.full_text) > 200]
+
+    bm25_docs = bm25_docs[:100]
+    dense_docs = dense_docs[:100]
+    splare_docs = splare_docs[:100]
+
+    # 3-way RRF fusion (BM25 + Dense + SPLARE)
+    rrf_3way_docs = fuse_retrieval_lists_rrf(
+        qid,
+        [("bm25", bm25_docs), ("dense", dense_docs), ("splare", splare_docs)],
+        rrf_k=rrf_k,
+    )
+
+    # 2-way RRF as fallback comparison
+    rrf_2way_docs = fuse_retrieval_lists_rrf(
+        qid,
+        [("bm25", bm25_docs), ("dense", dense_docs)],
+        rrf_k=rrf_k,
+    )
+
+    return rrf_3way_docs, rrf_2way_docs, bm25_docs
 
 
 async def apply_rerankers_and_fuse(
