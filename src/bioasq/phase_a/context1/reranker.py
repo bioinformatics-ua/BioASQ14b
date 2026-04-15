@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, cast
 
 import torch
 
-from bioasq.phase_a.reranker.evaluate import extract_scores
+from bioasq.phase_a.reranker.evaluation import extract_scores
 from bioasq.phase_a.reranker.model import load_reranker_model, resolve_inference_dtype
 
 from .types import CorpusDocument
