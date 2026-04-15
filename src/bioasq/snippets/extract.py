@@ -293,6 +293,63 @@ def _run_api(
     return results
 
 
+def _run_vllm(
+    questions: list[dict],
+    model: str,
+    max_new_tokens: int,
+    temperature: float,
+    vllm_url: str,
+    vllm_api_key: str,
+    delay: float,
+    adapter_path: str | None = None,
+) -> list[dict]:
+    """Run snippet extraction against an externally-started vLLM server.
+
+    If adapter_path is given the LoRA adapter is dynamically registered via
+    the vLLM REST API (requires --enable-lora on the server) and used as the
+    model name for all completions requests.
+    """
+    import requests
+    from openai import OpenAI
+
+    # Strip trailing /v1 to get the server root for management endpoints
+    server_root = vllm_url.rstrip("/")
+    if server_root.endswith("/v1"):
+        server_root = server_root[:-3]
+
+    if adapter_path:
+        lora_name = Path(adapter_path).name
+        print(f"Registering LoRA adapter '{lora_name}' from {adapter_path} ...")
+        resp = requests.post(
+            f"{server_root}/v1/load_lora_adapter",
+            json={"lora_name": lora_name, "lora_path": adapter_path},
+            timeout=60,
+        )
+        if not resp.ok:
+            msg = f"Failed to load LoRA adapter: {resp.status_code} {resp.text}"
+            raise RuntimeError(msg)
+        print(f"LoRA adapter '{lora_name}' loaded successfully.")
+        model = lora_name
+
+    client = OpenAI(base_url=vllm_url, api_key=vllm_api_key)
+
+    results = []
+    for q in tqdm(questions, desc="Extracting snippets (vLLM)"):
+        q_result = _extract_for_question(
+            q,
+            client,
+            None,
+            max_new_tokens,
+            temperature,
+            backend="api",
+            model_name=model,
+            delay=delay,
+        )
+        results.append(q_result)
+
+    return results
+
+
 def _extract_for_question(
     question: dict,
     model_or_client: Any,  # noqa: ANN401
@@ -395,16 +452,19 @@ def main(
     ] = Path("data/snippets/extracted_snippets.jsonl"),
     base_model: Annotated[str, typer.Option(help="Base model name")] = "google/gemma-3-27b-it",
     adapter_path: Annotated[
-        str | None, typer.Option(help="Path to LoRA adapter (local only)")
+        str | None,
+        typer.Option(help="Path to LoRA adapter (local, or vllm with --enable-lora)"),
     ] = None,
-    backend: Annotated[str, typer.Option(help="Backend: local or openrouter")] = "local",
+    backend: Annotated[str, typer.Option(help="Backend: local, openrouter, or vllm")] = "local",
     model: Annotated[
-        str, typer.Option(help="API model name (openrouter only)")
+        str, typer.Option(help="API model name (openrouter/vllm only)")
     ] = "google/gemini-2.5-flash",
     max_new_tokens: Annotated[int, typer.Option(help="Max tokens for output")] = 500,
     temperature: Annotated[float, typer.Option(help="Sampling temperature")] = 0.1,
-    base_url: Annotated[str, typer.Option(help="API base URL")] = "https://openrouter.ai/api/v1",
+    base_url: Annotated[str, typer.Option(help="API base URL (openrouter)")] = "https://openrouter.ai/api/v1",
     delay: Annotated[float, typer.Option(help="Delay between API requests")] = 0.1,
+    vllm_url: Annotated[str, typer.Option(help="vLLM server base URL")] = "http://localhost:8000/v1",
+    vllm_api_key: Annotated[str, typer.Option(help="vLLM API key (any string works)")] = "EMPTY",
 ) -> None:
     """Extract snippets from documents using a LoRA model or API."""
     # Load questions
@@ -418,6 +478,11 @@ def main(
     # Run extraction
     if backend == "local":
         results = _run_local(questions, base_model, adapter_path, max_new_tokens, temperature)
+    elif backend == "vllm":
+        results = _run_vllm(
+            questions, base_model, max_new_tokens, temperature,
+            vllm_url, vllm_api_key, delay, adapter_path,
+        )
     else:
         results = _run_api(questions, model, max_new_tokens, temperature, base_url, delay)
 

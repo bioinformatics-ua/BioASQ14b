@@ -66,9 +66,11 @@ INFERENCE_BASE_MODEL="unsloth/gemma-4-31B"
 ADAPTER_PATH="${SNIPPET_DATA_DIR}/lora_output/final_adapter"
 EXTRACT_INPUT="data/val_data/13B1_golden_documents.jsonl"
 EXTRACT_OUTPUT="data/snippets/extracted_snippets.jsonl"
-EXTRACT_BACKEND="local"  # local or openrouter
+EXTRACT_BACKEND="vllm"  # local, vllm, or openrouter
 EXTRACT_MAX_NEW_TOKENS=160
 EXTRACT_TEMPERATURE=0.0
+VLLM_URL="http://localhost:8000/v1"
+VLLM_API_KEY="EMPTY"
 
 # Competition submission
 SUBMISSION_OUTPUT="data/competition/submission_snippets.json"
@@ -148,6 +150,8 @@ extract() {
         --base-model "$INFERENCE_BASE_MODEL" \
         --adapter-path "$ADAPTER_PATH" \
         --backend "$EXTRACT_BACKEND" \
+        --vllm-url "$VLLM_URL" \
+        --vllm-api-key "$VLLM_API_KEY" \
     --max-new-tokens "$EXTRACT_MAX_NEW_TOKENS" \
     --temperature "$EXTRACT_TEMPERATURE"
 }
@@ -199,6 +203,8 @@ compete() {
         --base-model "$INFERENCE_BASE_MODEL" \
         --adapter-path "$ADAPTER_PATH" \
         --backend "$EXTRACT_BACKEND" \
+        --vllm-url "$VLLM_URL" \
+        --vllm-api-key "$VLLM_API_KEY" \
         --max-new-tokens "$EXTRACT_MAX_NEW_TOKENS" \
         --temperature "$EXTRACT_TEMPERATURE"
 
