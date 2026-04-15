@@ -127,7 +127,9 @@ def generate_command(
     output_dir: Annotated[Path, typer.Option(help="Directory for output files.")],
     model: Annotated[str, typer.Option(help="Model path or name.")],
     backend: Annotated[str, typer.Option(help="'local' or 'openrouter'")] = "local",
-    input_type: Annotated[str, typer.Option(help="'abstracts' or 'snippets'")] = "abstracts",
+    input_type: Annotated[
+        str, typer.Option(help="'abstracts', 'snippets', or 'snippets_with_thinking'")
+    ] = "abstracts",
     num_support: Annotated[str, typer.Option(help="Context counts, e.g. '3,5'")] = "5",
     prompt_ids: Annotated[str, typer.Option(help="Comma-separated IDs, e.g. '1,2'")] = "1",
     prompts_file: Annotated[Path | None, typer.Option(help="Path to prompts JSON")] = None,

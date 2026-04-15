@@ -47,6 +47,26 @@ def _extract_snippet_texts(question: QuestionRecord, num_support: int) -> list[s
     return [str(raw_snippets)]
 
 
+def _extract_snippets_with_thinking(question: QuestionRecord, num_support: int) -> list[str]:
+    """Extract snippet texts with their thinking/rationale appended."""
+    raw_snippets = question.get("snippets", [])
+    if not isinstance(raw_snippets, list):
+        return [str(raw_snippets)]
+
+    items: list[str] = []
+    for s in raw_snippets[:num_support]:
+        if isinstance(s, dict):
+            text = str(s.get("text", s))
+            thinking = s.get("thinking", "")
+            if thinking:
+                items.append(f"{text}\nrelevance: {thinking}")
+            else:
+                items.append(text)
+        else:
+            items.append(str(s))
+    return items
+
+
 def _parse_document_list(raw_docs: list[Any], num_support: int) -> list[str]:
     doc_items: list[str] = []
     for d in raw_docs[:num_support]:
@@ -74,14 +94,16 @@ def build_context(
 
     if input_type == "snippets":
         items = _extract_snippet_texts(question, num_support)
-
-    if input_type != "snippets":
+    elif input_type == "snippets_with_thinking":
+        items = _extract_snippets_with_thinking(question, num_support)
+    else:
         items = _extract_document_texts(question, num_support)
 
     if not items:
         return "(No context available)"
 
-    return "\n\n".join(f"{input_type}: {x}" for x in items)
+    label = "snippets" if input_type.startswith("snippets") else input_type
+    return "\n\n".join(f"{label}: {x}" for x in items)
 
 
 def _parse_json_from_text(text: str) -> dict[str, Any] | None:
