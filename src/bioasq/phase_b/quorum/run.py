@@ -26,6 +26,7 @@ from typing import Annotated, Any
 import orjson
 import typer
 
+from bioasq.phase_b.backends import get_backend
 from bioasq.phase_b.backends.base import BaseModelBackend
 from bioasq.phase_b.quorum._types import QuorumDocument
 from bioasq.phase_b.quorum.evaluate import evaluate_app
@@ -58,54 +59,6 @@ def _load_questions(data_path: Path) -> list[dict[str, Any]]:
         if line:
             questions.append(orjson.loads(line))
     return questions
-
-
-def _build_backends(
-    models: list[str],
-    max_tokens: int,
-    temperature: float,
-    request_delay: float,
-    local_max_tokens: int | None = None,
-) -> list[BaseModelBackend]:
-    """Instantiate and load one backend per model.
-
-    Model strings use ``"backend|model_name"`` format, e.g.
-    ``"openrouter|google/gemini-2.5-flash"`` or ``"local|google/medgemma-27b-text-it"``, or
-    ``"external|192.168.1.2:8080|google/medgemma-27b-text-it"`` for custom OpenAI-based endpoints.
-    If no prefix is given, defaults to ``"openrouter"``.
-    """
-    from bioasq.phase_b.backends.cloud import OpenRouterBackend
-
-    backends: list[BaseModelBackend] = []
-    for spec in models:
-        if "|" in spec:
-            backend_type, model_name = spec.split("|", 1)
-        else:
-            backend_type, model_name = "openrouter", spec
-
-        if backend_type == "local":
-            from bioasq.phase_b.backends.local import VLLMBackend
-
-            backend = VLLMBackend(
-                model_path=model_name,
-                max_new_tokens=local_max_tokens if local_max_tokens is not None else max_tokens,
-                temperature=temperature,
-                tensor_parallel_size=2,
-            )
-        else:
-            base_url, model_name = (
-                model_name.split("|", 1) if backend_type == "external" else (None, model_name)
-            )
-            backend = OpenRouterBackend(
-                model=model_name,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                request_delay=request_delay,
-                base_url=base_url,
-            )
-        backend.load()
-        backends.append(backend)
-    return backends
 
 
 def _extract_documents(question: dict[str, Any]) -> list[QuorumDocument]:
@@ -254,13 +207,16 @@ def run_quorum(
         f"Agents: {num_agents}  |  Max rounds: {max_rounds}  |  Docs/sample: {docs_per_sample}"
     )
 
-    backends = _build_backends(models, max_tokens, temperature, request_delay, local_max_tokens)
+    backends = [
+        get_backend(model, max_tokens, temperature, request_delay, local_max_tokens)
+        for model in models
+    ]
     rng = random.Random(seed)
 
     synthesizer_backend: BaseModelBackend | None = None
     if synthesizer_model:
-        [synthesizer_backend] = _build_backends(
-            [synthesizer_model], max_tokens, temperature, request_delay, local_max_tokens
+        synthesizer_backend = get_backend(
+            synthesizer_model, max_tokens, temperature, request_delay, local_max_tokens
         )
 
     results: list[dict[str, Any]] = []

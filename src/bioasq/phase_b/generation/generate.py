@@ -8,17 +8,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, Any, cast
-
-if TYPE_CHECKING:
-    from bioasq.common.protocols import BaseModelBackend
+from typing import Annotated, Any, cast
 
 import msgspec
 import typer
 from rich import print as rprint
 
 from bioasq.common.io import load_json, load_jsonl
-from bioasq.phase_b.backends.backends import OpenRouterBackend, VLLMBackend
+from bioasq.phase_b.backends import get_backend
 from bioasq.phase_b.generation.run import load_prompts, run_generation
 
 app = typer.Typer(help="BioASQ Phase B Generation CLI")
@@ -64,39 +61,6 @@ def _resolve_prompt_ids(prompt_ids: str, prompts_templates: dict[str, Any]) -> l
         p_ids.add(key)
 
     return sorted(p_ids, key=lambda x: int(x) if x.isdigit() else x)
-
-
-def _initialize_backend(
-    backend: str,
-    model: str,
-    max_tokens: int,
-    temperature: float,
-    gpu_memory_utilization: float,
-    tensor_parallel_size: int,
-    max_model_len: int,
-    request_delay: float,
-) -> BaseModelBackend:
-    if backend == "local":
-        return VLLMBackend(
-            model_path=model,
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            gpu_memory_utilization=gpu_memory_utilization,
-            tensor_parallel_size=tensor_parallel_size,
-            max_model_len=max_model_len,
-        )
-
-    if backend == "mock":
-        from bioasq.phase_b.backends.backends import MockBackend
-
-        return MockBackend(model=model)
-
-    return OpenRouterBackend(
-        model=model,
-        max_tokens=max_tokens,
-        temperature=temperature,
-        request_delay=request_delay,
-    )
 
 
 def _save_outputs(
@@ -161,8 +125,7 @@ def generate_command(
     rprint(f"Using prompts format from {resolved_prompts_file}")
 
     rprint(f"Loading [bold]{backend}[/bold] backend with model [cyan]{model}[/cyan]...")
-    model_backend = _initialize_backend(
-        backend,
+    model_backend = get_backend(
         model,
         max_tokens,
         temperature,

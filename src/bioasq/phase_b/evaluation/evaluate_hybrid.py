@@ -55,11 +55,13 @@ from typing import Annotated, Any
 import orjson
 import typer
 
+from bioasq.phase_b.backends import get_backend
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from bioasq.phase_b.dataloader import BioASQDataLoader
 from bioasq.phase_b.evaluation.evaluate import print_report
-from bioasq.phase_b.evaluation.llm_judge import build_backend, judge_score_means, run_judge_batch
+from bioasq.phase_b.evaluation.llm_judge import judge_score_means, run_judge_batch
 from bioasq.phase_b.evaluation.metrics import evaluate_all
 from bioasq.phase_b.evaluation.prediction_normalize import metrics_ready_predictions
 
@@ -139,7 +141,6 @@ def classical_cmd(
 def judge_cmd(
     predictions: Annotated[Path, typer.Option("--predictions", exists=True, dir_okay=False)],
     golden: Annotated[Path, typer.Option("--golden", exists=True, dir_okay=False)],
-    backend: Annotated[str, typer.Option("--backend")] = "openrouter",
     model: Annotated[str, typer.Option("--model", "-m")] = "anthropic/claude-sonnet-4-6",
     output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
     question_types: Annotated[str | None, typer.Option("--question-types")] = None,
@@ -147,9 +148,6 @@ def judge_cmd(
     max_tokens: Annotated[int, typer.Option("--max-tokens")] = 2048,
     temperature: Annotated[float, typer.Option("--temperature")] = 0.0,
     context_max_chars: Annotated[int, typer.Option("--context-max-chars")] = 6000,
-    tensor_parallel_size: Annotated[int, typer.Option("--tensor-parallel-size")] = 1,
-    gpu_memory_utilization: Annotated[float, typer.Option("--gpu-memory-utilization")] = 0.9,
-    max_model_len: Annotated[int, typer.Option("--max-model-len")] = 8192,
 ) -> None:
     types = _parse_types(question_types)
     loader = BioASQDataLoader(str(golden))
@@ -160,14 +158,10 @@ def judge_cmd(
         qid = str(q["id"])
         if qid in pred_raw:
             pairs.append((q, pred_raw[qid]))
-    b = build_backend(
-        backend,
+    b = get_backend(
         model,
         max_tokens,
         temperature,
-        tensor_parallel_size,
-        gpu_memory_utilization,
-        max_model_len,
     )
     scores = run_judge_batch(b, pairs, context_max_chars)
     means = judge_score_means(scores)
@@ -179,7 +173,6 @@ def judge_cmd(
             "mode": "judge",
             "predictions_file": str(predictions),
             "golden_file": str(golden),
-            "backend": backend,
             "judge_model": model,
             "judge_means": means,
             "per_question": detail,
@@ -193,7 +186,6 @@ def judge_cmd(
 def all_cmd(
     predictions: Annotated[Path, typer.Option("--predictions", exists=True, dir_okay=False)],
     golden: Annotated[Path, typer.Option("--golden", exists=True, dir_okay=False)],
-    backend: Annotated[str, typer.Option("--backend")] = "openrouter",
     model: Annotated[str, typer.Option("--model", "-m")] = "anthropic/claude-sonnet-4-6",
     output: Annotated[Path | None, typer.Option("--output", dir_okay=False)] = None,
     question_types: Annotated[str | None, typer.Option("--question-types")] = None,
@@ -201,9 +193,6 @@ def all_cmd(
     max_tokens: Annotated[int, typer.Option("--max-tokens")] = 2048,
     temperature: Annotated[float, typer.Option("--temperature")] = 0.0,
     context_max_chars: Annotated[int, typer.Option("--context-max-chars")] = 6000,
-    tensor_parallel_size: Annotated[int, typer.Option("--tensor-parallel-size")] = 1,
-    gpu_memory_utilization: Annotated[float, typer.Option("--gpu-memory-utilization")] = 0.9,
-    max_model_len: Annotated[int, typer.Option("--max-model-len")] = 8192,
 ) -> None:
     types = _parse_types(question_types)
     print(types)
@@ -224,14 +213,10 @@ def all_cmd(
     pairs: list[tuple[dict[str, Any], dict[str, Any]]] = [
         (q, pred_raw[str(q["id"])]) for q in gt if str(q["id"]) in pred_raw
     ]
-    b = build_backend(
-        backend,
+    b = get_backend(
         model,
         max_tokens,
         temperature,
-        tensor_parallel_size,
-        gpu_memory_utilization,
-        max_model_len,
     )
     judge_scores = run_judge_batch(b, pairs, context_max_chars)
     means = judge_score_means(judge_scores)
@@ -243,7 +228,6 @@ def all_cmd(
             "mode": "all",
             "predictions_file": str(predictions),
             "golden_file": str(golden),
-            "backend": backend,
             "judge_model": model,
             "n_total": n_total,
             "n_valid": n_valid,

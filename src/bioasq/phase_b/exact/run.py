@@ -20,8 +20,7 @@ from typing import TYPE_CHECKING, Annotated, Any, Literal
 import orjson
 import typer
 
-from bioasq.phase_b.backends.cloud import OpenRouterBackend
-from bioasq.phase_b.backends.local import VLLMBackend
+from bioasq.phase_b.backends import get_backend
 from bioasq.phase_b.dataloader import BioASQDataLoader
 
 if TYPE_CHECKING:
@@ -93,6 +92,7 @@ def main(
     output_dir: Annotated[
         Path, typer.Option(..., help="Output directory (multi-prompt grid mode)")
     ],
+    model: Annotated[str, typer.Option(..., help="Model name")],
     prompt_ids: Annotated[
         list[str],
         typer.Option(
@@ -100,11 +100,6 @@ def main(
             "Use 'all' to run every prompt in the prompts file.",
         ),
     ] = ["6"],
-    model: Annotated[str | None, typer.Option(..., help="Model name")] = None,
-    backend: Annotated[
-        Literal["local", "openrouter"],
-        typer.Option(),
-    ] = "openrouter",
     num_snippets: Annotated[
         int, typer.Option(..., help="Number of snippets to use for context")
     ] = 5,
@@ -131,11 +126,6 @@ def main(
             help="abstracts = Phase A+ golden docs; snippets = Phase B passages.",
         ),
     ] = "abstracts",
-    tensor_parallel_size: Annotated[int, typer.Option(..., help="Tensor parallel size")] = 1,
-    gpu_memory_utilization: Annotated[
-        float, typer.Option(..., help="GPU memory utilization")
-    ] = 0.85,
-    max_model_len: Annotated[int, typer.Option(..., help="Maximum model length")] = 8192,
     request_delay: Annotated[
         float,
         typer.Option(
@@ -177,25 +167,12 @@ def main(
 
     print(f"{len(combos_to_run)} combo(s) to run. Loading model...")
 
-    backend = (
-        VLLMBackend(
-            model,
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            tensor_parallel_size=tensor_parallel_size,
-            gpu_memory_utilization=gpu_memory_utilization,
-            max_model_len=max_model_len,
-        )
-        if backend == "local"
-        else OpenRouterBackend(
-            model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            request_delay=request_delay,
-        )
+    backend = get_backend(
+        model=model,
+        max_tokens=max_tokens,
+        temperature=temperature,
+        request_delay=request_delay,
     )
-
-    backend.load()
 
     # Process each (pid, qtype) combo separately — save immediately after each
     saved_files: list[str] = []

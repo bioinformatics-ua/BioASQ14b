@@ -35,8 +35,7 @@ from typing import Annotated, Any, Literal
 import orjson
 import typer
 
-from bioasq.phase_b.backends.cloud import OpenRouterBackend
-from bioasq.phase_b.backends.local import VLLMBackend
+from bioasq.phase_b.backends import get_backend
 from bioasq.phase_b.dataloader import BioASQDataLoader
 
 app = typer.Typer()
@@ -173,15 +172,11 @@ def main(
     output: Annotated[Path, typer.Option(help="Output JSON file for reconciled predictions")],
     type_: Annotated[Literal["factoid", "list"], typer.Option(help="Question type to reconcile")],
     model: Annotated[str, typer.Option(default="google/gemini-2.0-flash-001")],
-    backend: Annotated[Literal["local", "openrouter"], typer.Option(default="openrouter")],
     context_source: Annotated[Literal["abstracts", "snippets"], typer.Option(default="abstracts")],
     num_context: Annotated[int, typer.Option(default=10)],
     max_tokens: Annotated[int, typer.Option(default=1000)],
     temperature: Annotated[float, typer.Option(default=0.0)],
     request_delay: Annotated[float, typer.Option(default=0.0)],
-    tensor_parallel_size: Annotated[int, typer.Option(default=1)],
-    gpu_memory_utilization: Annotated[float, typer.Option(default=0.85)],
-    max_model_len: Annotated[int, typer.Option(default=8192)],
 ) -> None:
     # Load all input prediction files
     all_preds = [orjson.loads(path.read_bytes()) for path in inputs]
@@ -221,26 +216,9 @@ def main(
 
     print(f"{len(prompts)} prompts built. Loading model...")
 
-    if backend == "local":
-        backend = VLLMBackend(
-            model_path=model,
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            tensor_parallel_size=tensor_parallel_size,
-            gpu_memory_utilization=gpu_memory_utilization,
-            max_model_len=max_model_len,
-        )
-    else:
-        backend = OpenRouterBackend(
-            model=model,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            request_delay=request_delay,
-        )
+    backend = get_backend(model, max_tokens, temperature, request_delay)
 
-    backend.load()
     responses = backend.generate_batch(prompts)
-    backend.unload()
 
     # Parse results
     results = {}
@@ -259,4 +237,4 @@ def main(
 
 
 if __name__ == "__main__":
-    main()
+    app()

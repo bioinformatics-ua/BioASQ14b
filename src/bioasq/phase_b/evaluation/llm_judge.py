@@ -4,8 +4,6 @@ from typing import Any, cast
 import orjson
 
 from bioasq.phase_b.backends.base import BaseModelBackend
-from bioasq.phase_b.backends.cloud import OpenRouterBackend
-from bioasq.phase_b.backends.local import VLLMBackend
 from bioasq.phase_b.evaluation.prediction_normalize import (
     context_from_question,
     gold_references_html,
@@ -110,29 +108,6 @@ def coerce_judge_scores(d: dict[str, object]) -> JudgeScores:
     return JudgeScores(
         correctness=c, faithfulness=fh, completeness=cp, overall=overall, rationale=r
     )
-
-
-def build_backend(
-    backend: str,
-    model: str,
-    max_tokens: int,
-    temperature: float,
-    tensor_parallel_size: int,
-    gpu_memory_utilization: float,
-    max_model_len: int,
-) -> BaseModelBackend:
-    if backend == "local":
-        return VLLMBackend(
-            model_path=model,
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            tensor_parallel_size=tensor_parallel_size,
-            gpu_memory_utilization=gpu_memory_utilization,
-            max_model_len=max_model_len,
-        )
-    if backend == "openrouter":
-        return OpenRouterBackend(model=model, max_tokens=max_tokens, temperature=temperature)
-    raise ValueError(f"unknown backend {backend}")
 
 
 def run_judge_batch(
