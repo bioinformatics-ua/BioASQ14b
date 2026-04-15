@@ -94,4 +94,9 @@ nohup.out
 
 src/bioasq/phase_a/reranker/outputs
 src/bioasq/phase_a/reranker/wandb
-src/wandb
+**/wandb
+data/bench**
+data/training
+data/context1_test**
+unsloth_compiled_cache/
+tests/
