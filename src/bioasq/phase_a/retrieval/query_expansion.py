@@ -59,6 +59,19 @@ def expand_query2doc(
     return [f"{q} {exp.strip()}" for q, exp in zip(queries, expansions, strict=True)]
 
 
+def generate_hyde_document(
+    query: str,
+    backend: BaseModelBackend,
+) -> str:
+    """Generate a hypothetical document for HyDE dense retrieval.
+
+    Returns the generated hypothetical abstract for the query (to be
+    embedded instead of the original query).
+    """
+    prompt = _HYDE_PROMPT.format(query=query)
+    return backend.generate(prompt).strip()
+
+
 def generate_hyde_documents(
     queries: Sequence[str],
     backend: BaseModelBackend,

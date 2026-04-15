@@ -12,7 +12,9 @@ from bioasq.data.database import bm25_search, semantic_search
 from bioasq.phase_a.retrieval import fuse_retrieval_lists_wsum
 from bioasq.phase_a.retrieval.fusion import fuse_rerank_run_dicts, fuse_retrieval_lists_rrf
 from bioasq.phase_a.retrieval.query_encoder import embed_queries_tei
+from bioasq.phase_a.retrieval.query_expansion import generate_hyde_document
 from bioasq.phase_a.splare.search import splare_search
+from bioasq.phase_b.backends.base import BaseModelBackend
 
 type RerankerFn = Callable[
     [QuestionId, str, list[DocumentWithScore]],
@@ -39,6 +41,7 @@ async def hybrid_retrieve(
     embed_url: str | None = None,
     exclude_ids: set[DocumentId] | None = None,
     rrf_k: int = 60,
+    hyde_backend: BaseModelBackend | None = None,
 ) -> tuple[list[DocumentWithScore], list[DocumentWithScore], list[DocumentWithScore]]:
     """
     Parallel BM25 + dense DB search, then RRF fusion.
@@ -50,7 +53,10 @@ async def hybrid_retrieve(
     the corresponding PubMed baseline.
     """
     if query_embedding is None:
-        mat = await embed_queries_tei([query_text], embed_url=embed_url)
+        dense_query_text = query_text
+        if hyde_backend is not None:
+            dense_query_text = generate_hyde_document(query_text, hyde_backend)
+        mat = await embed_queries_tei([dense_query_text], embed_url=embed_url)
         query_embedding = mat[0]
 
     bm25_task = bm25_search(query_text, topk=bm25_topk, year=year, exclude_ids=exclude_ids)

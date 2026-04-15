@@ -1,9 +1,7 @@
 """CLI: BM25 + dense retrieval with RRF over a question JSONL testset."""
 
-from __future__ import annotations
-
-from pathlib import Path  # noqa: TC003
-from typing import Annotated, Literal
+from pathlib import Path
+from typing import TYPE_CHECKING, Annotated, Literal
 
 import msgspec
 import orjson
@@ -15,6 +13,10 @@ from bioasq.common import PROJECT_DATA_BM25_DIR
 from bioasq.common.utils import typer_async
 from bioasq.phase_a.retrieval.pipeline import hybrid_retrieve
 from bioasq.phase_a.retrieval.query_encoder import default_tei_embed_url
+from bioasq.phase_b.backends import get_backend
+
+if TYPE_CHECKING:
+    from bioasq.phase_b.backends.base import BaseModelBackend
 
 app = typer.Typer()
 
@@ -42,10 +44,21 @@ async def retrieve(
         str | None,
         typer.Option(help=f"Full TEI URL (default: {default_tei_embed_url()})."),
     ] = None,
+    hyde_model: Annotated[
+        str | None,
+        typer.Option(
+            help="Optional HyDE model name (format: backend|model). "
+            "If provided, generates a hypothetical document for query expansion.",
+        ),
+    ] = None,
 ) -> None:
     """Run hybrid retrieval (BM25 ∥ dense) and fuse with ranx RRF; writes one line per question."""
     questions: list[dict[str, str]] = [orjson.loads(line) for line in testset_file.open("rb")]
     output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    hyde_backend: BaseModelBackend | None = None
+    if hyde_model is not None:
+        hyde_backend = get_backend(hyde_model)
 
     with (
         output_file.with_suffix(".rrf.jsonl").open("wb") as out,
@@ -62,6 +75,7 @@ async def retrieve(
                 semantic_topk=semantic_topk,
                 embed_url=tei_embed_url,
                 rrf_k=rrf_k,
+                hyde_backend=hyde_backend,
             )
             for out_docs, out_f in [(rrf, out), (wsum, wsum_out), (bm25, bm25_out)]:
                 row = {
