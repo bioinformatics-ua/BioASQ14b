@@ -1,305 +1,343 @@
-"""Data sampling strategies for reranker training.
-
-Samplers control how training examples are drawn from the
-:data:`~bioasq.common.aliases.SliceDataset` — which questions to pick,
-and which positive / negative documents to pair for contrastive learning.
-
-Hierarchy::
-
-    BasicSampler
-    ├── EmptySampler          (no-op, testing)
-    ├── BasicV2Sampler        (fallback to other questions' negatives)
-    ├── ExponentialWeightSampler  (weighted by relevance level)
-    ├── HigherConfidenceNegativesSampler  (skip top BM25 negatives)
-    └── ShifterSampler        (curriculum learning: easy → hard negatives)
-
-Refactored from ``refactored-trainer/sampler.py``.
-"""
-
-from __future__ import annotations
-
 import random
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
-if TYPE_CHECKING:
-    from bioasq.common.aliases import Collection, SliceDataset
-
-
-def _get_relevance_order_from_dataset(dataset: SliceDataset) -> list[int]:
-    """Extract sorted relevance levels from the first question in the dataset."""
-    if len(dataset) == 0:
-        return []
-    _sample: dict[str | int, list[dict[str, str]] | str] = dataset[next(iter(dataset.keys()))]
-    relevance_order: list[int] = sorted([k for k in _sample if isinstance(k, int)], reverse=True)
-    return relevance_order
-
-
-# ---------------------------------------------------------------------------
-# Base sampler
-# ---------------------------------------------------------------------------
+from bioasq.phase_a.reranker.aliases import Collection, SliceDataset
+from bioasq.phase_a.reranker.utils import get_relevance_order_from_dataset
 
 
 class BasicSampler:
-    """Default sampler: uniformly random question, random pos/neg docs."""
-
     def __init__(
         self,
         slice_dataset: SliceDataset,
         collection: Collection | None = None,
-    ) -> None:
+        *args,
+        **kwargs,
+    ):
         self.slice_dataset: SliceDataset = slice_dataset
         self.collection: Collection | None = collection
         self.q_ids: list[str] = list(self.slice_dataset.keys())
 
-        self.relevance_order: list[int] = _get_relevance_order_from_dataset(self.slice_dataset)
+        self.relevance_order: list[int] = get_relevance_order_from_dataset(self.slice_dataset)
 
         self.negative_index: int = min(self.relevance_order)
         self.positive_index: int = max(self.relevance_order)
 
+    # dict str -> str | int
     def _lookup_doc(self, document: dict[str, str]) -> str:
-        """Resolve document text, either from collection or inline."""
         if self.collection:
-            pmid: str = document["id"]
+            pmid = document["id"]
             return self.collection[pmid]
-        return document["text"]
+        else:
+            return document["text"]
 
-    def choose_question(self, _sample_index: int, _epoch: int) -> tuple[str, str]:
-        """Select a random question (id, text)."""
-        q_id: str = random.choice(self.q_ids)
-        q_text: str = str(self.slice_dataset[q_id]["question"])
+    def choose_question(self, sample_index: int, epoch: int) -> tuple[str, str]:
+        q_id = random.choice(self.q_ids)
+        q_text = str(self.slice_dataset[q_id]["question"])
         return q_id, q_text
 
-    def choose_positive_doc(self, _sample_index: int, _epoch: int, q_id: str) -> str | None:
-        """Select a random positive document for the given question."""
-        valid_sample_groups: list[int] = [
+    def choose_positive_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:
+        valid_sample_groups = [
             ro
             for ro in self.relevance_order
             if len(self.slice_dataset[q_id][ro]) > 0 and ro != self.negative_index
         ]
-        pos_index: int = random.choice(valid_sample_groups)
+        pos_index = random.choice(valid_sample_groups)
 
-        docs: list[dict[str, str]] | str = self.slice_dataset[q_id][pos_index]
-        doc: dict[str, str] = cast("dict[str, str]", random.choice(docs))
+        docs = self.slice_dataset[q_id][pos_index]
+        doc: dict[str, str] = cast(dict[str, str], random.choice(docs))
         return self._lookup_doc(doc)
 
-    def choose_negative_doc(self, _sample_index: int, _epoch: int, q_id: str) -> str | None:
-        """Select a random negative document for the given question."""
+    def choose_negative_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:
         neg_docs: list[dict[str, str]] = cast(
-            "list[dict[str, str]]", self.slice_dataset[q_id][self.negative_index]
-        )
+            list[dict[str, str]], self.slice_dataset[q_id][self.negative_index]
+        )  # type: ignore
+
         if len(neg_docs) == 0:
             return None
+
         doc: dict[str, str] = random.choice(neg_docs)
         return self._lookup_doc(doc)
 
     def choose_positive_and_negative_doc(
-        self, _sample_index: int, _epoch: int, q_id: str
+        self, sample_index: int, epoch: int, q_id: str
     ) -> tuple[str | None, str | None]:
-        """Select a random positive and negative document pair."""
         valid_sample_groups: list[list[dict[str, str]]] = [
-            cast("list[dict[str, str]]", self.slice_dataset[q_id][ro])
+            cast(list[dict[str, str]], self.slice_dataset[q_id][ro])
             for ro in self.relevance_order
             if len(self.slice_dataset[q_id][ro]) > 0
         ]
 
         if len(valid_sample_groups) < 2:
+            valid_sample_groups_ro = [
+                ro for ro in self.relevance_order if len(self.slice_dataset[q_id][ro]) > 0
+            ]
+            # its impossible to sample from this questions
             print(
-                f"Warning question ({q_id}) only contains "
-                f"{len(valid_sample_groups)} valid groups for sampling.",
+                f"Warning question ({q_id}) only contain ({len(valid_sample_groups_ro)}) valid_sample_groups ({valid_sample_groups_ro}) groups for sampling.",
                 flush=True,
             )
             return None, None
 
-        pos_doc_index: int = random.randrange(len(valid_sample_groups[:-1]))
+        pos_doc_index = random.randrange(len(valid_sample_groups[:-1]))
         pos_doc: dict[str, str] = random.choice(valid_sample_groups[pos_doc_index])
-        pos_doc_text: str = self._lookup_doc(pos_doc)
+        pos_doc_text = self._lookup_doc(pos_doc)
 
-        neg_doc_list: list[dict[str, str]] = random.choice(valid_sample_groups[pos_doc_index + 1 :])
+        neg_doc_list = random.choice(valid_sample_groups[pos_doc_index + 1 :])
         neg_doc: dict[str, str] = random.choice(neg_doc_list)
-        neg_doc_text: str = self._lookup_doc(neg_doc)
+        neg_doc_text = self._lookup_doc(neg_doc)
 
         return pos_doc_text, neg_doc_text
 
 
-# ---------------------------------------------------------------------------
-# Variants
-# ---------------------------------------------------------------------------
-
-
 class EmptySampler(BasicSampler):
-    """No-op sampler for testing / placeholder usage."""
-
-    def __init__(self, *args: object, **kwargs: object) -> None:
+    def __init__(self, *args, **kwargs):  # pyright: ignore[reportUnknownParameterType, reportMissingParameterType, reportMissingSuperCall]
         pass
 
-    def choose_question(self, _sample_index: int, _epoch: int) -> tuple[str, str]:
+    def choose_question(self, sample_index: int, epoch: int) -> tuple[str, str]:  # pyright: ignore[reportImplicitOverride]
         return "", ""
 
-    def choose_positive_doc(self, _sample_index: int, _epoch: int, _q_id: str) -> str | None:
+    def choose_positive_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:  # pyright: ignore[reportImplicitOverride]
         return None
 
 
 class BasicV2Sampler(BasicSampler):
-    """Sampler that falls back to negatives from other questions if empty."""
-
-    def get_negatives_from_another_question(self, _q_id: str) -> dict[str, str]:
-        """Select a random negative from a different question that has them."""
+    def get_negatives_from_another_question(self, q_id: str) -> dict[str, str]:
+        # select a random question with negs
         while True:
-            new_q_id: str = random.choice(self.q_ids)
-            valid_sample_groups: list[list[dict[str, str]] | str] = [
+            new_q_id = random.choice(self.q_ids)
+
+            valid_sample_groups = [
                 self.slice_dataset[new_q_id][ro]
                 for ro in self.relevance_order
                 if len(self.slice_dataset[new_q_id][ro]) > 0
             ]
+
             if len(valid_sample_groups) >= 2:
                 break
 
         neg_docs: list[dict[str, str]] = cast(
-            "list[dict[str, str]]",
-            self.slice_dataset[new_q_id][self.negative_index],
+            list[dict[str, str]], self.slice_dataset[new_q_id][self.negative_index]
         )
         return random.choice(neg_docs)
 
-    def choose_negative_doc(self, _sample_index: int, _epoch: int, q_id: str) -> str | None:
+    def choose_negative_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:
         neg_docs: list[dict[str, str]] = cast(
-            "list[dict[str, str]]", self.slice_dataset[q_id][self.negative_index]
+            list[dict[str, str]], self.slice_dataset[q_id][self.negative_index]
         )
+
         if len(neg_docs) == 0:
             return self._lookup_doc(self.get_negatives_from_another_question(q_id))
+
         doc: dict[str, str] = random.choice(neg_docs)
         return self._lookup_doc(doc)
 
     def choose_positive_and_negative_doc(
-        self, _sample_index: int, _epoch: int, q_id: str
+        self, sample_index: int, epoch: int, q_id: str
     ) -> tuple[str | None, str | None]:
-        valid_sample_groups: list[list[dict[str, str]] | str] = [
+        valid_sample_groups = [
             self.slice_dataset[q_id][ro]
             for ro in self.relevance_order
             if len(self.slice_dataset[q_id][ro]) > 0
         ]
 
         if len(valid_sample_groups) < 2:
-            pos_doc_text: str = self._lookup_doc(
-                cast("dict[str, str]", random.choice(valid_sample_groups[0]))
-            )
-            neg_doc_text: str = self._lookup_doc(self.get_negatives_from_another_question(q_id))
-        else:
-            pos_doc_index: int = random.randrange(len(valid_sample_groups[:-1]))
             pos_doc_text = self._lookup_doc(
-                cast("dict[str, str]", random.choice(valid_sample_groups[pos_doc_index]))
+                cast(dict[str, str], random.choice(valid_sample_groups[0]))
             )
-            neg_doc_list: list[dict[str, str]] | str = random.choice(
-                valid_sample_groups[pos_doc_index + 1 :]
+            neg_doc_text = self._lookup_doc(self.get_negatives_from_another_question(q_id))
+
+        else:
+            pos_doc_index = random.randrange(len(valid_sample_groups[:-1]))
+            pos_doc_text = self._lookup_doc(
+                cast(dict[str, str], random.choice(valid_sample_groups[pos_doc_index]))
             )
-            neg_doc_text = self._lookup_doc(cast("dict[str, str]", random.choice(neg_doc_list)))
+
+            neg_doc_list = random.choice(valid_sample_groups[pos_doc_index + 1 :])
+            neg_doc_text = self._lookup_doc(cast(dict[str, str], random.choice(neg_doc_list)))
 
         return pos_doc_text, neg_doc_text
 
 
 class ExponentialWeightSampler(BasicSampler):
-    """Sampler with exponential weighting by relevance level."""
-
     def choose_positive_and_negative_doc(
-        self, _sample_index: int, _epoch: int, q_id: str
+        self, sample_index: int, epoch: int, q_id: str
     ) -> tuple[str | None, str | None]:
-        valid_sample_groups_with_ro: list[tuple[int, list[dict[str, str]] | str]] = [
+        valid_sample_groups = [
             (ro, self.slice_dataset[q_id][ro])
             for ro in self.relevance_order
             if len(self.slice_dataset[q_id][ro]) > 0
         ]
 
-        valid_ro, valid_groups = zip(*valid_sample_groups_with_ro, strict=False)
-        valid_ro = list(valid_ro)
-        valid_groups = list(valid_groups)
+        valid_sample_groups_ro, valid_sample_groups = list(zip(*valid_sample_groups))
 
-        if len(valid_groups) < 2:
+        if len(valid_sample_groups) < 2:
+            valid_sample_groups_ro = [
+                ro for ro in self.relevance_order if len(self.slice_dataset[q_id][ro]) > 0
+            ]
+            # its impossible to sample from this questions
             print(
-                f"Warning question ({q_id}) only contains "
-                f"{len(valid_groups)} valid groups for sampling.",
+                f"Warning question ({q_id}) only contain ({len(valid_sample_groups_ro)}) valid_sample_groups ({valid_sample_groups_ro}) groups for sampling.",
                 flush=True,
             )
             return None, None
 
-        weights: list[int] = [2**x for x in valid_ro]
-        pos_doc_index: int = random.choices(
-            range(len(valid_groups[:-1])), weights=weights[:-1], k=1
+        weights = [2**x for x in valid_sample_groups_ro]
+        pos_doc_index = random.choices(
+            range(len(valid_sample_groups[:-1])), weights=weights[:-1], k=1
         )[0]
         pos_doc_list: list[dict[str, str]] = cast(
-            "list[dict[str, str]]", valid_groups[pos_doc_index]
+            list[dict[str, str]], valid_sample_groups[pos_doc_index]
         )
         pos_doc: dict[str, str] = random.choice(pos_doc_list)
-        pos_doc_text: str = self._lookup_doc(pos_doc)
+        pos_doc_text = self._lookup_doc(pos_doc)
 
-        inverse_weights: list[int] = [5 - x for x in valid_ro[pos_doc_index + 1 :]]
+        inverse_weights = [5 - x for x in valid_sample_groups_ro[pos_doc_index + 1 :]]
+        # neg_doc_list = random.choice(valid_sample_groups[pos_doc_index+1:])
         neg_doc_list: list[dict[str, str]] = cast(
-            "list[dict[str, str]]",
-            random.choices(valid_groups[pos_doc_index + 1 :], weights=inverse_weights, k=1)[0],
+            list[dict[str, str]],
+            random.choices(valid_sample_groups[pos_doc_index + 1 :], weights=inverse_weights, k=1)[
+                0
+            ],
         )
         neg_doc: dict[str, str] = random.choice(neg_doc_list)
-        neg_doc_text: str = self._lookup_doc(neg_doc)
+        neg_doc_text = self._lookup_doc(neg_doc)
 
         return pos_doc_text, neg_doc_text
 
 
 class HigherConfidenceNegativesSampler(BasicSampler):
-    """Sampler that skips the top BM25 negatives (first 10)."""
-
-    def choose_negative_doc(self, _sample_index: int, _epoch: int, q_id: str) -> str | None:
+    def choose_negative_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:
         neg_docs: list[dict[str, str]] = cast(
-            "list[dict[str, str]]", self.slice_dataset[q_id]["neg_docs"]
+            list[dict[str, str]], self.slice_dataset[q_id]["neg_docs"]
         )
+
         if len(neg_docs) <= 10:
+            # print("no_negative")
             return None
+
         if self.collection:
-            neg_pmid: str = random.choice(neg_docs[10:])["id"]
+            neg_pmid = random.choice(neg_docs[10:])["id"]
+            # print(f"{self.slice_dataset[q_id]['neg_docs'].index(neg_pmid)} - {len(self.slice_dataset[q_id]['neg_docs'])}")
+
             return self.collection[neg_pmid]
-        a = random.choice(neg_docs[10:])
-        if "text" in a:
-            return a["text"]
-        return a["full_text"]
+        else:
+            # print(f" - {len(self.slice_dataset[q_id]['neg_docs'])}")
+
+            return random.choice(neg_docs[10:])["text"]
 
 
 class ShifterSampler(BasicSampler):
-    """Curriculum learning sampler: easy → hard negatives over epochs.
+    """
+    Curriculum learning sampler that progressively shifts from easier to harder negatives.
 
-    Implements a shrinking-window strategy where:
+    This sampler implements a "shifting window" strategy where:
+    - Early epochs: Sample from all negatives (positions 0 to N) - easier
+    - Later epochs: Sample only from harder negatives (skipping first K*epoch positions)
+    - Final epochs: Sample only from hardest negatives (near position 999)
 
-    - Early epochs: sample from all negatives ``[0:N]``
-    - Final epochs: sample only from hardest negatives ``[0:K]``
+    Assumes BM25 returns negatives roughly sorted by relevance (even if all are "negative",
+    the first ones are closer semantic matches to the query).
 
-    Parameters
-    ----------
-    max_epoch:
-        Total number of training epochs (determines window shrink rate).
+    Args:
+        slice_dataset: The dataset dictionary {q_id: {0: [...], 1: [...], "question": ...}}
+        collection: Optional external document collection (passed to parent)
+        max_epoch: Total number of training epochs (required)
+        *args, **kwargs: Additional arguments passed to parent BasicSampler
+
+    Example:
+        With 999 negatives and max_epoch=10:
+        - Epoch 0: sample from positions [0:999] (all)
+        - Epoch 5: sample from positions [495:999] (skip first 495)
+        - Epoch 9: sample from positions [891:999] (hardest 108 only)
+
+    Note:
+        The epoch parameter must be passed by the iterator for this to work.
+        BioASQDataset.__iter__() automatically increments and passes the epoch.
     """
 
     def __init__(
         self,
         slice_dataset: SliceDataset,
         collection: Collection | None,
-        *args: object,
-        **kwargs: object,
-    ) -> None:
-        max_epoch: int = int(kwargs.pop("max_epoch", 10))
+        *args,
+        **kwargs,
+    ):
         super().__init__(slice_dataset, collection, *args, **kwargs)
-        self.max_epoch: int = max_epoch
+        self.max_epoch: int = kwargs.pop("max_epoch", 10)  # Default to 10 epochs
 
-    def choose_negative_doc(self, _sample_index: int, epoch: int, q_id: str) -> str | None:
-        """Sample negative with shrinking window toward hardest negatives."""
+    # this is from start to the end of the list
+    def choose_negative_doc_v1(self, sample_index: int, epoch: int, q_id: str) -> str | None:
+        """
+        Sample negative with shifting window based on epoch.
+
+        Args:
+            sample_index: Current sample index in iteration
+            epoch: Current training epoch (0-indexed)
+            q_id: Query ID to sample negative for
+
+        Returns:
+            Document text of selected negative, or None if epoch exceeds range
+        """
+        # Get negatives from the standard key (0)
         neg_docs: list[dict[str, str]] = cast(
-            "list[dict[str, str]]", self.slice_dataset[q_id][self.negative_index]
-        )
+            list[dict[str, str]], self.slice_dataset[q_id][self.negative_index]
+        )  # type: ignore
+
         if len(neg_docs) == 0:
             return None
 
-        interval: int = len(neg_docs) // (self.max_epoch + 1)
-        end_pos: int = len(neg_docs) - (interval * epoch)
+        # Calculate interval size based on max_epoch
+        # Divide negative list into (max_epoch + 1) chunks
+        interval = len(neg_docs) // (self.max_epoch + 1)
 
-        min_pool_size: int = min(10, len(neg_docs))
+        # Starting position shifts right each epoch
+        start_pos = interval * epoch
+
+        # Check if we've exhausted the negatives for this epoch
+        if len(neg_docs) < start_pos:
+            return None
+
+        # Sample from the remaining (harder) negatives
+        doc: dict[str, str] = random.choice(neg_docs[start_pos:])
+        return self._lookup_doc(doc)
+
+    # this is from the end to the start of the list
+    # so starts learn the very easy
+    def choose_negative_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:
+        """
+        Sample negative with shrinking window toward the hardest negatives.
+        - Early epochs: Sample from all negatives [0:N] (mix of hard and easy)
+        - Final epochs: Sample only from the top hardest negatives [0:K]
+        """
+        # Get negatives from the standard key (0)
+        neg_docs: list[dict[str, str]] = cast(
+            list[dict[str, str]], self.slice_dataset[q_id][self.negative_index]
+        )  # type: ignore
+
+        if len(neg_docs) == 0:
+            return None
+
+        # Calculate how many negatives to drop from the EASY tail end each epoch
+        interval = len(neg_docs) // (self.max_epoch + 1)
+
+        # End position shrinks leftward (towards index 0) each epoch
+        end_pos = len(neg_docs) - (interval * epoch)
+
+        # Safety net: Ensure we always have a small pool of the hardest docs to sample from
+        # (e.g., never shrink below the top 5 or 10, depending on what's available)
+        min_pool_size = min(10, len(neg_docs))
         end_pos = max(end_pos, min_pool_size)
 
+        # Sample from the hardest remaining negatives [0:end_pos]
         doc: dict[str, str] = random.choice(neg_docs[:end_pos])
         return self._lookup_doc(doc)
 
     def choose_positive_doc(self, sample_index: int, epoch: int, q_id: str) -> str | None:
+        """
+        Sample positive document using parent's logic.
+
+        Overrides parent to maintain consistent signature with epoch parameter,
+        but delegates to parent's positive sampling logic.
+        """
+        # Use parent's implementation (random from positive relevance levels)
         return super().choose_positive_doc(sample_index, epoch, q_id)

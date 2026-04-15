@@ -1,258 +1,100 @@
-"""Model loading and utility helpers for reranker training.
-
-Extracted from ``refactored-trainer/main.py`` — these are shared by
-both training and inference entry points.
-"""
+"""Shared reranker model-loading utilities."""
 
 from __future__ import annotations
 
 import warnings
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 import torch
-from transformers import (
-    AutoConfig,
-    AutoModelForSequenceClassification,
-    AutoTokenizer,
-    PreTrainedModel,
-    PreTrainedTokenizerBase,
-)
+from transformers import AutoConfig, AutoModelForSequenceClassification, AutoTokenizer
 
 if TYPE_CHECKING:
-    from collections.abc import Generator
+    from transformers import PreTrainedModel, PreTrainedTokenizerBase
 
 
-_TOKENIZER_MAX_LENGTH_SENTINEL_THRESHOLD = 1_000_000
+def resolve_inference_dtype(dtype: str | torch.dtype) -> torch.dtype:
+    """Normalize a dtype alias into a torch dtype."""
+
+    if isinstance(dtype, torch.dtype):
+        return dtype
+
+    normalized = dtype.strip().lower()
+    mapping = {
+        "float32": torch.float32,
+        "fp32": torch.float32,
+        "float": torch.float32,
+        "float16": torch.float16,
+        "fp16": torch.float16,
+        "half": torch.float16,
+        "bfloat16": torch.bfloat16,
+        "bf16": torch.bfloat16,
+    }
+    if normalized not in mapping:
+        raise ValueError(f"Unsupported inference dtype: {dtype!r}")
+    return mapping[normalized]
 
 
-def _coerce_supported_max_length(value: object) -> int | None:
-    """Return a finite positive max length or ``None``.
-
-    Hugging Face tokenizers sometimes expose effectively-unbounded lengths via a
-    very large sentinel integer. Those values should not participate in clamping.
-    """
-
-    if isinstance(value, bool) or not isinstance(value, int):
+def _normalize_length_limit(limit: object) -> int | None:
+    if not isinstance(limit, int) or limit <= 0:
         return None
-    if value <= 0 or value >= _TOKENIZER_MAX_LENGTH_SENTINEL_THRESHOLD:
+    if limit >= 1_000_000:
         return None
-    return value
+    return limit
 
 
 def resolve_effective_max_length(
     requested_max_length: int,
     *,
-    tokenizer_max_length: int | None = None,
-    config_max_position_embeddings: int | None = None,
+    tokenizer_max_length: int,
+    config_max_position_embeddings: int | None,
 ) -> int:
-    """Clamp a requested max length to the supported tokenizer/model ceiling."""
+    """Clamp a requested reranker max length to what the model actually supports."""
 
     if requested_max_length <= 0:
-        msg: str = "requested_max_length must be positive"
-        raise ValueError(msg)
+        raise ValueError("requested_max_length must be positive")
 
-    candidates: list[int] = [requested_max_length]
-    finite_tokenizer_max_length = _coerce_supported_max_length(tokenizer_max_length)
-    if finite_tokenizer_max_length is not None:
-        candidates.append(finite_tokenizer_max_length)
-    finite_config_max_length = _coerce_supported_max_length(config_max_position_embeddings)
-    if finite_config_max_length is not None:
-        candidates.append(finite_config_max_length)
-    return min(candidates)
-
-
-def sanitize_position_ids_buffers(model: torch.nn.Module) -> None:
-    """Ensure any ``position_ids`` buffers are monotonic ``0..N-1``.
-
-    Some remote-code checkpoints may load a corrupted ``position_ids``
-    buffer, causing out-of-bounds indexing in positional embeddings/RoPE.
-    """
-    for module in model.modules():
-        position_ids: torch.Tensor | None = getattr(module, "position_ids", None)
-        if not isinstance(position_ids, torch.Tensor):
-            continue
-        if position_ids.dtype not in (torch.int32, torch.int64):
-            continue
-        if position_ids.ndim == 1:
-            expected: torch.Tensor = torch.arange(
-                position_ids.shape[0],
-                device=position_ids.device,
-                dtype=position_ids.dtype,
-            )
-        elif position_ids.ndim == 2 and position_ids.shape[0] == 1:
-            expected = torch.arange(
-                position_ids.shape[1],
-                device=position_ids.device,
-                dtype=position_ids.dtype,
-            ).unsqueeze(0)
-        else:
-            continue
-
-        if not torch.equal(position_ids, expected):
-            position_ids.copy_(expected)
-
-
-def resolve_model_dtype(*, bf16: bool, fp16: bool) -> torch.dtype:
-    """Resolve model dtype from flags.
-
-    Raises
-    ------
-    ValueError
-        If both ``bf16`` and ``fp16`` are ``True``.
-    """
-    if bf16 and fp16:
-        msg: str = "bf16 and fp16 cannot both be enabled"
-        raise ValueError(msg)
-    if bf16:
-        return torch.bfloat16
-    if fp16:
-        return torch.float16
-    return torch.float32
-
-
-def resolve_inference_dtype(inference_dtype: str) -> torch.dtype:
-    """Map a string dtype name to a :class:`torch.dtype`.
-
-    Accepted names: ``float32``, ``fp32``, ``bfloat16``, ``bf16``,
-    ``float16``, ``fp16``.
-    """
-    normalised: str = inference_dtype.strip().lower()
-    mapping: dict[str, torch.dtype] = {
-        "float32": torch.float32,
-        "fp32": torch.float32,
-        "bfloat16": torch.bfloat16,
-        "bf16": torch.bfloat16,
-        "float16": torch.float16,
-        "fp16": torch.float16,
-    }
-    if normalised not in mapping:
-        msg: str = "inference_dtype must be one of: float32, bfloat16, float16"
-        raise ValueError(msg)
-    return mapping[normalised]
+    limits = [requested_max_length]
+    normalized_tokenizer_limit = _normalize_length_limit(tokenizer_max_length)
+    normalized_config_limit = _normalize_length_limit(config_max_position_embeddings)
+    if normalized_tokenizer_limit is not None:
+        limits.append(normalized_tokenizer_limit)
+    if normalized_config_limit is not None:
+        limits.append(normalized_config_limit)
+    return min(limits)
 
 
 def load_reranker_model(
     model_name: str,
     *,
-    revision: str | None = None,
-    max_length: int = 512,
-    dtype: torch.dtype = torch.bfloat16,
-    num_labels: int = 1,
+    max_length: int = 1_024,
+    dtype: str | torch.dtype = torch.bfloat16,
 ) -> tuple[PreTrainedModel, PreTrainedTokenizerBase]:
-    """Load a sequence classification model and tokeniser for reranking.
+    """Load a cross-encoder reranker model and clamp tokenizer length if needed."""
 
-    Parameters
-    ----------
-    model_name:
-        HuggingFace model name or local path.
-    revision:
-        Optional git revision / branch.
-    max_length:
-        Maximum token length for the tokeniser.
-    dtype:
-        Model tensor dtype.
-    num_labels:
-        Number of output labels (1 for regression scoring).
-
-    Returns
-    -------
-    ``(model, tokenizer)`` tuple.
-    """
-    extra_kwargs: dict[str, str] = {}
-    if revision and not Path(model_name).exists():
-        extra_kwargs["revision"] = revision
-
-    tokenizer: PreTrainedTokenizerBase = AutoTokenizer.from_pretrained(
-        model_name, trust_remote_code=True, **extra_kwargs
-    )
-
-    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True, **extra_kwargs)
-    tokenizer_max_length = _coerce_supported_max_length(
-        getattr(tokenizer, "model_max_length", None)
-    )
-    config_max_position_embeddings = _coerce_supported_max_length(
-        getattr(config, "max_position_embeddings", None)
-    )
+    resolved_dtype = resolve_inference_dtype(dtype)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
     effective_max_length = resolve_effective_max_length(
         max_length,
-        tokenizer_max_length=tokenizer_max_length,
-        config_max_position_embeddings=config_max_position_embeddings,
+        tokenizer_max_length=int(tokenizer.model_max_length),
+        config_max_position_embeddings=getattr(config, "max_position_embeddings", None),
     )
     if effective_max_length != max_length:
-        supported_parts = [
-            f"tokenizer={tokenizer_max_length}"
-            for tokenizer_max_length in [tokenizer_max_length]
-            if tokenizer_max_length is not None
-        ] + [
-            f"model={config_max_position_embeddings}"
-            for config_max_position_embeddings in [config_max_position_embeddings]
-            if config_max_position_embeddings is not None
-        ]
-        supported_summary = (
-            ", ".join(supported_parts) if supported_parts else "available model metadata"
-        )
         warnings.warn(
             (
-                f"Requested reranker max_length={max_length} for {model_name!r} "
-                "exceeds supported length "
-                f"{effective_max_length} ({supported_summary}); clamping to avoid overlong inputs."
+                f"Requested reranker max_length={max_length} exceeds the model limit; "
+                f"clamping to {effective_max_length}."
             ),
+            UserWarning,
             stacklevel=2,
         )
     tokenizer.model_max_length = effective_max_length
-    model: PreTrainedModel = AutoModelForSequenceClassification.from_pretrained(
+
+    model = AutoModelForSequenceClassification.from_pretrained(
         model_name,
-        config=config,
+        num_labels=1,
         trust_remote_code=True,
-        torch_dtype=dtype,
-        **extra_kwargs,
+        ignore_mismatched_sizes=True,
+        torch_dtype=resolved_dtype,
     )
-    sanitize_position_ids_buffers(model)
-
-    if getattr(model.config, "num_labels", 1) != num_labels:
-        model.config.num_labels = num_labels
-        model.config.id2label = {0: "SCORE"}
-        model.config.label2id = {"SCORE": 0}
-
     return model, tokenizer
-
-
-def short_model_name(model_name: str) -> str:
-    """Return the last path component for HF model names."""
-    if "://" in model_name or "/" not in model_name:
-        return model_name
-    return Path(model_name).name
-
-
-def build_output_dir_name(
-    *,
-    model_name: str,
-    seed: int,
-    epoch: int,
-    sampler_name: str,
-    sample_preprocessing_name: str,
-    val: str = "val",
-    data: str = "data",
-    callback: bool = False,
-    num_neg_samples: int = 4,
-    gradient_accumulation_steps: int = 2,
-    use_expanded_pos: bool = False,
-    warmup_ratio: bool = True,
-    loss_mode: str,
-) -> str:
-    """Build output directory name following the established pattern."""
-    _model_identifier: str = short_model_name(model_name).replace("/", "-")
-    return (
-        f"{_model_identifier}-{seed}-E{epoch}"
-        f"-S{sampler_name}-SP{sample_preprocessing_name}"
-        f"-{val}-{data}_data-CB{callback}-KN{num_neg_samples}"
-        f"-GA{gradient_accumulation_steps}-ExPOS{use_expanded_pos}-warmup{warmup_ratio}"
-        f"-{loss_mode}"
-    )
-
-
-def split_chunks[T](a: list[T], n: int) -> Generator[list[T], None, None]:
-    """Split list *a* into *n* roughly equal chunks."""
-    k, m = divmod(len(a), n)
-    return (a[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n))

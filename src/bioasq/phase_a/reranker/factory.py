@@ -1,14 +1,9 @@
-"""Factory functions for building reranker components from config names.
-
-Provides registry-pattern factories for samplers, preprocessors,
-collators, iterators, and trainers.
-
-Refactored from ``refactored-trainer/factory.py``.
+"""
+Factory functions to build samplers, preprocessors, collators, iterators, and trainers
+from CLI/config names.
 """
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from transformers import PreTrainedTokenizerBase, TokenizersBackend, Trainer
 
 from bioasq.phase_a.reranker.collator import (
     MultiNegativePairwiseCollator,
@@ -20,7 +15,7 @@ from bioasq.phase_a.reranker.data import (
     BioASQPairwiseIterator,
     BioASQPointwiseIterator,
 )
-from bioasq.phase_a.reranker.preprocessing import (
+from bioasq.phase_a.reranker.sample_preprocessing import (
     BasicSamplePreprocessing,
     NemotronSamplePreprocessing,
 )
@@ -36,14 +31,18 @@ from bioasq.phase_a.reranker.trainer import (
     PointwiseRerankerTrainer,
 )
 
-if TYPE_CHECKING:
-    from transformers import PreTrainedTokenizerBase, Trainer
 
+def get_sampler(
+    name: str,
+    **kwargs: object,
+) -> type[BasicSampler]:
+    """
+    Return sampler class by name.
 
-def get_sampler(name: str) -> type[BasicSampler]:
-    """Return sampler *class* by name.
-
-    Names: ``basic``, ``basicv2``, ``exponential``, ``shifter``.
+    - basic: BasicSampler
+    - basicv2: BasicV2Sampler (falls back to negs from other questions if empty)
+    - exponential: ExponentialWeightSampler (requires use_expanded_pos)
+    - shifter: ShifterSampler (requires max_epoch in kwargs)
     """
     match name.lower():
         case "basic":
@@ -55,18 +54,19 @@ def get_sampler(name: str) -> type[BasicSampler]:
         case "shifter":
             return ShifterSampler
         case _:
-            msg: str = f"Unknown sampler: {name!r}"
-            raise ValueError(msg)
+            raise ValueError(f"Unknown sampler: {name!r}")
 
 
 def get_preprocessor(
     name: str,
-    tokenizer: PreTrainedTokenizerBase,
+    tokenizer: PreTrainedTokenizerBase | TokenizersBackend,
     max_length: int = 512,
-) -> BasicSamplePreprocessing | NemotronSamplePreprocessing:
-    """Return preprocessor *instance* by name.
+    **kwargs: object,
+) -> BasicSamplePreprocessing:
+    """
+    Return preprocessor instance by name.
 
-    Names: ``basic``, ``nemotron``.
+    - basic: BasicSamplePreprocessing (query+doc concatenation)
     """
     match name.lower():
         case "basic":
@@ -74,18 +74,20 @@ def get_preprocessor(
         case "nemotron":
             return NemotronSamplePreprocessing(tokenizer, model_max_length=max_length)
         case _:
-            msg: str = f"Unknown preprocessor: {name!r}"
-            raise ValueError(msg)
+            raise ValueError(f"Unknown preprocessor: {name!r}")
 
 
 def get_collator(
     mode: str,
-    tokenizer: PreTrainedTokenizerBase,
+    tokenizer: PreTrainedTokenizerBase | TokenizersBackend,
     **kwargs: object,
 ) -> RankingCollator | PairwiseCollator | MultiNegativePairwiseCollator:
-    """Return data collator *instance* by training mode.
+    """
+    Return data collator by training mode.
 
-    Modes: ``pointwise``, ``pairwise``, ``multi_neg_pairwise``.
+    - pointwise: RankingCollator
+    - pairwise: PairwiseCollator
+    - multi_neg_pairwise: MultiNegativePairwiseCollator
     """
     match mode.lower():
         case "pointwise":
@@ -95,25 +97,25 @@ def get_collator(
         case "multi_neg_pairwise":
             return MultiNegativePairwiseCollator(tokenizer=tokenizer)
         case _:
-            msg: str = f"Unknown mode: {mode!r}"
-            raise ValueError(msg)
+            raise ValueError(f"Unknown mode: {mode!r}")
 
 
 def get_iterator(
     mode: str,
-    sample_preprocessing: BasicSamplePreprocessing | NemotronSamplePreprocessing,
+    sample_preprocessing: BasicSamplePreprocessing,
     sampler_cls: type[BasicSampler],
     num_neg_samples: int = 1,
     sampler_kwargs: dict[str, object] | None = None,
     **kwargs: object,
-) -> (
-    BioASQPointwiseIterator
-    | BioASQPairwiseIterator
-    | BioASQMultiNegativePairwiseIterator
-):
-    """Return iterator *instance* by training mode.
+) -> BioASQPointwiseIterator | BioASQPairwiseIterator | BioASQMultiNegativePairwiseIterator:
+    """
+    Return iterator instance by training mode.
 
-    Modes: ``pointwise``, ``pairwise``, ``multi_neg_pairwise``.
+    - pointwise: BioASQPointwiseIterator
+    - pairwise: BioASQPairwiseIterator
+    - multi_neg_pairwise: BioASQMultiNegativePairwiseIterator
+
+    sampler_kwargs: passed to sampler when created (e.g. max_epoch for ShifterSampler)
     """
     sampler_kwargs = sampler_kwargs or {}
 
@@ -143,22 +145,23 @@ def get_iterator(
                 **kwargs,
             )
         case _:
-            msg: str = f"Unknown mode: {mode!r}"
-            raise ValueError(msg)
+            raise ValueError(f"Unknown mode: {mode!r}")
 
 
 def get_trainer_cls(mode: str) -> type[Trainer]:
-    """Return trainer *class* by training mode.
+    """
+    Return trainer class by training mode.
 
-    Modes: ``pointwise``, ``pairwise``, ``multi_neg_pairwise``.
+    - pointwise: PointwiseRerankerTrainer
+    - pairwise: PairwiseRerankerTrainer
+    - multi_neg_pairwise: MultiNegativePairwiseRerankerTrainer
     """
     match mode.lower():
         case "pointwise":
-            return PointwiseRerankerTrainer  # type: ignore[return-value]
+            return PointwiseRerankerTrainer
         case "pairwise":
-            return PairwiseRerankerTrainer  # type: ignore[return-value]
+            return PairwiseRerankerTrainer
         case "multi_neg_pairwise":
-            return MultiNegativePairwiseRerankerTrainer  # type: ignore[return-value]
+            return MultiNegativePairwiseRerankerTrainer
         case _:
-            msg: str = f"Unknown mode: {mode!r}"
-            raise ValueError(msg)
+            raise ValueError(f"Unknown mode: {mode!r}")
