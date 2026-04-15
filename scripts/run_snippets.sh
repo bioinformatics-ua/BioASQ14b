@@ -26,6 +26,11 @@ set -e
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO_DIR"
 
+export HF_HOME="/dev/shm/hf"
+export PYTHONUNBUFFERED=1
+export WANDB_PROJECT="bioasq-snippets"
+export WANDB_API_KEY="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"
+export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
 # ----------------------------------------
 # CONFIGURABLE VARIABLES
 # ----------------------------------------
@@ -45,21 +50,28 @@ RATIONALE_BATCH_SIZE=64           # vLLM batch size
 RATIONALE_DELAY=0.00001          # seconds between API calls (openrouter only)
 
 # LoRA training (Unsloth — default)
-BASE_MODEL="unsloth/gemma-4-31B"
+BASE_MODEL="/home/ucloud/BioASQ13B/data/training/snippet_extraction/lora_output/checkpoint-250" #"unsloth/gemma-4-31B"
 CHAT_TEMPLATE="gemma-4-thinking"  # "gemma-4" for standard
 LORA_R=16
 LORA_ALPHA=32
-EPOCHS=3
+EPOCHS=1
 BATCH_SIZE=1
-GRAD_ACCUM=8
+GRAD_ACCUM=16
+MAX_STEPS=500
 LR=2e-4
 MAX_SEQ_LEN=2048
 
 # Inference
+INFERENCE_BASE_MODEL="unsloth/gemma-4-31B"
 ADAPTER_PATH="${SNIPPET_DATA_DIR}/lora_output/final_adapter"
 EXTRACT_INPUT="data/val_data/13B1_golden_documents.jsonl"
 EXTRACT_OUTPUT="data/snippets/extracted_snippets.jsonl"
 EXTRACT_BACKEND="local"  # local or openrouter
+EXTRACT_MAX_NEW_TOKENS=160
+EXTRACT_TEMPERATURE=0.0
+
+# Competition submission
+SUBMISSION_OUTPUT="data/competition/submission_snippets.json"
 
 # ----------------------------------------
 # FUNCTIONS
@@ -108,7 +120,8 @@ train() {
         --batch-size "$BATCH_SIZE" \
         --gradient-accumulation "$GRAD_ACCUM" \
         --lr "$LR" \
-        --max-seq-length "$MAX_SEQ_LEN"
+        --max-seq-length "$MAX_SEQ_LEN" \
+        --max-steps "$MAX_STEPS"
 }
 
 train_legacy() {
@@ -129,14 +142,14 @@ train_legacy() {
 
 extract() {
     echo "=== Step 5: Extract snippets ==="
-    uv run python -m bioasq.snippets.extract \
+    uv run python -m bioasq.snippets.extract main \
         --input "$EXTRACT_INPUT" \
         --output "$EXTRACT_OUTPUT" \
-        --base-model "$BASE_MODEL" \
+        --base-model "$INFERENCE_BASE_MODEL" \
         --adapter-path "$ADAPTER_PATH" \
         --backend "$EXTRACT_BACKEND" \
-        --max-new-tokens 500 \
-        --temperature 0.1
+    --max-new-tokens "$EXTRACT_MAX_NEW_TOKENS" \
+    --temperature "$EXTRACT_TEMPERATURE"
 }
 
 evaluate() {
@@ -145,6 +158,59 @@ evaluate() {
         --predictions "$EXTRACT_OUTPUT" \
         --gold "$TRAINING_JSON" \
         --inflated "$INFLATED_JSONL"
+}
+
+to_bioasq() {
+    echo "=== Convert to BioASQ submission format ==="
+    uv run python -m bioasq.snippets.extract to-bioasq \
+        --input "$EXTRACT_OUTPUT" \
+        --output "$SUBMISSION_OUTPUT"
+}
+
+compete() {
+    # Competition-day pipeline:
+    #   1. Hydrate testset (fetch abstracts from DB)
+    #   2. Extract snippets with LoRA model
+    #   3. Convert to BioASQ submission JSON
+    #
+    # Usage: ./scripts/run_snippets.sh compete <testset.json>
+    local TESTSET="${2:-}"
+    if [ -z "$TESTSET" ]; then
+        echo "Usage: $0 compete <testset.json>"
+        echo "  e.g. $0 compete data/BioASQ-task14bPhaseB-testset1.json"
+        exit 1
+    fi
+    local BASENAME
+    BASENAME=$(basename "$TESTSET" .json)
+    local HYDRATED="data/competition/${BASENAME}_hydrated.jsonl"
+    local SNIPPETS="data/competition/${BASENAME}_snippets.jsonl"
+    local SUBMISSION="data/competition/${BASENAME}_submission.json"
+
+    mkdir -p data/competition
+
+    echo "=== Step 1: Hydrate testset ==="
+    uv run python -m bioasq.data.hydration "$TESTSET" -o "$HYDRATED"
+
+    echo ""
+    echo "=== Step 2: Extract snippets ==="
+    uv run python -m bioasq.snippets.extract \
+        --input "$HYDRATED" \
+        --output "$SNIPPETS" \
+        --base-model "$INFERENCE_BASE_MODEL" \
+        --adapter-path "$ADAPTER_PATH" \
+        --backend "$EXTRACT_BACKEND" \
+        --max-new-tokens "$EXTRACT_MAX_NEW_TOKENS" \
+        --temperature "$EXTRACT_TEMPERATURE"
+
+    echo ""
+    echo "=== Step 3: Convert to BioASQ submission ==="
+    uv run python -m bioasq.snippets.extract to-bioasq \
+        --input "$SNIPPETS" \
+        --output "$SUBMISSION"
+
+    echo ""
+    echo "=== DONE ==="
+    echo "Submission file: $SUBMISSION"
 }
 
 # ----------------------------------------
@@ -156,7 +222,9 @@ case "${1:-all}" in
     train)         train ;;
     train-legacy)  train_legacy ;;
     extract)       extract ;;
+    to-bioasq)     to_bioasq ;;
     evaluate)      evaluate ;;
+    compete)       compete "$@" ;;
     all)
         prepare
         train
@@ -164,7 +232,7 @@ case "${1:-all}" in
         evaluate
         ;;
     *)
-        echo "Usage: $0 {prepare|train|train-legacy|extract|evaluate|all}"
+        echo "Usage: $0 {prepare|train|train-legacy|extract|to-bioasq|evaluate|compete <testset.json>|all}"
         exit 1
         ;;
 esac

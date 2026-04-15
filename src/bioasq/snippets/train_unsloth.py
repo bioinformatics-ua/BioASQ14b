@@ -7,10 +7,18 @@ https://unsloth.ai/docs/models/gemma-4/train
 
 from __future__ import annotations
 
+import json
+import os
 from pathlib import Path
 from typing import Annotated
 
+import torch
 import typer
+import unsloth  # noqa: F401 -- ensures custom PEFT config is registered before importing SFTTrainer
+from datasets import Dataset
+from trl import SFTConfig, SFTTrainer
+from unsloth import FastModel
+from unsloth.chat_templates import get_chat_template, train_on_responses_only
 
 app = typer.Typer()
 
@@ -46,14 +54,6 @@ def main(
     save_gguf: Annotated[bool, typer.Option(help="Also export GGUF q4_k_m")] = False,
     seed: Annotated[int, typer.Option()] = 3407,
 ) -> None:
-    import json
-    import os
-
-    import torch
-    from datasets import Dataset
-    from trl import SFTConfig, SFTTrainer
-    from unsloth import FastModel
-    from unsloth.chat_templates import get_chat_template, train_on_responses_only
 
     torch.manual_seed(seed)
     os.environ["WANDB_PROJECT"] = wandb_project
@@ -73,18 +73,18 @@ def main(
     # ------------------------------------------------------------------
     # 2. Attach LoRA adapters
     # ------------------------------------------------------------------
-    model = FastModel.get_peft_model(
-        model,
-        finetune_vision_layers=False,
-        finetune_language_layers=True,
-        finetune_attention_modules=True,
-        finetune_mlp_modules=True,
-        r=lora_r,
-        lora_alpha=lora_alpha,
-        lora_dropout=lora_dropout,
-        bias="none",
-        random_state=seed,
-    )
+    # model = FastModel.get_peft_model(
+    #     model,
+    #     finetune_vision_layers=False,
+    #     finetune_language_layers=True,
+    #     finetune_attention_modules=True,
+    #     finetune_mlp_modules=True,
+    #     r=lora_r,
+    #     lora_alpha=lora_alpha,
+    #     lora_dropout=lora_dropout,
+    #     bias="none",
+    #     random_state=seed,
+    # )
 
     # ------------------------------------------------------------------
     # 3. Apply chat template
@@ -94,29 +94,30 @@ def main(
     # ------------------------------------------------------------------
     # 4. Load & format dataset
     # ------------------------------------------------------------------
-    def _load_chat_jsonl(path: Path) -> Dataset:
+    def _load_chat_jsonl(path: Path) -> list[dict]:
         records = []
         with path.open() as f:
             for line in f:
                 if line.strip():
                     records.append(json.loads(line))
-        return Dataset.from_list(records)
-
-    def formatting_prompts_func(examples: dict) -> dict:
-        """Apply chat template to each conversation, strip leading <bos>."""
-        texts = []
-        for convo in examples["messages"]:
-            text = tokenizer.apply_chat_template(convo, tokenize=False, add_generation_prompt=False)
-            # Unsloth adds <bos> during tokenization; avoid double <bos>
-            texts.append(text.removeprefix("<bos>"))
-        return {"text": texts}
+        return records
 
     raw_train = _load_chat_jsonl(train_data)
     raw_val = _load_chat_jsonl(val_data)
     print(f"Train: {len(raw_train)}, Val: {len(raw_val)}")
 
-    train_ds = raw_train.map(formatting_prompts_func, batched=True)
-    val_ds = raw_val.map(formatting_prompts_func, batched=True)
+    # Apply chat template eagerly (avoids pickling the tokenizer in dataset.map)
+    def _apply_template(records: list[dict]) -> Dataset:
+        texts = []
+        for rec in records:
+            text = tokenizer.apply_chat_template(
+                rec["messages"], tokenize=False, add_generation_prompt=False
+            )
+            texts.append(text.removeprefix("<bos>"))
+        return Dataset.from_dict({"text": texts})
+
+    train_ds = _apply_template(raw_train)
+    val_ds = _apply_template(raw_val)
 
     # ------------------------------------------------------------------
     # 5. Trainer
@@ -135,21 +136,24 @@ def main(
         optim="adamw_8bit",
         weight_decay=0.001,
         logging_steps=1,
-        eval_strategy="epoch",
-        save_strategy="epoch",
+        eval_strategy="steps" if max_steps <= 0 else "no",
+        eval_steps=500 if max_steps <= 0 else None,
+        save_strategy="steps",
+        save_steps=250,
         save_total_limit=3,
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,
+        load_best_model_at_end=max_steps <= 0,
+        metric_for_best_model="eval_loss" if max_steps <= 0 else None,
+        greater_is_better=False if max_steps <= 0 else None,
         report_to=report_to,
         run_name=f"snippet-unsloth-r{lora_r}-lr{lr}",
         seed=seed,
         max_length=max_seq_length,
+        dataset_num_proc=1,  # avoid multiprocessing pickle of Unsloth tokenizer
     )
 
     trainer = SFTTrainer(
         model=model,
-        tokenizer=tokenizer,
+        processing_class=tokenizer,
         train_dataset=train_ds,
         eval_dataset=val_ds,
         args=sft_args,
@@ -174,8 +178,8 @@ def main(
     # 7. Train
     # ------------------------------------------------------------------
     print("Starting Unsloth training...")
-    trainer_stats = trainer.train()
-    print(f"Training complete. Loss: {trainer_stats.training_loss:.4f}")
+    # trainer_stats = trainer.train()
+    # print(f"Training complete. Loss: {trainer_stats.training_loss:.4f}")
 
     # ------------------------------------------------------------------
     # 8. Save adapter

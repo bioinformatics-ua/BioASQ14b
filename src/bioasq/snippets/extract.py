@@ -57,7 +57,7 @@ def parse_extraction_output(text: str) -> dict[str, Any]:
     text = re.sub(r"^```(?:json)?\s*", "", text.strip())
     text = re.sub(r"\s*```$", "", text.strip())
 
-    # Try to parse as JSON
+    # Try to parse as JSON directly
     try:
         parsed = json.loads(text)
         return {
@@ -67,17 +67,54 @@ def parse_extraction_output(text: str) -> dict[str, Any]:
     except json.JSONDecodeError:
         pass
 
-    # Fallback: find last JSON object in text
-    matches = re.findall(r"\{.*?\}", text, re.DOTALL)
-    for match in reversed(matches):
-        try:
-            parsed = json.loads(match)
+    # Fallback: extract outermost JSON objects by brace matching
+    results: list[dict] = []
+    i = 0
+    while i < len(text):
+        if text[i] == "{":
+            depth = 0
+            in_string = False
+            escape = False
+            for j in range(i, len(text)):
+                c = text[j]
+                if escape:
+                    escape = False
+                    continue
+                if c == "\\":
+                    escape = True
+                    continue
+                if c == '"' and not escape:
+                    in_string = not in_string
+                    continue
+                if in_string:
+                    continue
+                if c == "{":
+                    depth += 1
+                elif c == "}":
+                    depth -= 1
+                    if depth == 0:
+                        candidate = text[i : j + 1]
+                        try:
+                            parsed = json.loads(candidate)
+                            results.append(parsed)
+                        except json.JSONDecodeError:
+                            pass
+                        i = j
+                        break
+        i += 1
+
+    # Return last valid JSON object with snippets
+    for r in reversed(results):
+        if "snippets" in r:
             return {
-                "thinking": parsed.get("thinking", ""),
-                "snippets": parsed.get("snippets", []),
+                "thinking": r.get("thinking", ""),
+                "snippets": r.get("snippets", []),
             }
-        except json.JSONDecodeError:
-            continue
+    if results:
+        return {
+            "thinking": results[-1].get("thinking", ""),
+            "snippets": results[-1].get("snippets", []),
+        }
 
     return {"thinking": "", "snippets": []}
 
@@ -151,29 +188,29 @@ def _run_local(
     max_new_tokens: int,
     temperature: float,
 ) -> list[dict]:
-    """Run snippet extraction using a local model (HF + optional LoRA)."""
+    """Run snippet extraction using Unsloth (4-bit) + optional LoRA."""
     import torch
-    from transformers import AutoModelForCausalLM, AutoTokenizer
+    from unsloth import FastModel
+    from unsloth.chat_templates import get_chat_template
 
-    tokenizer = AutoTokenizer.from_pretrained(adapter_path or base_model, trust_remote_code=True)
-    if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
-    model = AutoModelForCausalLM.from_pretrained(
-        base_model,
-        device_map="auto",
-        torch_dtype=torch.bfloat16,
-        trust_remote_code=True,
+    model, tokenizer = FastModel.from_pretrained(
+        model_name=base_model,
+        max_seq_length=2048,
+        dtype=None,
+        load_in_4bit=True,
+        full_finetuning=False,
     )
+
+    tokenizer = get_chat_template(tokenizer, chat_template="gemma-4-thinking")
 
     if adapter_path:
         from peft import PeftModel
 
         model = PeftModel.from_pretrained(model, adapter_path)
         model = model.merge_and_unload()
-        print(f"Loaded LoRA adapter from {adapter_path}")
+        print(f"Loaded & merged LoRA adapter from {adapter_path}")
 
-    model.eval()
+    FastModel.for_inference(model)
 
     results = []
     for q in tqdm(questions, desc="Extracting snippets"):
@@ -194,11 +231,17 @@ def _generate_local(
     max_new_tokens: int,
     temperature: float,
 ) -> str:
-    """Generate with a local HF model."""
+    """Generate with Unsloth-loaded model."""
     import torch
 
-    input_text = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    inputs = tokenizer(input_text, return_tensors="pt").to(model.device)
+    # Render to text first, then tokenize via the processor using the text keyword.
+    # Gemma-4's processor treats positional args as images, which breaks text-only calls.
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+    )
+    inputs = tokenizer(text=prompt, return_tensors="pt").to(model.device)
 
     with torch.no_grad():
         outputs = model.generate(
@@ -206,6 +249,7 @@ def _generate_local(
             max_new_tokens=max_new_tokens,
             temperature=max(temperature, 0.01),
             do_sample=temperature > 0,
+            use_cache=True,
         )
 
     generated = outputs[0][inputs["input_ids"].shape[1] :]
@@ -387,6 +431,70 @@ def main(
 
     print(f"Extracted {total_snippets} snippets for {len(results)} questions")
     print(f"Output: {output_path}")
+
+
+# ---------------------------------------------------------------------------
+# JSONL → BioASQ submission format
+# ---------------------------------------------------------------------------
+
+
+@app.command(name="to-bioasq")
+def to_bioasq(
+    input_path: Annotated[Path, typer.Option("--input", help="Extracted snippets JSONL")] = Path(
+        "data/snippets/extracted_snippets.jsonl"
+    ),
+    output_path: Annotated[Path, typer.Option("--output", help="BioASQ submission JSON")] = Path(
+        "data/snippets/submission.json"
+    ),
+) -> None:
+    """Convert extracted snippets JSONL to BioASQ submission JSON."""
+    questions: list[dict] = []
+    with input_path.open() as f:
+        for line in f:
+            if not line.strip():
+                continue
+            q = json.loads(line)
+
+            # Convert documents: {id, text} dicts → PubMed URL strings
+            docs_raw = q.get("documents", [])
+            doc_urls: list[str] = []
+            for d in docs_raw:
+                if isinstance(d, dict):
+                    pmid = d.get("id", "")
+                    doc_urls.append(f"http://www.ncbi.nlm.nih.gov/pubmed/{pmid}")
+                elif isinstance(d, str):
+                    doc_urls.append(d)
+
+            # Clean snippets: remove internal 'thinking' field
+            snippets = []
+            for s in q.get("snippets", []):
+                snippets.append(
+                    {
+                        "text": s["text"],
+                        "document": s["document"],
+                        "offsetInBeginSection": s["offsetInBeginSection"],
+                        "offsetInEndSection": s["offsetInEndSection"],
+                        "beginSection": s.get("beginSection", "abstract"),
+                        "endSection": s.get("endSection", "abstract"),
+                    }
+                )
+
+            questions.append(
+                {
+                    "id": q["id"],
+                    "body": q.get("body", ""),
+                    "type": q.get("type", "summary"),
+                    "documents": doc_urls,
+                    "snippets": snippets,
+                }
+            )
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w") as f:
+        json.dump({"questions": questions}, f, ensure_ascii=False, indent=2)
+
+    total_snippets = sum(len(q["snippets"]) for q in questions)
+    print(f"Wrote {len(questions)} questions, {total_snippets} snippets → {output_path}")
 
 
 if __name__ == "__main__":
