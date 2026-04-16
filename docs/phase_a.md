@@ -1,6 +1,6 @@
 # BioASQ Phase A Module (`src/bioasq/phase_a`)
 
-Phase A is strictly dedicated to Information Retrieval (IR). It has two main sub-systems: initial statistical retrieval via **BM25**, and high-precision deep learning reranking models in the **Reranker** module.
+Phase A is strictly dedicated to Information Retrieval (IR). It includes lexical retrieval via **BM25**, dense and hybrid retrieval in the `retrieval` package, high-precision deep learning rerankers in the **Reranker** module, and a Context-1 style agentic retriever in `context1`.
 
 ## 1. BM25 Submodule (`src/bioasq/phase_a/bm25`)
 
@@ -66,3 +66,15 @@ Provides overridden standard HuggingFace `Trainer` instances executing custom ba
 ### Evaluation (`evaluate.py`)
 
 Conducts model inferences strictly over mapped testing datasets directly on tensors leveraging hardware `autocast` protocols seamlessly outputting generated validation metric results mapped structurally against canonical Qrels mapping sets with **Ranx**. Contains the actual inference engine mapping function architectures to produce raw PhaseA metrics (`nDCG`, `MAP`, `Recall`).
+
+## 3. Context-1 Agentic Retrieval (`src/bioasq/phase_a/context1`)
+
+Implements a full inference-time retrieval harness inspired by Chroma Context-1.
+
+- `chunking.py`: Legacy sentence-aware chunking helper from the original prototype. It is not used by the current article-level deployment path.
+- `store.py`: Queries the existing `articles` corpus in Postgres and the existing `articles` Qdrant collection, then fuses PMID candidates with RRF.
+- `reranker.py`: Re-ranks PMID candidates with the existing cross-encoder stack before exposing them to the agent.
+- `toolbox.py`: Registers `search_corpus`, `grep_corpus`, `read_document`, and `prune_chunks` once through FastMCP, then derives the model-facing tool schemas from that registry.
+- `vllm_backend.py`: Talks to a vLLM OpenAI-compatible server serving `chromadb/context-1` with GPT-OSS reasoning and tool calling enabled.
+- `harness.py`: Runs the multi-turn tool loop while enforcing document visibility budgets and pruning semantics; actual tool schema generation and execution are delegated to the FastMCP toolbox.
+- `cli.py`: Exposes `retrieve` and `negatives` under `python -m bioasq.cli phase-a context1 ...`.

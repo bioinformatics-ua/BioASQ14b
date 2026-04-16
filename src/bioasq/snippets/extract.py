@@ -18,10 +18,9 @@ Usage:
         --backend local
 """
 
-from __future__ import annotations
-
 import json
 import re
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Annotated, Any
 
@@ -187,7 +186,7 @@ def _run_local(
     adapter_path: str | None,
     max_new_tokens: int,
     temperature: float,
-) -> list[dict]:
+) -> Iterator[dict]:
     """Run snippet extraction using Unsloth (4-bit) + optional LoRA."""
     import torch
     from unsloth import FastModel
@@ -212,16 +211,14 @@ def _run_local(
 
     FastModel.for_inference(model)
 
-    results = []
-    for q in tqdm(questions, desc="Extracting snippets"):
-        q_result = _extract_for_question(
-            q, model, tokenizer, max_new_tokens, temperature, backend="local"
-        )
-        results.append(q_result)
-
-    del model
-    torch.cuda.empty_cache()
-    return results
+    try:
+        for q in tqdm(questions, desc="Extracting snippets"):
+            yield _extract_for_question(
+                q, model, tokenizer, max_new_tokens, temperature, backend="local"
+            )
+    finally:
+        del model
+        torch.cuda.empty_cache()
 
 
 def _generate_local(
@@ -263,9 +260,11 @@ def _run_api(
     temperature: float,
     base_url: str,
     delay: float,
-) -> list[dict]:
+    workers: int = 1,
+) -> Iterator[dict]:
     """Run snippet extraction using an OpenRouter/OpenAI-compatible API."""
     import os
+    from concurrent.futures import ThreadPoolExecutor, as_completed
 
     from openai import OpenAI
 
@@ -276,9 +275,8 @@ def _run_api(
 
     client = OpenAI(base_url=base_url, api_key=api_key)
 
-    results = []
-    for q in tqdm(questions, desc="Extracting snippets (API)"):
-        q_result = _extract_for_question(
+    def _process(q: dict) -> dict:
+        return _extract_for_question(
             q,
             client,
             None,
@@ -288,9 +286,17 @@ def _run_api(
             model_name=model,
             delay=delay,
         )
-        results.append(q_result)
 
-    return results
+    if workers <= 1:
+        for q in tqdm(questions, desc="Extracting snippets (API)"):
+            yield _process(q)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(_process, q): q for q in questions}
+            for future in tqdm(
+                as_completed(futures), total=len(questions), desc="Extracting snippets (API)"
+            ):
+                yield future.result()
 
 
 def _run_vllm(
@@ -302,40 +308,25 @@ def _run_vllm(
     vllm_api_key: str,
     delay: float,
     adapter_path: str | None = None,
-) -> list[dict]:
+    workers: int = 1,
+) -> Iterator[dict]:
     """Run snippet extraction against an externally-started vLLM server.
 
-    If adapter_path is given the LoRA adapter is dynamically registered via
-    the vLLM REST API (requires --enable-lora on the server) and used as the
-    model name for all completions requests.
+    Start the server with --tokenizer <hf-model-id> so that vLLM has a
+    chat_template for /chat/completions (required since transformers v4.44):
+
+        vllm serve /path/to/model.gguf \\
+            --tokenizer unsloth/gemma-4-31B \\
+            --host 0.0.0.0 --port 8000
     """
-    import requests
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     from openai import OpenAI
-
-    # Strip trailing /v1 to get the server root for management endpoints
-    server_root = vllm_url.rstrip("/")
-    if server_root.endswith("/v1"):
-        server_root = server_root[:-3]
-
-    if adapter_path:
-        lora_name = Path(adapter_path).name
-        print(f"Registering LoRA adapter '{lora_name}' from {adapter_path} ...")
-        resp = requests.post(
-            f"{server_root}/v1/load_lora_adapter",
-            json={"lora_name": lora_name, "lora_path": adapter_path},
-            timeout=60,
-        )
-        if not resp.ok:
-            msg = f"Failed to load LoRA adapter: {resp.status_code} {resp.text}"
-            raise RuntimeError(msg)
-        print(f"LoRA adapter '{lora_name}' loaded successfully.")
-        model = lora_name
 
     client = OpenAI(base_url=vllm_url, api_key=vllm_api_key)
 
-    results = []
-    for q in tqdm(questions, desc="Extracting snippets (vLLM)"):
-        q_result = _extract_for_question(
+    def _process(q: dict) -> dict:
+        return _extract_for_question(
             q,
             client,
             None,
@@ -345,9 +336,17 @@ def _run_vllm(
             model_name=model,
             delay=delay,
         )
-        results.append(q_result)
 
-    return results
+    if workers <= 1:
+        for q in tqdm(questions, desc="Extracting snippets (vLLM)"):
+            yield _process(q)
+    else:
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(_process, q): q for q in questions}
+            for future in tqdm(
+                as_completed(futures), total=len(questions), desc="Extracting snippets (vLLM)"
+            ):
+                yield future.result()
 
 
 def _extract_for_question(
@@ -368,7 +367,7 @@ def _extract_for_question(
     all_snippets: list[dict] = []
     all_thinking: list[str] = []
 
-    for doc in documents:
+    for doc in documents[:10]:
         if isinstance(doc, dict):
             doc_text = doc.get("text", "")
             doc_pmid = doc.get("id", "")
@@ -408,7 +407,6 @@ def _extract_for_question(
                     temperature=temperature,
                 )
                 raw = response.choices[0].message.content or ""
-
             parsed = parse_extraction_output(raw)
             thinking = parsed.get("thinking", "")
             snippet_texts = parsed.get("snippets", [])
@@ -425,8 +423,10 @@ def _extract_for_question(
                     all_snippets.append(snippet_obj)
 
         except Exception as e:
-            print(f"\nError extracting from doc {doc_pmid}: {e}")
+            import traceback
 
+            print(f"\nError extracting from doc {doc_pmid}: {e}")
+            traceback.print_exc()
     return {
         "id": question.get("id", ""),
         "body": q_body,
@@ -461,40 +461,98 @@ def main(
     ] = "google/gemini-2.5-flash",
     max_new_tokens: Annotated[int, typer.Option(help="Max tokens for output")] = 500,
     temperature: Annotated[float, typer.Option(help="Sampling temperature")] = 0.1,
-    base_url: Annotated[str, typer.Option(help="API base URL (openrouter)")] = "https://openrouter.ai/api/v1",
+    base_url: Annotated[
+        str, typer.Option(help="API base URL (openrouter)")
+    ] = "https://openrouter.ai/api/v1",
     delay: Annotated[float, typer.Option(help="Delay between API requests")] = 0.1,
-    vllm_url: Annotated[str, typer.Option(help="vLLM server base URL")] = "http://localhost:8000/v1",
+    vllm_url: Annotated[
+        str, typer.Option(help="vLLM server base URL")
+    ] = "http://localhost:8000/v1",
     vllm_api_key: Annotated[str, typer.Option(help="vLLM API key (any string works)")] = "EMPTY",
+    workers: Annotated[
+        int, typer.Option(help="Parallel workers for API/vLLM backends (local always uses 1)")
+    ] = 1,
+    testset_path: Annotated[
+        Path | None,
+        typer.Option(
+            "--testset",
+            help="BioASQ Phase A testset JSON to hydrate missing body/type fields (for inputs using 'qid' instead of 'id')",
+        ),
+    ] = None,
 ) -> None:
     """Extract snippets from documents using a LoRA model or API."""
     # Load questions
     questions: list[dict] = []
+
     with input_path.open() as f:
         for line in f:
             if line.strip():
                 questions.append(json.loads(line))
     print(f"Loaded {len(questions)} questions")
 
+    # Normalise inputs that use 'qid' instead of 'id'
+    for q in questions:
+        if "qid" in q and "id" not in q:
+            q["id"] = q.pop("qid")
+
+    # Hydrate body/type from a Phase A testset JSON when the JSONL has only doc lists
+    if testset_path is not None:
+        with testset_path.open() as f:
+            testset = json.load(f)
+        meta: dict[str, dict] = {tq["id"]: tq for tq in testset.get("questions", [])}
+        for q in questions:
+            if not q.get("body") and q.get("id") in meta:
+                q["body"] = meta[q["id"]].get("body", "")
+                q.setdefault("type", meta[q["id"]].get("type", "summary"))
+        print(f"Hydrated question bodies from {testset_path}")
+
+    # Resume from checkpoint if output already exists
+    processed_ids: set[str] = set()
+    if output_path.exists():
+        with output_path.open() as f:
+            for line in f:
+                if line.strip():
+                    try:
+                        processed_ids.add(json.loads(line)["id"])
+                    except (json.JSONDecodeError, KeyError):
+                        pass
+        if processed_ids:
+            print(f"Resuming: skipping {len(processed_ids)} already-processed questions")
+            questions = [q for q in questions if q.get("id") not in processed_ids]
+
     # Run extraction
     if backend == "local":
-        results = _run_local(questions, base_model, adapter_path, max_new_tokens, temperature)
+        result_iter = _run_local(questions, base_model, adapter_path, max_new_tokens, temperature)
     elif backend == "vllm":
-        results = _run_vllm(
-            questions, base_model, max_new_tokens, temperature,
-            vllm_url, vllm_api_key, delay, adapter_path,
+        result_iter = _run_vllm(
+            questions,
+            base_model,
+            max_new_tokens,
+            temperature,
+            vllm_url,
+            vllm_api_key,
+            delay,
+            adapter_path,
+            workers,
         )
     else:
-        results = _run_api(questions, model, max_new_tokens, temperature, base_url, delay)
+        result_iter = _run_api(
+            questions, model, max_new_tokens, temperature, base_url, delay, workers
+        )
 
-    # Save output
+    # Save output incrementally (checkpoint after each question)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     total_snippets = 0
-    with output_path.open("w") as f:
-        for r in results:
+    n_written = 0
+    mode = "a" if processed_ids else "w"
+    with output_path.open(mode) as f:
+        for r in result_iter:
             total_snippets += len(r.get("snippets", []))
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            f.flush()
+            n_written += 1
 
-    print(f"Extracted {total_snippets} snippets for {len(results)} questions")
+    print(f"Extracted {total_snippets} snippets for {n_written} questions")
     print(f"Output: {output_path}")
 
 
@@ -522,8 +580,9 @@ def to_bioasq(
 
             # Convert documents: {id, text} dicts → PubMed URL strings
             docs_raw = q.get("documents", [])
+
             doc_urls: list[str] = []
-            for d in docs_raw:
+            for d in docs_raw[:10]:
                 if isinstance(d, dict):
                     pmid = d.get("id", "")
                     doc_urls.append(f"http://www.ncbi.nlm.nih.gov/pubmed/{pmid}")
@@ -532,7 +591,7 @@ def to_bioasq(
 
             # Clean snippets: remove internal 'thinking' field
             snippets = []
-            for s in q.get("snippets", []):
+            for s in q.get("snippets", [])[:10]:
                 snippets.append(
                     {
                         "text": s["text"],

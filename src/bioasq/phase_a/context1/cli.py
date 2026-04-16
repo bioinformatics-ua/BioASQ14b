@@ -5,8 +5,8 @@ from __future__ import annotations
 import asyncio
 import pathlib
 import re
-from dataclasses import asdict, replace
-from typing import TYPE_CHECKING, Annotated, Any, Protocol, cast
+from dataclasses import asdict
+from typing import TYPE_CHECKING, Annotated, Any, cast
 
 import orjson
 import typer
@@ -15,14 +15,14 @@ from tqdm.auto import tqdm
 from bioasq.common import PROJECT_DATA_DIR
 from bioasq.common.utils import typer_async
 from bioasq.phase_a.context1.harness import Context1Agent
-from bioasq.phase_a.context1.reranker import Context1Reranker
+from bioasq.phase_a.context1.reranker import Context1Reranker, ensemble_rerank_documents
 from bioasq.phase_a.context1.store import Context1CorpusStore
 from bioasq.phase_a.context1.tokenizer import Context1Tokenizer
 from bioasq.phase_a.context1.types import AgentConfig
 from bioasq.phase_a.context1.vllm_backend import Context1VLLMOpenAIBackend
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
 
     from bioasq.phase_a.context1.types import CorpusDocument
 
@@ -33,17 +33,19 @@ app = typer.Typer(help="Context-1 style PMID retrieval and tool-calling inferenc
 
 
 def _load_questions(path: PathType) -> list[dict[str, Any]]:
-    return [orjson.loads(line) for line in path.open("rb") if line.strip()]
+    try:
+        return [orjson.loads(line) for line in path.open("rb") if line.strip()]
+    except orjson.JSONDecodeError:
+        # load as normal json
+        with path.open("rb") as f:
+            questions = orjson.loads(f.read())
+        return questions["questions"]
 
 
 def _split_csv(raw: str | None) -> list[str]:
     if raw is None:
         return []
     return [part.strip() for part in raw.split(",") if part.strip()]
-
-
-class _RerankerLike(Protocol):
-    def score(self, query: str, documents: list[CorpusDocument]) -> list[CorpusDocument]: ...
 
 
 def _question_id(question: dict[str, Any]) -> str:
@@ -151,45 +153,54 @@ async def _normalize_positive_docs(
     return [by_id[doc_id] for doc_id in order]
 
 
-def _normalize_ensemble_scores(documents: list[CorpusDocument]) -> dict[str, float]:
-    if not documents:
-        return {}
+def _collect_negative_docs(
+    documents: Sequence[CorpusDocument],
+    *,
+    positive_pmids: set[str],
+    limit: int,
+) -> list[dict[str, Any]]:
+    neg_docs: list[dict[str, Any]] = []
+    seen_pmids: set[str] = set()
+    for document in documents:
+        if document.pmid in positive_pmids or document.pmid in seen_pmids:
+            continue
+        seen_pmids.add(document.pmid)
+        neg_docs.append(
+            {
+                "id": document.pmid,
+                "text": document.text,
+                "score": document.score,
+            }
+        )
+        if len(neg_docs) >= limit:
+            break
+    return neg_docs
 
-    raw_scores = [document.score for document in documents]
-    score_min = min(raw_scores)
-    score_max = max(raw_scores)
-    if score_max <= score_min:
-        return {document.pmid: 0.0 for document in documents}
 
-    scale = score_max - score_min
-    return {document.pmid: (document.score - score_min) / scale for document in documents}
+def _expanded_depth(current_depth: int, *, effective_depth: int) -> int:
+    return max(current_depth * 2, current_depth + effective_depth)
 
 
-def _ensemble_reranked_documents(
-    query: str,
-    documents: list[CorpusDocument],
-    rerankers: Sequence[_RerankerLike],
-) -> list[CorpusDocument]:
-    if not rerankers:
-        raise ValueError("At least one reranker is required for negatives mining.")
-    if not documents:
-        return []
-
-    ensembled_scores = {document.pmid: 0.0 for document in documents}
-
-    for reranker in rerankers:
-        scored = reranker.score(query, documents)
-        normalized_scores = _normalize_ensemble_scores(scored)
-        for pmid, normalized_score in normalized_scores.items():
-            ensembled_scores[pmid] = ensembled_scores.get(pmid, 0.0) + normalized_score
-
-    reranker_count = float(len(rerankers))
-    return sorted(
-        [
-            replace(document, score=ensembled_scores[document.pmid] / reranker_count)
-            for document in documents
-        ],
-        key=lambda document: (-document.score, document.pmid),
+def _negative_shortfall_message(
+    *,
+    qid: str,
+    actual_negatives: int,
+    requested_negatives: int,
+    bm25_topk: int,
+    dense_topk: int,
+    rerank_pool_size: int,
+    fused_candidates: int,
+    allow_partial_negatives: bool,
+) -> str:
+    message = (
+        f"Question '{qid}' produced {actual_negatives}/{requested_negatives} negatives "
+        f"(bm25_topk={bm25_topk}, dense_topk={dense_topk}, "
+        f"rerank_pool_size={rerank_pool_size}, fused_candidates={fused_candidates})."
+    )
+    if allow_partial_negatives:
+        return f"Warning: {message} Writing partial row."
+    return (
+        f"{message} Increase candidate depth, increase --max-expansions, or reduce --num-negatives."
     )
 
 
@@ -197,13 +208,16 @@ async def _mine_negatives_for_question(
     *,
     question: dict[str, Any],
     store: Context1CorpusStore,
-    rerankers: Sequence[_RerankerLike],
+    rerankers: Sequence[Context1Reranker],
     num_negatives: int,
     candidate_buffer: int,
     bm25_topk: int,
     dense_topk: int,
     search_candidate_pool_size: int,
     year_override: int | None,
+    max_expansions: int,
+    allow_partial_negatives: bool,
+    warning_sink: Callable[[str], None] | None = None,
 ) -> dict[str, Any]:
     qid = _question_id(question)
     if not qid:
@@ -218,33 +232,67 @@ async def _mine_negatives_for_question(
     effective_depth = num_negatives + candidate_buffer
     question_year = _question_year(question, year_override=year_override)
 
-    fused = await store.hybrid_search_candidates(
-        body,
-        bm25_topk=max(bm25_topk, effective_depth),
-        dense_topk=max(dense_topk, effective_depth),
-        year=question_year,
-        exclude_pmids=positive_pmids,
-    )
-    reranked = _ensemble_reranked_documents(
-        body,
-        fused[: max(search_candidate_pool_size, effective_depth)],
-        rerankers,
-    )
-    neg_docs = [
-        {
-            "id": document.pmid,
-            "text": document.text,
-            "score": document.score,
-        }
-        for document in reranked
-        if document.pmid not in positive_pmids
-    ][:num_negatives]
+    bm25_depth = max(bm25_topk, effective_depth)
+    dense_depth = max(dense_topk, effective_depth)
+    rerank_pool_size = max(search_candidate_pool_size, effective_depth)
+
+    neg_docs: list[dict[str, Any]] = []
+    fused_candidate_count = 0
+    depth_expansions = 0
+
+    while True:
+        fused = await store.hybrid_search_candidates(
+            body,
+            bm25_topk=bm25_depth,
+            dense_topk=dense_depth,
+            year=question_year,
+            exclude_pmids=positive_pmids,
+        )
+        fused_candidate_count = len(fused)
+        reranked = ensemble_rerank_documents(
+            body,
+            fused[:rerank_pool_size],
+            rerankers,
+        )
+        neg_docs = _collect_negative_docs(
+            reranked,
+            positive_pmids=positive_pmids,
+            limit=num_negatives,
+        )
+        if len(neg_docs) >= num_negatives:
+            break
+
+        expanded_pool_size = min(
+            fused_candidate_count,
+            _expanded_depth(rerank_pool_size, effective_depth=effective_depth),
+        )
+        if expanded_pool_size > rerank_pool_size:
+            rerank_pool_size = expanded_pool_size
+            continue
+
+        if depth_expansions >= max_expansions:
+            break
+
+        bm25_depth = _expanded_depth(bm25_depth, effective_depth=effective_depth)
+        dense_depth = _expanded_depth(dense_depth, effective_depth=effective_depth)
+        rerank_pool_size = max(rerank_pool_size, effective_depth)
+        depth_expansions += 1
 
     if len(neg_docs) < num_negatives:
-        raise RuntimeError(
-            f"Question '{qid}' produced only {len(neg_docs)} negatives after filtering. "
-            "Increase candidate depth or reduce --num-negatives."
+        message = _negative_shortfall_message(
+            qid=qid,
+            actual_negatives=len(neg_docs),
+            requested_negatives=num_negatives,
+            bm25_topk=bm25_depth,
+            dense_topk=dense_depth,
+            rerank_pool_size=rerank_pool_size,
+            fused_candidates=fused_candidate_count,
+            allow_partial_negatives=allow_partial_negatives,
         )
+        if not allow_partial_negatives:
+            raise RuntimeError(message)
+        if warning_sink is not None:
+            warning_sink(message)
 
     return {
         "id": qid,
@@ -272,8 +320,11 @@ async def retrieve(
     model_name: Annotated[
         str, typer.Option(help="Served model name on the vLLM server.")
     ] = "chromadb/context-1",
-    vllm_base_url: Annotated[
-        str, typer.Option(help="Base URL of the vLLM OpenAI-compatible server.")
+    tokenizer_model_name: Annotated[
+        str, typer.Option(help="Served tokenizer model name on the vLLM server.")
+    ] = "chromadb/context-1",
+    base_url: Annotated[
+        str, typer.Option(help="Base URL of the OpenAI-compatible server.")
     ] = "http://127.0.0.1:8000",
     api_key: Annotated[
         str, typer.Option(help="OpenAI-compatible API key for the vLLM server.")
@@ -323,10 +374,15 @@ async def retrieve(
     assistant_reserve_tokens: Annotated[
         int, typer.Option(help="Tokens reserved for the assistant response.")
     ] = 2_048,
-    reranker_model_name: Annotated[
-        str, typer.Option(help="Cross-encoder reranker model.")
-    ] = "BAAI/bge-reranker-v2-m3",
-    reranker_batch_size: Annotated[int, typer.Option(help="Reranker batch size.")] = 16,
+    reranker_model_names: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--reranker-model",
+            "--reranker-model-name",
+            help="Cross-encoder reranker models to ensemble.",
+        ),
+    ] = None,
+    reranker_batch_size: Annotated[int, typer.Option(help="Reranker batch size.")] = 2,
     reranker_max_length: Annotated[int, typer.Option(help="Reranker max sequence length.")] = 1_024,
     reranker_device: Annotated[str, typer.Option(help="Torch device for the reranker.")] = "cuda",
     reranker_invert_scores: Annotated[
@@ -339,9 +395,12 @@ async def retrieve(
 ) -> None:
     """Run Context-1 retrieval over a BioASQ question set using existing PMID embeddings."""
 
+    if reranker_model_names is None:
+        reranker_model_names = ["BAAI/bge-reranker-v2-m3"]
+
     config = AgentConfig(
         model_name=model_name,
-        vllm_base_url=vllm_base_url,
+        base_url=base_url,
         api_key=api_key,
         max_turns=max_turns,
         context_window_tokens=context_window_tokens,
@@ -362,7 +421,7 @@ async def retrieve(
         max_completion_tokens=max_completion_tokens,
         num_rollouts=num_rollouts,
         rollout_seed=rollout_seed,
-        reranker_model_name=reranker_model_name,
+        reranker_model_name=reranker_model_names[0],
         reranker_batch_size=reranker_batch_size,
         reranker_max_length=reranker_max_length,
         reranker_device=reranker_device,
@@ -371,23 +430,27 @@ async def retrieve(
         qdrant_collection=collection_name,
     )
 
-    tokenizer = Context1Tokenizer(model_name=config.model_name)
+    tokenizer = Context1Tokenizer(model_name=tokenizer_model_name)
     store = Context1CorpusStore(
         token_counter=tokenizer.count_tokens,
         text_truncator=tokenizer.truncate,
         tei_embed_url=config.tei_embed_url,
         collection_name=config.qdrant_collection,
     )
-    reranker = Context1Reranker(
-        config.reranker_model_name,
-        batch_size=config.reranker_batch_size,
-        max_length=config.reranker_max_length,
-        device=config.reranker_device,
-        invert_scores=config.reranker_invert_scores,
-    )
+
+    rerankers = [
+        Context1Reranker(
+            model_name,
+            batch_size=config.reranker_batch_size,
+            max_length=config.reranker_max_length,
+            device="cuda",
+            invert_scores=config.reranker_invert_scores,
+        )
+        for model_name in reranker_model_names
+    ]
     backend = Context1VLLMOpenAIBackend(
         model_name=config.model_name,
-        base_url=config.vllm_base_url,
+        base_url=config.base_url,
         api_key=config.api_key,
         temperature=config.temperature,
         max_completion_tokens=config.max_completion_tokens,
@@ -395,7 +458,7 @@ async def retrieve(
     agent = Context1Agent(
         backend=backend,
         store=store,
-        reranker=reranker,
+        rerankers=rerankers,
         token_counter=tokenizer.count_tokens,
         config=config,
     )
@@ -419,7 +482,9 @@ async def retrieve(
                     qid = str(question["id"])
                     body = str(question["body"])
                     rollouts = await agent.run_rollouts(body)
+
                     documents = await agent.aggregate_rollouts(rollouts)
+
                     output_row = {
                         "qid": qid,
                         "results": [
@@ -472,7 +537,7 @@ async def negatives(
     output_file: Annotated[
         PathType,
         typer.Option(..., "-o", "--output", help="Output JSONL with pos_docs and neg_docs."),
-    ] = PROJECT_DATA_DIR / "negatives_fixed.jsonl",
+    ] = PROJECT_DATA_DIR / "negatives_context1.jsonl",
     num_negatives: Annotated[
         int,
         typer.Option("--num-negatives", "-n", help="Final negatives per question."),
@@ -498,13 +563,32 @@ async def negatives(
         int,
         typer.Option(help="Number of fused candidates reranked per question."),
     ] = 200,
-    reranker_models_raw: Annotated[
-        list[str],
+    max_expansions: Annotated[
+        int,
+        typer.Option(
+            help=(
+                "Maximum number of retrieval-depth expansions attempted when a question "
+                "does not produce enough negatives."
+            )
+        ),
+    ] = 3,
+    allow_partial_negatives: Annotated[
+        bool,
+        typer.Option(
+            "--allow-partial-negatives/--require-full-negatives",
+            help=(
+                "Write partial rows instead of failing when a question still comes up short "
+                "after the configured expansions."
+            ),
+        ),
+    ] = True,
+    reranker_models_names: Annotated[
+        list[str] | None,
         typer.Option(
             "--reranker-model",
             help="Cross-encoder reranker models to ensemble.",
         ),
-    ] = ["BAAI/bge-reranker-v2-m3"],
+    ] = None,
     reranker_batch_size: Annotated[int, typer.Option(help="Reranker batch size.")] = 16,
     reranker_max_length: Annotated[int, typer.Option(help="Reranker max sequence length.")] = 1_024,
     reranker_device: Annotated[str, typer.Option(help="Torch device for the reranker.")] = "cuda",
@@ -518,12 +602,15 @@ async def negatives(
 ) -> None:
     """Mine hard negatives with the Context-1 hybrid retrieval and reranker stack."""
 
+    if reranker_models_names is None:
+        reranker_models_names = ["BAAI/bge-reranker-v2-m3"]
     if num_negatives <= 0:
         raise typer.BadParameter("--num-negatives must be positive.")
     if candidate_buffer < 0:
         raise typer.BadParameter("--candidate-buffer cannot be negative.")
-    reranker_model_names = _split_csv(reranker_models_raw)
-    if not reranker_model_names:
+    if max_expansions < 0:
+        raise typer.BadParameter("--max-expansions cannot be negative.")
+    if not reranker_models_names:
         raise typer.BadParameter("At least one reranker model must be provided.")
 
     store = Context1CorpusStore(
@@ -540,7 +627,7 @@ async def negatives(
             device=reranker_device,
             invert_scores=reranker_invert_scores,
         )
-        for model_name in reranker_model_names
+        for model_name in reranker_models_names
     ]
 
     questions = _load_questions(training_file)
@@ -554,8 +641,25 @@ async def negatives(
                 "Point Context-1 at the existing PMID embedding collection."
             )
 
-        with output_file.open("wb") as out_f:
-            for question in tqdm(questions, desc="Context-1 negatives", unit="q"):
+        already_done: set[str] = set()
+        if output_file.exists():
+            with output_file.open("rb") as _existing:
+                for _line in _existing:
+                    _line = _line.strip()
+                    if _line:
+                        try:
+                            _row = orjson.loads(_line)
+                            _qid = _row.get("id") or _row.get("qid")
+                            if _qid:
+                                already_done.add(str(_qid))
+                        except Exception:
+                            pass
+            tqdm.write(f"Resuming: skipping {len(already_done)} already-mined questions.")
+
+        pending = [q for q in questions if _question_id(q) not in already_done]
+
+        with output_file.open("ab") as out_f:
+            for question in tqdm(pending, desc="Context-1 negatives", unit="q"):
                 row = await _mine_negatives_for_question(
                     question=question,
                     store=store,
@@ -566,6 +670,9 @@ async def negatives(
                     dense_topk=dense_topk,
                     search_candidate_pool_size=search_candidate_pool_size,
                     year_override=year,
+                    max_expansions=max_expansions,
+                    allow_partial_negatives=allow_partial_negatives,
+                    warning_sink=tqdm.write,
                 )
                 out_f.write(orjson.dumps(row) + b"\n")
     finally:

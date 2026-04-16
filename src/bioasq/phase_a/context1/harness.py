@@ -4,11 +4,11 @@ import asyncio
 import json
 import re
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
-from bioasq.phase_a.context1.reranker import Context1Reranker
+from bioasq.phase_a.context1.reranker import Context1Reranker, ensemble_rerank_documents
 from bioasq.phase_a.context1.store import Context1CorpusStore
 from bioasq.phase_a.context1.toolbox import Context1FastMCPToolbox
 from bioasq.phase_a.context1.types import (
@@ -104,15 +104,39 @@ class Context1Agent:
         *,
         backend: Context1VLLMOpenAIBackend,
         store: Context1CorpusStore,
-        reranker: Context1Reranker,
+        reranker: Context1Reranker | None = None,
+        rerankers: Sequence[Context1Reranker] | None = None,
         token_counter: Callable[[str], int],
         config: AgentConfig,
     ) -> None:
+        configured_rerankers = list(rerankers or [])
+        if reranker is not None:
+            configured_rerankers.insert(0, reranker)
+        if not configured_rerankers:
+            raise ValueError("At least one reranker must be provided.")
+
+        unique_rerankers: list[Context1Reranker] = []
+        seen_reranker_ids: set[int] = set()
+        for configured_reranker in configured_rerankers:
+            reranker_id = id(configured_reranker)
+            if reranker_id in seen_reranker_ids:
+                continue
+            seen_reranker_ids.add(reranker_id)
+            unique_rerankers.append(configured_reranker)
+
         self.backend = backend
         self.store = store
-        self.reranker = reranker
+        self.rerankers = tuple(unique_rerankers)
+        self.reranker = self.rerankers[0]
         self.token_counter = token_counter
         self.config = config
+
+    def rerank_documents(
+        self,
+        query: str,
+        documents: list[CorpusDocument],
+    ) -> list[CorpusDocument]:
+        return ensemble_rerank_documents(query, documents, self.rerankers)
 
     async def run_rollouts(self, query: str) -> list[RolloutResult]:
         """Run one or more independent retrieval rollouts for a query."""

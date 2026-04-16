@@ -148,6 +148,14 @@ class Context1VLLMOpenAIBackend:
             except (TypeError, ValueError, json.JSONDecodeError):
                 return {"raw": stripped}
             if isinstance(decoded, dict):
+                # Handle double-encoded arguments: {"raw": "{\"key\": value}"}
+                if set(decoded.keys()) == {"raw"} and isinstance(decoded.get("raw"), str):
+                    try:
+                        inner = json.loads(decoded["raw"])
+                        if isinstance(inner, dict):
+                            return cast("dict[str, Any]", inner)
+                    except (TypeError, ValueError, json.JSONDecodeError):
+                        pass
                 return decoded
             return {"value": decoded}
         return {"value": raw_arguments}

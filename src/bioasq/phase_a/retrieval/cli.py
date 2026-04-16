@@ -53,7 +53,13 @@ async def retrieve(
     ] = None,
 ) -> None:
     """Run hybrid retrieval (BM25 ∥ dense) and fuse with ranx RRF; writes one line per question."""
-    questions: list[dict[str, str]] = [orjson.loads(line) for line in testset_file.open("rb")]
+    try:
+        questions: list[dict[str, str]] = [orjson.loads(line) for line in testset_file.open("rb")]
+    except orjson.JSONDecodeError:
+        # load as a normal json
+        with testset_file.open("rb") as f:
+            questions = orjson.loads(f.read())["questions"]
+
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     hyde_backend: BaseModelBackend | None = None

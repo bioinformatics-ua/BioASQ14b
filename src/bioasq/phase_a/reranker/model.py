@@ -63,6 +63,65 @@ def resolve_effective_max_length(
     return min(limits)
 
 
+def is_nemotron_model(model_name: str) -> bool:
+    """Return True when *model_name* refers to an NVIDIA Nemotron reranker."""
+    return "nemotron" in model_name.lower()
+
+
+def is_gemma_model(model_name: str) -> bool:
+    """Return True when *model_name* refers to a Gemma / MedGemma model."""
+    return "gemma" in model_name.lower()
+
+
+def _setup_nemotron_tokenizer(tokenizer: PreTrainedTokenizerBase) -> None:
+    """Apply Nemotron reranker tokenizer settings per model README."""
+    tokenizer.padding_side = "left"
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+
+def _setup_nemotron_model(
+    model: PreTrainedModel, tokenizer: PreTrainedTokenizerBase
+) -> None:
+    """Apply Nemotron model config (pad_token_id) and label head sanitization."""
+    if model.config.pad_token_id is None:
+        model.config.pad_token_id = tokenizer.eos_token_id
+    if getattr(model.config, "num_labels", 1) != 1:
+        model.config.num_labels = 1
+        model.config.id2label = {0: "SCORE"}
+        model.config.label2id = {"SCORE": 0}
+
+
+def _sanitize_position_ids_buffers(model: PreTrainedModel) -> None:
+    """Ensure any `position_ids` buffers are monotonic 0..N-1.
+
+    Some remote-code checkpoints (e.g. Llama-based) may load a corrupted
+    `position_ids` buffer, which causes out-of-bounds indexing in RoPE.
+    """
+    for module in model.modules():
+        position_ids = getattr(module, "position_ids", None)
+        if not isinstance(position_ids, torch.Tensor):
+            continue
+        if position_ids.dtype not in (torch.int32, torch.int64):
+            continue
+        if position_ids.ndim == 1:
+            expected = torch.arange(
+                position_ids.shape[0],
+                device=position_ids.device,
+                dtype=position_ids.dtype,
+            )
+        elif position_ids.ndim == 2 and position_ids.shape[0] == 1:
+            expected = torch.arange(
+                position_ids.shape[1],
+                device=position_ids.device,
+                dtype=position_ids.dtype,
+            ).unsqueeze(0)
+        else:
+            continue
+        if not torch.equal(position_ids, expected):
+            position_ids.copy_(expected)
+
+
 def load_reranker_model(
     model_name: str,
     *,
@@ -73,6 +132,8 @@ def load_reranker_model(
 
     resolved_dtype = resolve_inference_dtype(dtype)
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+    if is_nemotron_model(model_name):
+        _setup_nemotron_tokenizer(tokenizer)
     config = AutoConfig.from_pretrained(model_name, trust_remote_code=True)
     effective_max_length = resolve_effective_max_length(
         max_length,
@@ -97,4 +158,7 @@ def load_reranker_model(
         ignore_mismatched_sizes=True,
         torch_dtype=resolved_dtype,
     )
+    if is_nemotron_model(model_name):
+        _sanitize_position_ids_buffers(model)
+        _setup_nemotron_model(model, tokenizer)
     return model, tokenizer

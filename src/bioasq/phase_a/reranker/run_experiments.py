@@ -244,7 +244,7 @@ def run_experiment(
         all_data_path=config["train_neg_path"],
         iterator=iterator,
         test_sample_preprocessing=preprocessor,
-        val_files=config["val_files"] if config.get("full_data", False) else None,
+        val_files=config["val_files"],  # if config.get("full_data", False) else None,
         use_expanded_pos=use_expanded_pos,
     )
 
@@ -487,15 +487,8 @@ if __name__ == "__main__":
         # ("cross-encoder/ms-marco-electra-base", False),
         # ("BAAI/bge-reranker-base", False),
         # ("BAAI/bge-reranker-v2-m3", False),
-        # ("google/medgemma-4b-pt", False)",
-        # ("nvidia/llama-nemotron-rerank-1b-v2", True),
-        (
-            {
-                "model": "nvidia/llama-nemotron-rerank-1b-v2",
-                "checkpoint": "./outputs/nvidia_llama-nemotron-rerank-1b-v2/nvidia-llama-nemotron-rerank-1b-v2-E1-S1-Mpairwise-FullDataTrue--Shifter/checkpoint-500",
-            },
-            True,
-        ),
+        ("google/medgemma-4b-pt", False),
+        ("nvidia/llama-nemotron-rerank-1b-v2", True),
     ]
 
     CONFIG = {
@@ -503,7 +496,7 @@ if __name__ == "__main__":
         "num_neg_samples": 1,  # For pairwise: 1; for multi_neg_pairwise: 4-20+ depending on GPU memory
         "report_to": "wandb",
         "epochs": 1,
-        "batch_size": 4,
+        "batch_size": 1,
         "learning_rate": 2e-5,
         "train_pos_path": PROJECT_DATA_DIR / "quality/training14b_inflated_clean_wContents.jsonl",
         "train_neg_path": PROJECT_DATA_DIR / "negatives_fixed.jsonl",
@@ -511,13 +504,18 @@ if __name__ == "__main__":
         "full_data": True,
         # Train on val (13B1+13B2); hold out 13B3 for evaluation
         "val_files": [
-            # PROJECT_DATA_DIR / "val_data/13B3_golden.json",
-            # PROJECT_DATA_DIR / "val_data/13B1_golden.json",
-            # PROJECT_DATA_DIR / "val_data/13B2_golden.json",
-            PROJECT_DATA_DIR / "val_data/13B4_golden.json",
+            # PROJECT_DATA_DIR / "val_data" / "13B3_golden.json",
+            # PROJECT_DATA_DIR / "val_data" / "13B1_golden.json",
+            # PROJECT_DATA_DIR / "val_data" / "13B2_golden.json",
+            # PROJECT_DATA_DIR / "val_data" / "13B4_golden.json",
+            PROJECT_DATA_DIR / "val_data" / "12B3_golden.json",
+            PROJECT_DATA_DIR / "val_data" / "12B1_golden.json",
+            PROJECT_DATA_DIR / "val_data" / "12B2_golden.json",
+            PROJECT_DATA_DIR / "val_data" / "12B4_golden.json",
         ],
         # "force_retrain": True,
     }
+
     failed_models = []
     all_results = {}
     run_name_tpl = "{model}-E{epochs}-S{num_neg}-M{mode}-FullData{full_data}-{expanded}-{sampler}"

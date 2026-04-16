@@ -92,3 +92,49 @@ class Context1Reranker:
                 scored.append(replace(document, score=relevance))
 
         return sorted(scored, key=lambda document: document.score, reverse=True)
+
+
+def _normalize_ensemble_scores(documents: Sequence[CorpusDocument]) -> dict[str, float]:
+    if not documents:
+        return {}
+
+    raw_scores = [document.score for document in documents]
+    score_min = min(raw_scores)
+    score_max = max(raw_scores)
+    if score_max <= score_min:
+        return {document.pmid: 0.0 for document in documents}
+
+    scale = score_max - score_min
+    return {document.pmid: (document.score - score_min) / scale for document in documents}
+
+
+def ensemble_rerank_documents(
+    query: str,
+    documents: Sequence[CorpusDocument],
+    rerankers: Sequence[Context1Reranker],
+) -> list[CorpusDocument]:
+    """Average min-max normalized scores from one or more rerankers."""
+
+    if not rerankers:
+        raise ValueError("At least one reranker is required.")
+    if not documents:
+        return []
+    if len(rerankers) == 1:
+        return rerankers[0].score(query, documents)
+
+    ensembled_scores = {document.pmid: 0.0 for document in documents}
+
+    for reranker in rerankers:
+        scored = reranker.score(query, documents)
+        normalized_scores = _normalize_ensemble_scores(scored)
+        for pmid, normalized_score in normalized_scores.items():
+            ensembled_scores[pmid] = ensembled_scores.get(pmid, 0.0) + normalized_score
+
+    reranker_count = float(len(rerankers))
+    return sorted(
+        [
+            replace(document, score=ensembled_scores[document.pmid] / reranker_count)
+            for document in documents
+        ],
+        key=lambda document: (-document.score, document.pmid),
+    )

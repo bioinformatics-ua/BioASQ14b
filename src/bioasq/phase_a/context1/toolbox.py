@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import asdict
 from typing import TYPE_CHECKING, Annotated, Any, cast
 
@@ -158,16 +160,38 @@ class Context1FastMCPToolbox:
         )
         def prune_chunks(
             chunk_ids: Annotated[
-                list[int],
+                list[int] | None,
                 Field(
                     description=(
                         "PMIDs to remove from currently visible context. "
                         "The parameter name is historical."
                     )
                 ),
-            ],
+            ] = None,
+            raw: Annotated[
+                str | None,
+                Field(
+                    description=(
+                        "Fallback: raw JSON string (or stringified object) "
+                        "containing chunk_ids when the structured field is unavailable."
+                    )
+                ),
+            ] = None,
         ) -> dict[str, Any]:
-            return self._prune_chunks(chunk_ids)
+            resolved: list[int] | None = chunk_ids
+            if resolved is None and raw is not None:
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, dict) and "chunk_ids" in parsed:
+                        resolved = [int(x) for x in parsed["chunk_ids"]]
+                    elif isinstance(parsed, list):
+                        resolved = [int(x) for x in parsed]
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    # last resort: extract all digit runs from the raw string
+                    resolved = [int(m) for m in re.findall(r"\d+", raw)]
+            if not resolved:
+                return self._payload(content="No chunk_ids provided.", error=True)
+            return self._prune_chunks(resolved)
 
     async def _search_corpus(self, query: str) -> dict[str, Any]:
         if not query.strip():
@@ -186,7 +210,7 @@ class Context1FastMCPToolbox:
             year=self._agent.config.year,
             exclude_pmids=set(self._state.encountered_documents),
         )
-        reranked = self._agent.reranker.score(
+        reranked = self._agent.rerank_documents(
             query,
             fused[: self._agent.config.search_candidate_pool_size],
         )

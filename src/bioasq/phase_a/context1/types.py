@@ -78,7 +78,7 @@ class AgentConfig:
     """Runtime settings for the Context-1 harness and retrieval tools."""
 
     model_name: str = "chromadb/context-1"
-    vllm_base_url: str = "http://127.0.0.1:8000"
+    base_url: str = "http://127.0.0.1:8000"
     api_key: str = "EMPTY"
     max_turns: int = 12
     context_window_tokens: int = 32_768

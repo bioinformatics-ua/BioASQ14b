@@ -33,6 +33,8 @@ data/val_data
 data/batch02
 data/batch02-phaseb
 
+data/batch03
+
 data/similarity_results
 !data/similarity_results/.keep
 

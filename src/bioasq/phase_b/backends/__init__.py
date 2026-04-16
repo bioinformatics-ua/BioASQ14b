@@ -4,7 +4,7 @@ from bioasq.phase_b.backends.base import BaseModelBackend
 def get_backend(
     model: str,
     max_tokens: int = 16000,
-    temperature: float = 0.7,
+    temperature: float = 1.0,
     request_delay: float = 0.0,
     local_max_tokens: int | None = None,
 ) -> BaseModelBackend:

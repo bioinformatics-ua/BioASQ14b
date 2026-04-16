@@ -399,7 +399,7 @@ class BioASQInferenceDataset(torch.utils.data.Dataset[ProcessedSample]):
             if _key is None:
                 continue
 
-            docs = cast(list[dict[str, str]], q_data[_key])
+            docs = cast("list[dict[str, str]]", q_data[_key])
             for doc in docs[:max_docs]:
                 # for doc in q_data["neg_docs"][:max_docs]:
 
@@ -426,7 +426,7 @@ class BioASQInferenceDataset(torch.utils.data.Dataset[ProcessedSample]):
             doc_id = str(sample["doc_id"])
             sample["label"] = 1 if self.qrels_dict.get(qid, {}).get(doc_id, 0) >= 1 else 0
         result = self.sample_preprocessing(sample)
-        return cast(ProcessedSample, dict(result))
+        return cast("ProcessedSample", dict(result))
 
     def __len__(self) -> int:
         return len(self.dataset)
@@ -437,7 +437,7 @@ class BioASQInferenceDataset(torch.utils.data.Dataset[ProcessedSample]):
         final_string += f"BioASQInferenceDataset(size={len(self)})\n"
 
         for _sample in self.dataset:
-            sample = cast(dict[str, str], _sample)
+            sample = cast("dict[str, str]", _sample)
             final_string += f"   - ID: {sample['id']}\n"
             final_string += f"   - Doc ID: {sample['doc_id']}\n"
             final_string += f"   - Doc Text: {sample['doc_text'][:100]}...\n"
@@ -485,7 +485,7 @@ class BioASQPairwiseEvalDataset(torch.utils.data.Dataset[ProcessedSample]):
             qid = str(entry["id"])
             query_text = str(entry["query_text"])
             qrels = self.qrels_dict.get(qid, {})
-            docs = cast(list[dict[str, str]], entry[key])
+            docs = cast("list[dict[str, str]]", entry[key])
             rel_ids = {d for d, s in qrels.items() if s >= 1}
             pos_docs = [d for d in docs if str(d["id"]) in rel_ids]
             neg_docs = [d for d in docs if str(d["id"]) not in rel_ids]
@@ -576,11 +576,11 @@ def create_bioASQ_datasets(
             # Skip to test set handling if this is a test query
             if sample_id in test_set_qids:
                 docs: list[dict[str, str]] = cast(
-                    list[dict[str, str]],
+                    "list[dict[str, str]]",
                     [sample[key_name] for _, key_name in reminder_pos_index][0],
                 )
                 test_ds_pos[sample_id] = docs
-                doc_list: list[dict[str, str]] = cast(list[dict[str, str]], sample["documents"])
+                doc_list: list[dict[str, str]] = cast("list[dict[str, str]]", sample["documents"])
                 qrels_test[sample_id] = {doc["id"]: 1 for doc in doc_list}
                 continue
 
@@ -601,7 +601,7 @@ def create_bioASQ_datasets(
             if sample_id in test_set_qids:
                 neg_docs: list[dict[str, str]] = sample_data["neg_docs"]
                 neg_docs.extend(test_ds_pos[sample_id])
-                new_entry: ProcessedSample = cast(ProcessedSample, dict(sample_data))
+                new_entry: ProcessedSample = cast("ProcessedSample", dict(sample_data))
                 new_entry["query_text"] = test_set_questions[sample_id]
                 test_dataset.append(new_entry)
                 continue
@@ -609,7 +609,7 @@ def create_bioASQ_datasets(
             # Handle training set samples - add negative docs
             train_dataset[sample_id][neg_index] = []
             postive_keys: set[str] = {
-                cast(dict[str, str], doc)["id"]
+                cast("dict[str, str]", doc)["id"]
                 for order_key, _ in reminder_pos_index
                 for doc in train_dataset[sample_id][order_key]
             }
@@ -620,7 +620,7 @@ def create_bioASQ_datasets(
             for doc in neg_docs_list:
                 if str(doc["id"]) not in postive_keys:
                     train_list: list[dict[str, str]] = cast(
-                        list[dict[str, str]], train_dataset[sample_id][neg_index]
+                        "list[dict[str, str]]", train_dataset[sample_id][neg_index]
                     )
                     train_list.append(doc)
         # Obtain 10 samples of each id (0 or 1) and save in a buffer that is a mini dataset
@@ -654,6 +654,7 @@ def create_bioASQ_datasets(
             sample_preprocessing=test_sample_preprocessing,
             neg_as_list=True,
         )
+
     return train_ds, test_ds, eval_pointwise, eval_pairwise, eval_multi_neg
 
 
@@ -733,7 +734,7 @@ def create_test_dataset(
         with open(file) as f:
             data: dict[str, list[dict[str, str | list[dict[str, str]]]]] = orjson.loads(f.read())  # pyright: ignore[reportAny]
             for q in data["questions"]:
-                doc_list: list[dict[str, str]] = cast(list[dict[str, str]], q["documents"])
+                doc_list: list[dict[str, str]] = cast("list[dict[str, str]]", q["documents"])
                 qrels_test[str(q["id"])] = {doc["id"]: 1 for doc in doc_list}
 
     # for baseline_path in baselines_path:
@@ -752,7 +753,7 @@ def create_test_dataset(
 
 if __name__ == "__main__":
     print("Starting the script")
-    tokenizer = cast(TokenizersBackend, AutoTokenizer.from_pretrained("bert-base-uncased"))
+    tokenizer = cast("TokenizersBackend", AutoTokenizer.from_pretrained("bert-base-uncased"))
 
     train_dataset, test_dataset, _, _, _ = create_bioASQ_datasets(
         positive_data_path="../../data/quality/training14b_inflated_clean_wContents.jsonl",
