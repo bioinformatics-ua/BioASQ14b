@@ -114,6 +114,7 @@ app.add_typer(snippets_app, name="snippets")
 
 from bioasq.snippets.evaluate import main as evaluate_snippets_command
 from bioasq.snippets.extract import main as extract_snippets_command
+from bioasq.snippets.extract import to_bioasq as to_bioasq_command
 from bioasq.snippets.format_for_training import main as format_training_command
 from bioasq.snippets.generate_rationales import main as generate_rationales_command
 from bioasq.snippets.prepare_training_data import main as prepare_data_command
@@ -126,6 +127,7 @@ snippets_app.command(name="format-training")(format_training_command)
 snippets_app.command(name="train")(train_lora_command)
 snippets_app.command(name="train-unsloth")(train_unsloth_command)
 snippets_app.command(name="extract")(extract_snippets_command)
+snippets_app.command(name="to-bioasq")(to_bioasq_command)
 snippets_app.command(name="evaluate")(evaluate_snippets_command)
 
 # ---------------------------------------------------------------------------

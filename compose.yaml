@@ -10,7 +10,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
     volumes:
-      - /dev/shm/pgdata:/home/postgres/pgdata
+      - pgdata:/home/postgres/pgdata
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
@@ -26,7 +26,7 @@ services:
       - "6333:6333" # REST API
       - "6334:6334" # gRPC
     volumes:
-      - /dev/shm/qdrant_storage:/qdrant/storage
+      - qdrant_storage:/qdrant/storage
       - ./qdrant_config.yaml:/qdrant/config/production.yaml
     deploy:
       resources:
@@ -61,3 +61,7 @@ services:
     pull_policy: always
     image: ghcr.io/huggingface/text-embeddings-inference:86-1.9
     command: --model-id BAAI/bge-m3 --max-batch-tokens 16384 --dtype float16
+
+volumes:
+  pgdata:
+  qdrant_storage:

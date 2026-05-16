@@ -29,7 +29,7 @@ cd "$REPO_DIR"
 export HF_HOME="/dev/shm/hf"
 export PYTHONUNBUFFERED=1
 export WANDB_PROJECT="bioasq-snippets"
-export WANDB_API_KEY="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"
+export WANDB_API_KEY=""
 export CUDA_VISIBLE_DEVICES="${CUDA_VISIBLE_DEVICES:-0,1}"
 # ----------------------------------------
 # CONFIGURABLE VARIABLES
@@ -62,14 +62,15 @@ LR=2e-4
 MAX_SEQ_LEN=2048
 
 # Inference
-INFERENCE_BASE_MODEL="unsloth/gemma-4-31B"
+INFERENCE_BASE_MODEL="/app/gguf"
 ADAPTER_PATH="${SNIPPET_DATA_DIR}/lora_output/final_adapter"
-EXTRACT_INPUT="data/val_data/13B1_golden_documents.jsonl"
-EXTRACT_OUTPUT="data/snippets/extracted_snippets.jsonl"
+EXTRACT_INPUT="data/batch03/phasea/retrieval/context1.jsonl" #"data/val_data/13B1_golden_documents.jsonl"
+EXTRACT_OUTPUT="data/batch03/phasea/retrieval/context1_snippets.jsonl" # "data/snippets/extracted_snippets.jsonl"
+EXTRACT_TESTSET="data/batch03/phasea/BioASQ-task14bPhaseA-testset3.json" # optional: hydrate body/type fields
 EXTRACT_BACKEND="vllm"  # local, vllm, or openrouter
-EXTRACT_MAX_NEW_TOKENS=160
+EXTRACT_MAX_NEW_TOKENS=128
 EXTRACT_TEMPERATURE=0.0
-VLLM_URL="http://localhost:8000/v1"
+VLLM_URL="http://localhost:8001/v1"
 VLLM_API_KEY="EMPTY"
 
 # Competition submission
@@ -143,21 +144,35 @@ train_legacy() {
 }
 
 extract() {
+    # Usage: extract [<input>] [<output>]
+    local INPUT="${1:-${EXTRACT_INPUT}}"
+    local OUTPUT="${2:-${EXTRACT_OUTPUT}}"
+    if [ -z "$INPUT" ] || [ -z "$OUTPUT" ]; then
+        echo "Usage: $0 extract <input> <output>"
+        exit 1
+    fi
     echo "=== Step 5: Extract snippets ==="
+    local TESTSET_ARG=""
+    if [ -n "${EXTRACT_TESTSET:-}" ]; then
+        TESTSET_ARG="--testset ${EXTRACT_TESTSET}"
+    fi
     uv run python -m bioasq.snippets.extract main \
-        --input "$EXTRACT_INPUT" \
-        --output "$EXTRACT_OUTPUT" \
+        --input "$INPUT" \
+        --output "$OUTPUT" \
         --base-model "$INFERENCE_BASE_MODEL" \
         --adapter-path "$ADAPTER_PATH" \
         --backend "$EXTRACT_BACKEND" \
         --vllm-url "$VLLM_URL" \
         --vllm-api-key "$VLLM_API_KEY" \
-    --max-new-tokens "$EXTRACT_MAX_NEW_TOKENS" \
-    --temperature "$EXTRACT_TEMPERATURE"
+        --max-new-tokens "$EXTRACT_MAX_NEW_TOKENS" \
+        --temperature "$EXTRACT_TEMPERATURE" \
+        --workers 6 \
+        $TESTSET_ARG
 }
 
 evaluate() {
     echo "=== Step 6: Evaluate ==="
+    
     uv run python -m bioasq.snippets.evaluate \
         --predictions "$EXTRACT_OUTPUT" \
         --gold "$TRAINING_JSON" \
@@ -165,10 +180,16 @@ evaluate() {
 }
 
 to_bioasq() {
+    local INPUT="${1:-${EXTRACT_INPUT}}"
+    local OUTPUT="${2:-${EXTRACT_OUTPUT}}"
+    if [ -z "$INPUT" ] || [ -z "$OUTPUT" ]; then
+        echo "Usage: $0 extract <input> <output>"
+        exit 1
+    fi
     echo "=== Convert to BioASQ submission format ==="
     uv run python -m bioasq.snippets.extract to-bioasq \
-        --input "$EXTRACT_OUTPUT" \
-        --output "$SUBMISSION_OUTPUT"
+        --input "$INPUT" \
+        --output "$OUTPUT"
 }
 
 compete() {
@@ -227,8 +248,8 @@ case "${1:-all}" in
     prepare)       prepare ;;
     train)         train ;;
     train-legacy)  train_legacy ;;
-    extract)       extract ;;
-    to-bioasq)     to_bioasq ;;
+    extract)       extract   ;;
+    to-bioasq)     to_bioasq "${2:-}" "${3:-}" ;;
     evaluate)      evaluate ;;
     compete)       compete "$@" ;;
     all)
@@ -238,7 +259,7 @@ case "${1:-all}" in
         evaluate
         ;;
     *)
-        echo "Usage: $0 {prepare|train|train-legacy|extract|to-bioasq|evaluate|compete <testset.json>|all}"
+        echo "Usage: $0 {prepare|train|train-legacy|extract <input> <output>|to-bioasq|evaluate|compete <testset.json>|all}"
         exit 1
         ;;
 esac

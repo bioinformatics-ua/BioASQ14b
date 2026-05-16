@@ -10,13 +10,14 @@ import argparse
 import json
 from pathlib import Path
 
-DEFAULT_DIR = Path(__file__).parent.parent / "data/batch02/generation/quorum"
+DEFAULT_DIR = Path(__file__).parent.parent / "data/batch03/phaseb/generation/quorum"
 DEFAULT_FILES = [
-    "v3.jsonl",
-    "v3_resume_70_75.jsonl",
-    "v3_resume_76_80.jsonl",
+    # "v2.jsonl",
+    "v4_0_20.jsonl",
+    "v4_20_40.jsonl",
+    "v4_40_60.jsonl",
 ]
-DEFAULT_OUTPUT = "v3.final.json"
+DEFAULT_OUTPUT = "v4.final.json"
 
 
 def load_jsonl(path: Path) -> list[dict]:
