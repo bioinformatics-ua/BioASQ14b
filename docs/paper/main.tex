@@ -1,0 +1,116 @@
+
+
+%% The first command in your LaTeX source must be the \documentclass command.
+%%
+%% Options:
+%% twocolumn : Two column layout. Do not use twocolumn for papers submitted to CEUR-WS!
+%% hf: enable header and footer.
+\documentclass[
+  % twocolumn,
+  % hf,
+]{ceurart}
+
+%%
+%% One can fix some overfulls
+\sloppy
+
+%%
+%% Minted listings support
+%% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
+\usepackage{listings}
+%% auto break lines
+\lstset{breaklines=true}
+
+%%
+%% end of the preamble, start of the body of the document source.
+\begin{document}
+
+%%
+%% Rights management information.
+%% CC-BY is default license.
+\copyrightyear{2026}
+\copyrightclause{Copyright for this paper by its authors.
+  Use permitted under Creative Commons License Attribution 4.0
+International (CC BY 4.0).}
+
+%%
+%% This command is for the conference information
+\conference{CLEF 2026 Working Notes, 21 -- 24 September 2026, Jena, Germany}
+
+%%
+%% The "title" command
+\title{A better way to format your document for CEUR-WS using LaTeX}
+
+\title[mode=sub]{<Lab name> at CLEF 2026}
+
+\tnotemark[1]
+\tnotetext[1]{You can use this document as the template for preparing your
+publication. We recommend using the latest version of the ceurart style.}
+
+%%
+%% The "author" command and its associated commands are used to define
+%% the authors and their affiliations.
+\author[1,2]{Dmitry S. Kulyabov}[%
+  orcid=0000-0002-0877-7063,
+  email=kulyabov-ds@rudn.ru,
+  url=https://yamadharma.github.io/,
+]
+\cormark[1]
+\fnmark[1]
+\address[1]{Peoples' Friendship University of Russia (RUDN University),
+6 Miklukho-Maklaya St, Moscow, 117198, Russian Federation}
+\address[2]{Joint Institute for Nuclear Research,
+6 Joliot-Curie, Dubna, Moscow region, 141980, Russian Federation}
+
+\author[3]{Ilaria Tiddi}[%
+  orcid=0000-0001-7116-9338,
+  email=i.tiddi@vu.nl,
+  url=https://kmitd.github.io/ilaria/,
+]
+\fnmark[1]
+\address[3]{Vrije Universiteit Amsterdam, De Boelelaan 1105, 1081 HV Amsterdam, The Netherlands}
+
+\author[4]{Manfred Jeusfeld}[%
+  orcid=0000-0002-9421-8566,
+  email=Manfred.Jeusfeld@acm.org,
+  url=http://conceptbase.sourceforge.net/mjf/,
+]
+\fnmark[1]
+\address[4]{University of Skövde, Högskolevägen 1, 541 28 Skövde, Sweden}
+
+%% Footnotes
+\cortext[1]{Corresponding author.}
+\fntext[1]{These authors contributed equally.}
+
+%%
+%% The abstract is a short summary of the work to be presented in the
+%% article.
+\begin{abstract}
+  A clear and well-documented \LaTeX{} document is presented as an
+  article formatted for publication by CEUR-WS in a conference
+  proceedings. Based on the ``ceurart'' document class, this article
+  presents and explains many of the common variations, as well as many
+  of the formatting elements an author may use in the preparation of
+  the documentation of their work.
+\end{abstract}
+
+%%
+%% Keywords. The author(s) should pick words that accurately describe
+%% the work being presented. Separate the keywords with commas.
+\begin{keywords}
+  LaTeX class \sep
+  paper template \sep
+  paper formatting \sep
+  CEUR-WS
+\end{keywords}
+
+%%
+%% This command processes the author and affiliation and title
+%% information and builds the first part of the formatted document.
+\maketitle
+
+\section{Introduction}
+
+Text
+
+\end{document}
