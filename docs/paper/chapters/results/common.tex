@@ -6,9 +6,34 @@ This section presents both our internal validation results and the official eval
 \subsection{Internal Retrieval Testing}
 \label{sec:internal-retrieval}
 
-We conducted extensive internal testing of the various retrieval strategies introduced this year, including Context-1-based retrieval, HyDE query expansion, and different fusion approaches (RRF and weighted sum) across multiple parameter configurations. These experiments were designed to measure the marginal contribution of each retrieval component to end-to-end retrieval performance.
+We conducted extensive internal testing of the various retrieval strategies introduced this year, including Context-1-based retrieval and different fusion approaches (RRF and weighted sum) with and without neural reranking. These experiments were conducted on the 13B Batch~1--2 golden datasets and were designed to measure the marginal contribution of each retrieval component to end-to-end retrieval performance. Table~\ref{tab:internal-retrieval} presents the results using standard retrieval metrics: M@100 (Match@100, average number of relevant documents in the top 100), H@100 (Hit@100, fraction of questions with $\ge$1 relevant document), AR@100 (AllRel@100, fraction of all relevant documents recovered), MRR (Mean Reciprocal Rank), and R@100 (Recall@100).
 
-{\large \textbf{TODO:} Get the fucking results}
+\begin{table}[ht]
+  \centering
+  \caption{Internal retrieval testing results comparing BM25 baseline, fusion strategies (RRF and weighted sum), reranked variants, and Context-1. ``Docs'' is the average number of documents retrieved per question. Bold values indicate the best result in each column.}
+  \label{tab:internal-retrieval}
+  \footnotesize
+  \begin{tabular}{lcccccc}
+    \hline
+    \textbf{Method} & \textbf{Docs} & \textbf{M@100} & \textbf{H@100} & \textbf{AR@100} & \textbf{MRR} & \textbf{R@100} \\
+    \hline
+    BM25 (baseline) & 99.3 & 11.01 & 0.953 & 0.082 & 0.549 & 0.373 \\
+    Hybrid RRF & 100.0 & 12.28 & 0.965 & 0.047 & 0.696 & 0.406 \\
+    Hybrid weighted sum & 100.0 & 11.47 & 0.965 & 0.082 & 0.622 & 0.384 \\
+    Hybrid RRF + BGE-reranker-v2-m3 & 100.0 & 12.28 & 0.965 & 0.047 & 0.649 & 0.406 \\
+    Hybrid wsum + BGE-reranker-v2-m3 & 100.0 & 11.47 & 0.965 & 0.082 & \textbf{0.738} & 0.384 \\
+    Hybrid RRF + BGE-reranker-base & 100.0 & 12.28 & 0.965 & 0.047 & 0.498 & 0.406 \\
+    Hybrid wsum + BGE-reranker-base & 100.0 & 11.47 & 0.965 & 0.082 & 0.597 & 0.384 \\
+    Context-1 & 100.0 & \textbf{14.16} & 0.965 & 0.047 & 0.508 & \textbf{0.453} \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Several patterns emerge from these results. The BM25 baseline retrieves slightly fewer documents on average (99.3) and achieves the lowest M@100 (11.01), MRR (0.549), and R@100 (0.373), confirming that lexical retrieval alone is insufficient for this task. Hybrid retrieval, whether fused via RRF or weighted sum, substantially improves over BM25 across all metrics: MRR increases from 0.549 to 0.696 (RRF) and 0.622 (weighted sum), while R@100 rises from 0.373 to 0.406 and 0.384, respectively. RRF consistently outperforms weighted sum on MRR and Recall, consistent with its robustness to heterogeneous score distributions.
+
+The addition of a neural reranker produces mixed but instructive results. When applied to the RRF-fused results, the BGE-reranker-v2-m3 yields an MRR of 0.649, slightly below the un-reranked RRF baseline (0.696), while the base variant drops to 0.498. However, when the reranker is applied to the weighted-sum results, the v2-m3 model achieves the best MRR overall (0.738), suggesting an interaction between the fusion method and the reranker: weighted sum preserves score magnitudes that the reranker can exploit, whereas RRF discards score information in favor of ranks. The base reranker variant consistently underperforms its v2-m3 counterpart, confirming the expected performance hierarchy between these models observed in our validation.
+
+Context-1 achieves the highest M@100 (14.16) and R@100 (0.453), demonstrating its ability to surface a broader set of relevant documents than the single-pass hybrid approaches. However, its MRR (0.508) is lower than the best fusion configurations, indicating that while Context-1 is effective at exploration—finding more relevant documents overall—it is less precise at ranking the most relevant documents first. This is consistent with Context-1's design as a retrieval subagent optimized for recall, intended to feed a downstream reranker or reasoning model rather than to produce a final ranking directly.
 
 \subsection{Internal Validation: Reranker Models}
 \label{sec:internal-validation}
