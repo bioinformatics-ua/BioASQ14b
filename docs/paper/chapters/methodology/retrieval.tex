@@ -55,16 +55,10 @@ RRF(d) = \sum_{r \in R} \frac{1}{k + rank_r(d)}
 
 where $R$ is the set of retrieval runs and $k$ is a constant (typically 60) that mitigates the impact of high-ranked documents dominating the final score. Because RRF operates on ranks rather than scores, it requires no normalization and is insensitive to the magnitude of individual retrieval scores. This is particularly important in our setting, where BM25 and dense retrieval produce scores on fundamentally different scales.
 
-% TODO: Review this as this doesn't make much sense
-In our experiments, RRF consistently outperformed weighted sum, particularly when combining more than two retrieval runs. The rank-based nature of RRF naturally handles the varying score distributions across BM25, dense retrieval, and Context-1 results, eliminating the need for per-batch calibration of fusion weights. Weighted sum was retained primarily as a baseline and for configurations where the retrieval runs produce scores on comparable scales.
+In our experiments, RRF consistently outperformed weighted sum, as the rank-based nature of RRF naturally handles the varying score distributions across BM25 and dense retrieval, eliminating the need for per-batch calibration of fusion weights. Weighted sum was retained primarily as a baseline and for configurations where the retrieval runs produce scores on comparable scales.
 
 \subsubsection{Snippet Generation via Fine-Tuned Gemma 4}
 
 For the first time, we participated in the snippet generation subtask. Given a question and a set of retrieved documents, the system must identify the most relevant text spans within those documents. We approached this as a text generation problem: a model receives the question along with a document's title and abstract, and generates the most relevant snippets from that document.
 
 We fine-tuned a Gemma~4~31B model using QLoRA (Quantized Low-Rank Adaptation) for this task. The training data was derived from the snippet annotations provided in the BioASQ training set, where for each question-document pair, the gold-standard snippets were extracted from the document text. The model was trained in a chat format, receiving the question and document content as input and producing the corresponding snippets as output. The LoRA adapters were applied to the attention projection layers, enabling efficient fine-tuning with substantially reduced memory requirements compared to full fine-tuning.
-
-% TODO: Check if this goes to the discussion?
-\subsubsection{Future Directions: SPLADE and ColBERT}
-
-As part of our ongoing research, we are exploring two additional approaches not yet deployed in competition. SPLADE (Sparse Lexical and Expansion Model for Information Retrieval)~\cite{formal2021splade} combines the efficiency of sparse representations with the expressiveness of learned term weighting, offering a middle ground between lexical and dense retrieval. ColBERT~\cite{khattab2020colbert} employs a late interaction paradigm where query and document tokens interact only at the final scoring stage, enabling efficient indexing while preserving fine-grained semantic matching. Both approaches represent promising directions for future editions.
