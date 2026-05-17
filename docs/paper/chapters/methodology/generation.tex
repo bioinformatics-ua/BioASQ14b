@@ -1,4 +1,32 @@
-\subsection{Generation (Phases A+ \& B)}
+\subsection{Generation (Phases A+ and B)}
 \label{sec:generation}
 
-Text
+The generation phase underwent its most substantial revision in this edition, with two major innovations: an LLM-as-a-judge framework and a multi-agent quorum mechanism.
+
+\subsubsection{LLM as a Judge}
+
+In previous editions, we employed a simple ensemble of different models with majority voting for answer selection. For the 14th edition, we replaced this with an LLM-as-a-judge framework. Rather than applying a fixed aggregation rule, we used a separate LLM instance to evaluate the outputs of different generation models and select the best candidate answer, or to synthesize a superior answer by combining elements from multiple outputs.
+
+The judge model receives all candidate answers along with the original question and the retrieved context, and is prompted to critically evaluate each answer for factual accuracy, completeness, and coherence with respect to the provided evidence. The judge can either select the strongest answer or produce a hybrid answer that integrates the most relevant information from multiple candidates. This approach proved more flexible than rigid voting schemes, particularly when candidate answers contained complementary information.
+
+\subsubsection{Agent Quorum Mechanism}
+
+The most significant methodological innovation for this edition is the agent quorum, a multi-agent debate framework designed to produce more robust and well-reasoned answers. The mechanism operates as follows.
+
+\textbf{Agent configuration.} Multiple agents are instantiated, each with a potentially different LLM or a different system prompt. This diversity of perspectives is intended to surface different aspects of the retrieved evidence and reduce the risk of individual model biases or hallucinations.
+
+\textbf{Adaptive document retention.} Documents and their corresponding snippets are provided to agents through an adaptive retention protocol. Initially, each agent receives three randomly selected documents from the retrieval set. After analyzing these documents, each agent decides which documents to retain. If an agent retains fewer than three documents, its next round includes those retained documents plus additional randomly selected documents to bring the total back to three. If an agent retains all three, the next round includes four documents (the three retained plus one new random document), and so on. This mechanism allows agents to maintain focus on the documents they deem most relevant while preserving some diversity in the evidence pool, preventing premature convergence on suboptimal information.
+
+\textbf{Debate and scoring.} In each round, every agent produces both an opinion---its current best answer to the question---and a confidence score drawn from the set $\{\text{strongly\_disagree}, \text{disagree}, \text{agree}, \text{strongly\_agree}\}$. Agents are ordered randomly in each round to prevent anchoring effects. During the debate, agents are shown the opinions and scores of all other agents from the current round and must comment on them. These comments can influence subsequent rounds, as agents may revise their opinions in light of competing evidence or arguments raised by others.
+
+\textbf{Convergence criteria.} The quorum continues for multiple rounds until one of three stopping conditions is met: (1)~all agents reach the \texttt{strongly\_agree} score, indicating full consensus; (2)~a predefined maximum number of rounds is reached; or (3)~the scores remain unchanged for a specified number of consecutive rounds, indicating a stable disagreement that further debate is unlikely to resolve.
+
+\textbf{Final summarization.} Once the quorum concludes, a designated summarization model consolidates the outputs of all agents into a single final answer. This model is instructed to synthesize the key evidence and reasoning from the debate, producing a concise answer that reflects the consensus (or majority view) that emerged during the quorum process.
+
+\subsubsection{Snippet-Based Generation}
+
+The incorporation of snippets into the generation pipeline was found to significantly improve the efficiency of the agent quorum. By focusing the agents on specific, relevant passages rather than full document abstracts, the debate converged more rapidly. Snippets reduced the cognitive load on individual agents, allowing them to more quickly identify relevant evidence and detect factual inconsistencies in other agents' opinions. This acceleration of the consensus process translated into both faster inference times and, qualitatively, more precise final answers.
+
+\subsubsection{Prompting and Model Selection}
+
+We employed a diverse set of LLMs for generation, including instruction-tuned variants of Llama~3, Nemotron, and OpenBioLLM. System prompts were designed to elicit structured reasoning, requiring models to first extract relevant facts from the provided context before formulating an answer. For the agent quorum specifically, prompts instructed agents to explicitly reference the evidence supporting their claims and to engage constructively with the opinions of other agents.

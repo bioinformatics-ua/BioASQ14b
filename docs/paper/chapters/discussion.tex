@@ -1,4 +1,40 @@
 \section{Discussion}
 \label{sec:discussion}
 
-Text
+This year's participation represents the most significant architectural evolution of our BioASQ pipeline since we began competing. Several themes emerge from our experience with the 14th edition.
+
+\subsection{Impact of Architectural Changes}
+
+The migration from PyTerrier PISA to pg\_textsearch for BM25 retrieval and from flat-file embedding storage to Qdrant represents a meaningful operational improvement beyond raw retrieval metrics. The elimination of separate index-loading steps reduced the iteration cycle time for pipeline development, allowing more experiments per batch. The PostgreSQL-centric architecture, where documents, BM25 indexes, and metadata coexist in a single database, simplified data management and reduced the risk of synchronization errors between document versions and retrieval indexes.
+
+The adoption of TEI for embedding generation further accelerated our workflow. The Rust-based implementation's throughput advantage over Python-based model loading enabled us to regenerate the full PubMed embedding index in hours rather than days, making it practical to experiment with different embedding models and configurations.
+
+\subsection{Reranker Training and Model Diversity}
+
+Our expanded reranker training pipeline, incorporating 29 models across diverse architectures, revealed several instructive patterns. The LLaMA Nemotron reranker achieved near-perfect validation scores (MAP-bioasq@10 of 0.9995), dramatically outperforming all BERT-based variants. However, validation scores measured on 13B golden data do not necessarily translate to equivalent gains on 14B test sets, where question distributions and annotation patterns may differ. The gap between general-domain and biomedical-specific models narrowed compared to previous years, suggesting that modern large language models pretrained on broad corpora can effectively transfer to specialized biomedical text when fine-tuned with appropriate training data.
+
+The inclusion of dense retrieval results in negative sampling for reranker training was a methodological improvement that we believe contributed to the reranker's ability to discriminate between relevant and irrelevant documents retrieved through different paradigms. This is particularly important in a hybrid retrieval setting where BM25 and dense retrieval may surface different types of false positives.
+
+\subsection{Agent Quorum: Promise and Limitations}
+
+The agent quorum mechanism represents a novel direction for answer generation that moves beyond simple ensembling. By enabling structured debate and iterative consensus-building, the quorum leverages the complementary strengths of different models and prompts. The adaptive document retention protocol addresses a key challenge in multi-agent systems: balancing focus on relevant evidence with exposure to diverse information sources.
+
+However, the quorum approach introduces computational overhead proportional to the number of agents and debate rounds. In practice, we found that three to four agents with two to three debate rounds provided a reasonable trade-off between answer quality and inference cost. The convergence criteria proved effective at preventing both premature consensus and endless debate, though we observed that strongly disagreeing agents occasionally produced more insightful final answers than those that reached rapid agreement, as the disagreement forced deeper engagement with the evidence.
+
+The finding that snippets accelerated the quorum process is intuitively appealing: by focusing agents on specific text passages rather than entire abstracts, the debate centers on concrete evidence rather than high-level document summaries. This aligns with the broader observation in retrieval-augmented generation that precise, passage-level context yields more faithful answers.
+
+\subsection{Evaluation Challenges}
+
+Our experience in the 13th edition highlighted the persistent misalignment between automatic evaluation metrics and human judgments, a theme that remains relevant. While the 14th edition's official results provide batch-wise rankings, the true quality of generated answers—particularly ideal answers—can only be assessed through human evaluation. We caution against over-interpreting small differences in ROUGE-based scores, which are known to correlate imperfectly with answer quality in the biomedical domain.
+
+The variability in system rankings across batches, observed both in our results and in previous years, underscores the importance of cross-batch consistency as a design goal. Systems that perform well on one batch may underperform on another due to differences in question types, difficulty distributions, or gold-standard annotation patterns. We view robustness across batches as a more informative signal than peak performance on any single batch.
+
+\subsection{Future Work}
+
+Several directions emerge from this year's work. First, the SPLARe and ColBERT approaches, while not yet deployed in competition, represent promising avenues for improving the retrieval stage. SPLARe's learned sparse representations could combine the efficiency of lexical retrieval with the semantic awareness of dense methods, while ColBERT's late interaction paradigm offers a compelling trade-off between indexing efficiency and retrieval precision.
+
+Second, the agent quorum mechanism can be extended in several ways. Role specialization, where agents assume distinct roles (e.g., fact-checker, synthesizer, skeptic), may produce more structured and productive debates. Dynamic prompt selection based on question type could optimize agent behavior for different answer formats. Additionally, incorporating explicit confidence calibration into the scoring mechanism could improve the reliability of the consensus process.
+
+Third, we plan to further investigate the relationship between retrieval quality and generation quality. The performance gap between Phase~A+ (system-retrieved documents) and Phase~B (gold-standard documents) indicates that retrieval remains a bottleneck for generation, and continued improvements in Phase~A should yield downstream benefits.
+
+Finally, the snippet generation subtask, while challenging, provides a natural bridge between retrieval and generation. Improving snippet extraction may benefit both the retrieval evaluation (by providing more precise evidence) and the generation process (by supplying the agent quorum with more focused context).

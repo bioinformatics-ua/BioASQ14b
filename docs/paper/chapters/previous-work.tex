@@ -1,4 +1,22 @@
 \section{Previous Work}
 \label{sec:previous-work}
 
-Text
+In our participation in BioASQ~13B~\cite{jonker2025bit}, our system comprised a hybrid two-stage retrieval pipeline for Phase~A and a retrieval-augmented generation (RAG) framework for Phases~A+~and~B.
+
+\subsection{Phase A: Document Retrieval}
+
+For document retrieval, we employed BM25-based first-stage retrieval using the PISA framework~\cite{mallia2019pisa, macavaney2022python} to efficiently filter candidate documents from the PubMed corpus. This was followed by neural reranking using transformer-based cross-encoders, specifically PubMedBERT~\cite{gu2021domain} and BioLinkBERT~\cite{yasunaga2022linkbert}, applied to the top 1,000 BM25-retrieved documents. To further enhance retrieval, we incorporated Dense Pseudo Relevance Feedback (DPRF) using BGE-M3~\cite{chen2024bge} embeddings. The outputs from multiple rerankers were combined using reciprocal rank fusion (RRF).
+
+Key conclusions from Phase~A in the 13th edition included: (1)~base model variants generally performed comparably to their large counterparts; (2)~higher data quality led to better performance than data quantity, a finding confirmed by official evaluation; (3)~DPRF yielded consistent although modest improvements; and (4)~reducing the number of reranked documents from 1,000 to 100 had negligible impact on performance while enabling much faster inference. Our Phase~A systems consistently achieved top rankings, with DPRF-based submissions outperforming larger ensembles in most batches.
+
+\subsection{Phases A+ and B: Answer Generation}
+
+For answer generation, we adopted a RAG framework providing the top retrieved documents as context to large language models including Llama~3~70B, Nous-Hermes2-Mixtral, LLaMA~Nemotron~70B, OpenBioLLM~\cite{pal2024openbiollms}, and a custom fine-tuned Gemma~3~27B model~\cite{gemma2025}. The Gemma model was fine-tuned in two stages using LoRA~\cite{hu2022lora}: first on a custom biomedical dataset for knowledge injection, then specifically for RAG tasks.
+
+A key architectural change was the unification of ensembling and summarization into a single generation step, where a summarization prompt combined outputs from multiple models into one coherent answer. We also transitioned our inference engine from Ollama to LMDeploy~\cite{lmdeploy2023} for faster generation.
+
+Critical insights from the 13th edition included the persistent misalignment between automatic evaluation metrics and human judgments. Systems optimized for high ROUGE-based F1 scores were often rated poorly by human evaluators, and vice versa. This discrepancy exposed fundamental limitations in relying on automatic metrics alone and motivated a shift towards prioritizing robustness and consistency across batches. The lack of intermediate results between batches in the 13th edition inadvertently encouraged us to focus on cross-batch generalization rather than short-term metric optimization.
+
+Our generation systems remained the weakest component across editions. While summarization techniques yielded modest F1 gains at the expense of recall, these changes translated into substantial improvements in human evaluation scores. The use of snippets consistently produced top recall scores, though this did not always translate into high human evaluation rankings.
+
+These findings directly informed our 14th edition strategy, where we sought to address the architectural and methodological limitations identified in our previous work while maintaining the elements that proved effective.

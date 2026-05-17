@@ -1,4 +1,10 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-Text
+This paper presented the participation of the BIT.UA team in the 14th edition of the BioASQ Task~B challenge on biomedical question answering. We introduced a comprehensively refactored and modular codebase alongside significant methodological innovations across all phases of the pipeline.
+
+In Phase~A document retrieval, the transition from PyTerrier PISA to PostgreSQL-based pg\_textsearch for BM25 retrieval and the adoption of Qdrant for dense embedding indexing streamlined our infrastructure while maintaining competitive retrieval performance. The use of TEI for embedding generation, HyDE and Context-1 for query expansion, and a redesigned reranker training pipeline incorporating dense retrieval negatives contributed to a more flexible and efficient retrieval system. We achieved top rankings in multiple test batches, demonstrating the effectiveness of these architectural choices.
+
+In Phases~A+ and B answer generation, we introduced two complementary innovations: an LLM-as-a-judge framework that replaced rigid voting schemes with flexible, context-aware answer evaluation, and a novel agent quorum mechanism that enables multiple models with diverse perspectives to debate and converge on consensus answers. The incorporation of snippet-level evidence accelerated the quorum process and improved answer precision. We also participated in the snippet generation subtask for the first time, establishing a foundation for future improvements.
+
+The 14th edition of BioASQ continues to provide an invaluable platform for rigorous benchmarking and reflective system development in biomedical question answering. The challenge's structure, spanning retrieval, exact answering, and summarization across multiple test batches, encourages holistic system design rather than narrow metric optimization. Our experience this year reinforces the importance of architectural robustness, cross-batch consistency, and methodological innovation as complementary pillars of competitive biomedical QA systems. We look forward to building on these foundations in future editions.

@@ -1,5 +1,3 @@
-
-
 %% The first command in your LaTeX source must be the \documentclass command.
 %%
 %% Options:
@@ -39,69 +37,69 @@ International (CC BY 4.0).}
 
 %%
 %% The "title" command
-\title{A better way to format your document for CEUR-WS using LaTeX}
+\title{IEETA at BioASQ 14B: Modular Retrieval with pg\_textsearch and Qdrant, and Agent-Based Answer Generation}
 
-\title[mode=sub]{<Lab name> at CLEF 2026}
-
-\tnotemark[1]
-\tnotetext[1]{You can use this document as the template for preparing your
-publication. We recommend using the latest version of the ceurart style.}
+\title[mode=sub]{BIT.UA at CLEF 2026}
 
 %%
 %% The "author" command and its associated commands are used to define
 %% the authors and their affiliations.
-\author[1,2]{Dmitry S. Kulyabov}[%
-  orcid=0000-0002-0877-7063,
-  email=kulyabov-ds@rudn.ru,
-  url=https://yamadharma.github.io/,
+\author[1]{Richard A. A. Jonker}[%
+  orcid=0000-0002-3806-6940,
+  email=richard.jonker@ua.pt,
 ]
 \cormark[1]
-\fnmark[1]
-\address[1]{Peoples' Friendship University of Russia (RUDN University),
-6 Miklukho-Maklaya St, Moscow, 117198, Russian Federation}
-\address[2]{Joint Institute for Nuclear Research,
-6 Joliot-Curie, Dubna, Moscow region, 141980, Russian Federation}
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
 
-\author[3]{Ilaria Tiddi}[%
-  orcid=0000-0001-7116-9338,
-  email=i.tiddi@vu.nl,
-  url=https://kmitd.github.io/ilaria/,
+\author[1]{Ruben Garrido}[%
+  email=ruben.garrido@ua.pt,
 ]
-\fnmark[1]
-\address[3]{Vrije Universiteit Amsterdam, De Boelelaan 1105, 1081 HV Amsterdam, The Netherlands}
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
 
-\author[4]{Manfred Jeusfeld}[%
-  orcid=0000-0002-9421-8566,
-  email=Manfred.Jeusfeld@acm.org,
-  url=http://conceptbase.sourceforge.net/mjf/,
+\author[1]{Andr\'{e} Ribeiro}[%
+  email=andreribeiro@ua.pt,
 ]
-\fnmark[1]
-\address[4]{University of Skövde, Högskolevägen 1, 541 28 Skövde, Sweden}
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
+
+\author[1]{Tiago Almeida}[%
+  orcid=0000-0002-4258-3350,
+  email=tiagomeloalmeida@ua.pt,
+]
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
+
+\author[1]{Jo\~{a}o R. Almeida}[%
+  orcid=0000-0003-0729-2264,
+  email=joao.rafael.almeida@ua.pt,
+]
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
+
+\author[1]{S\'{e}rgio Matos}[%
+  orcid=0000-0003-1941-3983,
+  email=aleixomatos@ua.pt,
+]
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
 
 %% Footnotes
 \cortext[1]{Corresponding author.}
-\fntext[1]{These authors contributed equally.}
 
 %%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-  A clear and well-documented \LaTeX{} document is presented as an
-  article formatted for publication by CEUR-WS in a conference
-  proceedings. Based on the ``ceurart'' document class, this article
-  presents and explains many of the common variations, as well as many
-  of the formatting elements an author may use in the preparation of
-  the documentation of their work.
+This paper describes the participation of the BIT.UA team from the University of Aveiro in the 14th edition of the BioASQ Task B challenge on biomedical question answering. Building on our previous submissions, we introduced a substantially refactored and modular codebase, and made significant changes to both the retrieval and generation components of the pipeline. For Phase~A document retrieval, we replaced the PyTerrier PISA index with PostgreSQL-based pg\_textsearch for BM25 retrieval and adopted Qdrant for dense embedding indexing, enabling more efficient storage and GPU-accelerated similarity search. We employed the Text Embeddings Interface (TEI) for embedding generation and explored HyDE-based query expansion alongside a Context-1 retrieval strategy. A new reranker training pipeline was developed, incorporating dense retrieval for negative sampling. For Phases A+ and B answer generation, we introduced an LLM-as-a-judge framework and a novel agent quorum mechanism, where multiple agents with diverse prompts debate and iteratively converge on a consensus answer using adaptive document retention. We also participated in the snippets generation subtask for the first time. Our systems achieved competitive results across all batches, with our best Phase~A system ranking first in multiple test batches. We discuss the impact of these architectural changes, lessons learned, and outline directions for future work including SPLARe and ColBERT integration.
 \end{abstract}
 
 %%
 %% Keywords. The author(s) should pick words that accurately describe
 %% the work being presented. Separate the keywords with commas.
 \begin{keywords}
-  LaTeX class \sep
-  paper template \sep
-  paper formatting \sep
-  CEUR-WS
+  Information Retrieval \sep
+  Document Retrieval \sep
+  Dense Retrieval \sep
+  Large Language Model \sep
+  Answer Generation \sep
+  Multi-Agent Systems \sep
+  Biomedical Question Answering
 \end{keywords}
 
 %%
