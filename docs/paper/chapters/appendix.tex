@@ -1,0 +1,47 @@
+\section{Appendix: Trained Reranker Models}
+\label{sec:appendix-models}
+
+Table~\ref{tab:all-rerankers} lists all 29 reranker models trained for Phase~A document retrieval. Models are identified by their base architecture, training epochs (E), sampler (S), loss type, and data configuration. ``FullData'' indicates training on the full available dataset; ``shifter'' refers to the Shifter sampling strategy for negative selection.
+
+\begin{table}[ht]
+\centering
+\caption{Complete list of reranker models trained for the 14th edition. \texttt{E} = epochs, \texttt{S} = sampler, \texttt{M} = loss type, \texttt{FullData} = trained on the full dataset.}
+\label{tab:all-rerankers}
+\begin{tabular}{llcccl}
+\hline
+\textbf{Model} & \textbf{Size} & \textbf{E} & \textbf{S} & \textbf{Loss} & \textbf{Notes} \\
+\hline
+LLaMA Nemotron rerank 1B & 1B & 2 & 4 & multi\_neg\_pairwise & InfoNCE, FullData \\
+LLaMA Nemotron rerank 1B & 1B & 2 & --- & pairwise & 13B1+13B2 data \\
+LLaMA Nemotron rerank 1B & 1B & 5 & shifter & pairwise & \\
+BGE-reranker-v2-m3 & 568M & 2 & 1 & pairwise & FullData, shifter \\
+BGE-reranker-v2-m3 & 568M & 5 & shifter & pairwise & \\
+BGE-reranker-base & 278M & 2 & 1 & pairwise & FullData, shifter \\
+BGE-reranker-base & 278M & 5 & shifter & pairwise & \\
+BioLinkBERT-base & 110M & 2 & 1 & pairwise & FullData, shifter \\
+BioLinkBERT-base & 110M & 5 & shifter & pairwise & \\
+BioLinkBERT-large & 340M & 2 & 1 & pairwise & FullData, shifter \\
+PubMedBERT-base & 110M & 2 & 1 & pairwise & FullData, shifter \\
+PubMedBERT-base & 110M & 5 & shifter & pairwise & \\
+MedCPT-Cross-Encoder & 110M & 2 & 1 & pairwise & FullData, shifter \\
+MedCPT-Cross-Encoder & 110M & 3 & 1 & pairwise & FullData, shifter \\
+MedCPT-Cross-Encoder & 110M & 5 & shifter & pairwise & \\
+nboost/pt-biobert-base-msmarco & 110M & 2 & 1 & pairwise & FullData, shifter \\
+nboost/pt-biobert-base-msmarco & 110M & 5 & shifter & pairwise & \\
+BioBERT v1.1 PubMed & 110M & 2 & 1 & pairwise & FullData, shifter \\
+BioBERT v1.1 PubMed & 110M & 5 & shifter & pairwise & \\
+S-PubMedBert-MS-MARCO & 110M & 2 & 1 & pairwise & FullData, shifter \\
+S-PubMedBert-MS-MARCO & 110M & 5 & shifter & pairwise & \\
+cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 2 & 1 & pairwise & FullData, shifter \\
+cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 3 & 8 & multi\_neg\_pairwise & \\
+cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 5 & shifter & pairwise & \\
+cross-encoder/ms-marco-electra-base & 110M & 5 & shifter & pairwise & \\
+allenai/specter2\_base & 110M & 5 & shifter & pairwise & \\
+Bio\_ClinicalBERT & 110M & 5 & shifter & pairwise & \\
+SapBERT-from-PubMedBERT-fulltext & 110M & 5 & shifter & pairwise & \\
+dmis-lab/biobert-base-cased-v1.2 & 110M & 5 & shifter & pairwise & \\
+\hline
+\end{tabular}
+\end{table}
+
+\noindent All models were trained with a pairwise ranking loss unless otherwise noted. The Shifter sampler dynamically adjusts the negative sampling strategy during training. Multi-negative pairwise training uses multiple negative documents per positive pair, while InfoNCE is a contrastive loss variant applied to the LLaMA Nemotron model.

@@ -5,28 +5,74 @@ The generation phase underwent its most substantial revision in this edition, wi
 
 \subsubsection{LLM as a Judge}
 
-In previous editions, we employed a simple ensemble of different models with majority voting for answer selection. For the 14th edition, we replaced this with an LLM-as-a-judge framework. Rather than applying a fixed aggregation rule, we used a separate LLM instance to evaluate the outputs of different generation models and select the best candidate answer, or to synthesize a superior answer by combining elements from multiple outputs.
+In previous editions, we employed a simple ensemble of different models with majority voting for answer selection---each model produced an answer independently, and the final answer was chosen by a fixed aggregation rule. While straightforward, majority voting treats all models as equally reliable and cannot leverage cases where one model produces a partially correct answer that could be improved by incorporating elements from another. It also provides no mechanism for evaluating the factual consistency of candidate answers against the retrieved evidence.
 
-The judge model receives all candidate answers along with the original question and the retrieved context, and is prompted to critically evaluate each answer for factual accuracy, completeness, and coherence with respect to the provided evidence. The judge can either select the strongest answer or produce a hybrid answer that integrates the most relevant information from multiple candidates. This approach proved more flexible than rigid voting schemes, particularly when candidate answers contained complementary information.
+For the 14th edition, we replaced majority voting with an LLM-as-a-judge framework. Rather than applying a fixed aggregation rule, a separate LLM instance evaluates the outputs of different generation models and either selects the best candidate answer or synthesizes a superior answer by combining elements from multiple outputs. The judge model receives all candidate answers along with the original question, the question type, the retrieved context, and (when available) reference ideal answers. It is prompted to score each candidate answer along multiple dimensions---correctness, faithfulness to the provided context, and completeness---on a 0--1 scale, with an accompanying rationale.
+
+The judge's system prompt establishes it as a biomedical question-answering evaluator that outputs a structured JSON object containing numerical scores and a concise rationale. The scoring dimensions are: \emph{correctness} (factual accuracy of the answer), \emph{faithfulness} (whether claims are grounded in the retrieved context), \emph{completeness} (whether all aspects of the question are addressed), and \emph{overall} (a holistic quality judgment). This multi-dimensional evaluation provides a richer signal than binary voting and allows the pipeline to prefer answers that are well-supported by evidence, even if they are not the most similar to the majority opinion.
+
+The motivation for adopting an LLM judge over majority voting is twofold. First, an LLM can critically evaluate the evidence grounding of each answer, penalizing hallucinations that a voting scheme would not detect. Second, the judge can identify complementary information across different candidate answers and either select the most comprehensive one or, in some configurations, synthesize a hybrid answer. This flexibility is particularly valuable for ideal answer generation, where different models may emphasize different aspects of the evidence.
+
+In practice, the LLM judge proved especially effective for exact answer types (yes/no, factoid, list), where correctness is more objectively verifiable against context. For ideal answer generation, the agent quorum mechanism (described below) became our primary approach, as it provided richer reasoning through structured debate.
 
 \subsubsection{Agent Quorum Mechanism}
 
 The most significant methodological innovation for this edition is the agent quorum, a multi-agent debate framework designed to produce more robust and well-reasoned answers. The mechanism operates as follows.
 
-\textbf{Agent configuration.} Multiple agents are instantiated, each with a potentially different LLM or a different system prompt. This diversity of perspectives is intended to surface different aspects of the retrieved evidence and reduce the risk of individual model biases or hallucinations.
+\textbf{Agent configuration and thinking focuses.} Multiple agents are instantiated, each with a potentially different LLM and a distinct cognitive focus that shapes how they approach the evidence. The available focuses, drawn from a predefined pool, include: \emph{analytical} (systematically decomposing evidence and identifying logical chains), \emph{evidence-based} (grounding every claim strictly in the provided documents and flagging contradictions between sources), \emph{skeptical} (challenging the debate's direction, seeking gaps in evidence, alternative interpretations, and methodological limitations), \emph{integrative} (synthesizing information across all sources and reconciling apparent contradictions), \emph{pragmatic} (focusing on the most direct, actionable answer and prioritizing precision), and \emph{theoretical} (considering underlying biological mechanisms and established scientific principles). Each agent receives a system prompt that establishes it as a rigorous biomedical scientist participating in a structured expert debate, responding exclusively with valid JSON.
 
 \textbf{Adaptive document retention.} Documents and their corresponding snippets are provided to agents through an adaptive retention protocol. Initially, each agent receives three randomly selected documents from the retrieval set. After analyzing these documents, each agent decides which documents to retain. If an agent retains fewer than three documents, its next round includes those retained documents plus additional randomly selected documents to bring the total back to three. If an agent retains all three, the next round includes four documents (the three retained plus one new random document), and so on. This mechanism allows agents to maintain focus on the documents they deem most relevant while preserving some diversity in the evidence pool, preventing premature convergence on suboptimal information.
 
-\textbf{Debate and scoring.} In each round, every agent produces both an opinion---its current best answer to the question---and a confidence score drawn from the set $\{\text{strongly\_disagree}, \text{disagree}, \text{agree}, \text{strongly\_agree}\}$. Agents are ordered randomly in each round to prevent anchoring effects. During the debate, agents are shown the opinions and scores of all other agents from the current round and must comment on them. These comments can influence subsequent rounds, as agents may revise their opinions in light of competing evidence or arguments raised by others.
+\textbf{Debate and scoring.} In each round, every agent produces both an opinion---its current best answer to the question with detailed reasoning---and an agreement level drawn from the set $\{\text{strongly\_disagree}, \text{disagree}, \text{agree}, \text{strongly\_agree}\}$. Agents are ordered randomly in each round to prevent anchoring effects. During the debate, agents are shown the opinions and agreement levels of all other agents from the current round and are instructed to engage critically: if another agent cites evidence they have not seen, they weigh those claims against their own documents; if they disagree, they explain what specific evidence or reasoning undermines the opposing position; if they agree, they strengthen the argument with additional evidence from their documents. Agents are explicitly warned against premature agreement and are instructed to output \texttt{strongly\_agree} only when genuinely confident that the answer is correct, complete, and well-supported by evidence.
 
-\textbf{Convergence criteria.} The quorum continues for multiple rounds until one of three stopping conditions is met: (1)~all agents reach the \texttt{strongly\_agree} score, indicating full consensus; (2)~a predefined maximum number of rounds is reached; or (3)~the scores remain unchanged for a specified number of consecutive rounds, indicating a stable disagreement that further debate is unlikely to resolve.
+\textbf{Convergence criteria.} The quorum continues for multiple rounds until one of three stopping conditions is met: (1)~all agents reach the \texttt{strongly\_agree} level, indicating full consensus; (2)~a predefined maximum number of rounds is reached; or (3)~the agreement levels remain unchanged for a specified number of consecutive rounds, indicating a stable disagreement that further debate is unlikely to resolve.
 
-\textbf{Final summarization.} Once the quorum concludes, a designated summarization model consolidates the outputs of all agents into a single final answer. This model is instructed to synthesize the key evidence and reasoning from the debate, producing a concise answer that reflects the consensus (or majority view) that emerged during the quorum process.
+\textbf{Final summarization.} Once the quorum concludes, a designated synthesizer model---potentially different from the debate agents---consolidates all debate turns into a single final answer. This model receives the original question, the full set of context documents, and a structured summary of the debate. It is instructed to produce a definitive answer based solely on the evidence in the context documents, informed by the reasoning developed during the debate, without referencing the debate process itself.
+
+\textbf{Agent configurations across batches.} The models and thinking focuses used in the agent quorum evolved across batches as we experimented with different configurations. Table~\ref{tab:quorum-batches} summarizes the agent configurations used in each test batch.
+
+\begin{table}[ht]
+\centering
+\caption{Agent quorum configurations across test batches. Agents are listed with their model identifier and the synthesizer used for final answer generation.}
+\label{tab:quorum-batches}
+\begin{tabular}{lp{5.5cm}p{5.5cm}}
+\hline
+\textbf{Batch} & \textbf{Version} & \textbf{Agents (Model)} \\
+\hline
+B2 & V1 & Qwen3-Next-80B, Nemotron-3-Super-120B, MedGemma-27B \\
+   &    & Synthesizer: Nemotron-3-Super-120B \\
+B2 & V2 & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+   &    & Synthesizer: Claude-Sonnet-4.6 \\
+B2 & V3 & Qwen3-Next-80B, Mimo-v2-Flash, Qwen3.5-35B, Nemotron-3-Super-120B \\
+   &    & Synthesizer: GPT-5.4-Nano \\
+B2 & V4 & Gemma-4-31B, Gemma-4-26B, MedGemma-27B \\
+   &    & Synthesizer: Gemma-4-31B \\
+\hline
+B3 & V0 & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
+   &    & Synthesizer: Gemma-4-E4B \\
+B3 & V1 & Gemma-4-26B, Gemma-4-31B, Nemotron-3-Nano-30B, Qwen3.5-35B \\
+   &    & Synthesizer: Gemma-4-26B \\
+B3 & V2 & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+   &    & Synthesizer: Gemini-2.5-Flash \\
+B3 & V3 & Gemma-4-31B, Qwen3.5-35B, Mistral-Small, Mistral-Large \\
+   &    & Synthesizer: Mistral-Small \\
+\hline
+B4 & V0 & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
+   &    & Synthesizer: Gemma-4-E4B \\
+B4 & V1 & Gemma-4-26B, Gemma-4-31B \\
+   &    & Synthesizer: Gemma-4-26B \\
+B4 & V2 & Nemotron-3-Super-120B, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+   &    & Synthesizer: Gemini-2.5-Flash \\
+B4 & V3 & Qwen3.6-35B, Qwen3.6-27B, Qwen3.6-Flash \\
+   &    & Synthesizer: Qwen3.6-35B \\
+B4 & V4 & Mistral-Medium, Mistral-Small, Mistral-Large \\
+   &    & Synthesizer: Mistral-Medium \\
+B4 & V5 & Mistral-Medium, Mistral-Small \\
+   &    & Synthesizer: Mistral-Medium \\
+\hline
+\end{tabular}
+\end{table}
 
 \subsubsection{Snippet-Based Generation}
 
 The incorporation of snippets into the generation pipeline was found to significantly improve the efficiency of the agent quorum. By focusing the agents on specific, relevant passages rather than full document abstracts, the debate converged more rapidly. Snippets reduced the cognitive load on individual agents, allowing them to more quickly identify relevant evidence and detect factual inconsistencies in other agents' opinions. This acceleration of the consensus process translated into both faster inference times and, qualitatively, more precise final answers.
-
-\subsubsection{Prompting and Model Selection}
-
-We employed a diverse set of LLMs for generation, including instruction-tuned variants of Llama~3, Nemotron, and OpenBioLLM. System prompts were designed to elicit structured reasoning, requiring models to first extract relevant facts from the provided context before formulating an answer. For the agent quorum specifically, prompts instructed agents to explicitly reference the evidence supporting their claims and to engage constructively with the opinions of other agents.
