@@ -8,6 +8,8 @@
   % hf,
 ]{ceurart}
 
+\usepackage{tabularx}
+
 %%
 %% One can fix some overfulls
 \sloppy
@@ -86,7 +88,7 @@ International (CC BY 4.0).}
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-This paper describes the participation of the BIT.UA team from the University of Aveiro in the 14th edition of the BioASQ Task B challenge on biomedical question answering. Building on our previous submissions, we introduced a substantially refactored and modular codebase, and made significant changes to both the retrieval and generation components of the pipeline. For Phase~A document retrieval, we replaced the PyTerrier PISA index with PostgreSQL-based pg\_textsearch for BM25 retrieval and adopted Qdrant for dense embedding indexing, enabling more efficient storage and GPU-accelerated similarity search. We employed the Text Embeddings Interface (TEI) for embedding generation and explored HyDE-based query expansion alongside a Context-1 retrieval strategy. A new reranker training pipeline was developed, incorporating dense retrieval for negative sampling. For Phases A+ and B answer generation, we introduced an LLM-as-a-judge framework and a novel agent quorum mechanism, where multiple agents with diverse prompts debate and iteratively converge on a consensus answer using adaptive document retention. We also participated in the snippets generation subtask for the first time. Our systems achieved competitive results across all batches, with our best Phase~A system ranking first in multiple test batches. We discuss the impact of these architectural changes, lessons learned, and outline directions for future work including SPLADE and ColBERT integration.
+  This paper describes the participation of the BIT.UA team from the University of Aveiro in the 14th edition of the BioASQ Task B challenge on biomedical question answering. Building on our previous submissions, we introduced a substantially refactored and modular codebase, and made significant changes to both the retrieval and generation components of the pipeline. For Phase~A document retrieval, we replaced the PyTerrier PISA index with PostgreSQL-based pg\_textsearch for BM25 retrieval and adopted Qdrant for dense embedding indexing, enabling more efficient storage and GPU-accelerated similarity search. We employed the Text Embeddings Interface (TEI) for embedding generation and explored HyDE-based query expansion alongside a Context-1 retrieval strategy. A new reranker training pipeline was developed, incorporating dense retrieval for negative sampling. For Phases A+ and B answer generation, we introduced an LLM-as-a-judge framework and a novel agent quorum mechanism, where multiple agents with diverse prompts debate and iteratively converge on a consensus answer using adaptive document retention. We also participated in the snippets generation subtask for the first time. Our systems achieved competitive results across all batches, with our best Phase~A system ranking first in multiple test batches. We discuss the impact of these architectural changes, lessons learned, and outline directions for future work including SPLADE and ColBERT integration.
 \end{abstract}
 
 %%
@@ -114,7 +116,6 @@ This paper describes the participation of the BIT.UA team from the University of
 \input{chapters/discussion}
 \input{chapters/conclusion}
 \input{chapters/appendix}
-
 
 \bibliography{references}
 
