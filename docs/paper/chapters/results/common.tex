@@ -1,7 +1,7 @@
 \section{Results}
 \label{sec:results}
 
-This section presents both our internal validation results and the official evaluation results for each phase across the four test batches of the 14th BioASQ challenge. Our systems are labeled \texttt{bioinfo-0} through \texttt{bioinfo-4}, representing different configurations submitted across batches.
+This section presents both our internal validation results and the official evaluation results for each phase across the four test batches of the 14th BioASQ challenge. Our systems are labeled \texttt{bioinfo-0} through \texttt{bioinfo-4}, representing different configurations submitted across batches. For each absolute-value table, we also provide the corresponding ranking table showing the relative position of each system within the full competition field (lower rank = better). Systems sharing the same score receive the same rank, and subsequent ranks are skipped accordingly.
 
 \subsection{Internal Retrieval Testing}
 \label{sec:internal-retrieval}
@@ -10,7 +10,7 @@ We conducted extensive internal testing of the various retrieval strategies intr
 
 \begin{table}[ht]
   \centering
-  \caption{Internal retrieval testing results comparing BM25 baseline, fusion strategies (RRF and weighted sum), reranked variants, and Context-1. ``Docs'' is the average number of documents retrieved per question. Bold values indicate the best result in each column.}
+  \caption{Internal retrieval testing results comparing BM25 baseline, fusion strategies (RRF and weighted sum), reranked variants, and Context-1. Bold values indicate the best result in each column.}
   \label{tab:internal-retrieval}
   \footnotesize
   \begin{tabular}{lcccccc}
@@ -33,7 +33,7 @@ Several patterns emerge from these results. The BM25 baseline retrieves slightly
 
 The addition of a neural reranker produces mixed but instructive results. When applied to the RRF-fused results, the BGE-reranker-v2-m3 yields an MRR of 0.649, slightly below the un-reranked RRF baseline (0.696), while the base variant drops to 0.498. However, when the reranker is applied to the weighted-sum results, the v2-m3 model achieves the best MRR overall (0.738), suggesting an interaction between the fusion method and the reranker: weighted sum preserves score magnitudes that the reranker can exploit, whereas RRF discards score information in favor of ranks. The base reranker variant consistently underperforms its v2-m3 counterpart, confirming the expected performance hierarchy between these models observed in our validation.
 
-Context-1 achieves the highest M@100 (14.16) and R@100 (0.453), demonstrating its ability to surface a broader set of relevant documents than the single-pass hybrid approaches. However, its MRR (0.508) is lower than the best fusion configurations, indicating that while Context-1 is effective at exploration—finding more relevant documents overall—it is less precise at ranking the most relevant documents first. This is consistent with Context-1's design as a retrieval subagent optimized for recall, intended to feed a downstream reranker or reasoning model rather than to produce a final ranking directly.
+Context-1 achieves the highest M@100 (14.16) and R@100 (0.453), demonstrating its ability to surface a broader set of relevant documents than the single-pass hybrid approaches. However, its MRR (0.508) is lower than the best fusion configurations, indicating that while Context-1 is effective at exploration---finding more relevant documents overall---it is less precise at ranking the most relevant documents first. This is consistent with Context-1's design as a retrieval subagent optimized for recall, intended to feed a downstream reranker or reasoning model rather than to produce a final ranking directly.
 
 \subsection{Internal Validation: Reranker Models}
 \label{sec:internal-validation}
@@ -42,7 +42,7 @@ Prior to the competition, we conducted internal validation of our reranker model
 
 \begin{table}[ht]
   \centering
-  \caption{Internal validation results for selected reranker models on the 13B golden datasets. \texttt{map-bioasq@10} is the primary metric.}
+  \caption{Internal validation results for selected reranker models on the 13B golden datasets.}
   \label{tab:reranker-val}
   \begin{tabular}{lcc}
     \hline
@@ -66,11 +66,11 @@ The LLaMA Nemotron reranker models achieved outstanding validation performance, 
 \subsection{Official Results: Phase A (Document Retrieval)}
 \label{sec:results-phase-a}
 
-The official Phase~A results across the four test batches are presented in Tables~\ref{tab:phasea-b1}--\ref{tab:phasea-b4}. Each system varies in the combination of retrieval strategies, including the choice of BM25 backend, dense retrieval configuration, expansion method, and fusion strategy.
+The official Phase~A document retrieval results across the four test batches are presented below. For each batch, we show both the absolute scores (Tables~\ref{tab:phasea-b1}--\ref{tab:phasea-b4}) and the corresponding competition rankings (Tables~\ref{tab:phasea-b1-rank}--\ref{tab:phasea-b4-rank}), which indicate each system's position relative to all other submissions. Ranking is based on MAP.
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A document retrieval results for Test Batch 1.}
+  \caption{Phase A document retrieval absolute scores for Test Batch 1.}
   \label{tab:phasea-b1}
   \begin{tabular}{lccccc}
     \hline
@@ -83,11 +83,25 @@ The official Phase~A results across the four test batches are presented in Table
     bioinfo-0 & 0.0850 & 0.2937 & 0.1200 & 0.1476 & 0.0014 \\
     \hline
   \end{tabular}
+  \par\medskip
+  \caption{Ranking positions for Test Batch 1 (lower is better). Ties share the same rank.}
+  \label{tab:phasea-b1-rank}
+  \begin{tabular}{lccccc}
+    \hline
+    \textbf{System} & \textbf{MAP} & \textbf{Prec.} & \textbf{Recall} & \textbf{F-M} & \textbf{GMAP} \\
+    \hline
+    bioinfo-3 & 6 & 9 & 7 & 8 & 8 \\
+    bioinfo-4 & 8 & 4 & 4 & 4 & 7 \\
+    bioinfo-2 & 10 & 6 & 5 & 5 & 6 \\
+    bioinfo-1 & 25 & 17 & 10 & 12 & 12 \\
+    bioinfo-0 & 28 & 19 & 11 & 14 & 14 \\
+    \hline
+  \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A document retrieval results for Test Batch 2.}
+  \caption{Phase A document retrieval absolute scores for Test Batch 2.}
   \label{tab:phasea-b2}
   \begin{tabular}{lccccc}
     \hline
@@ -100,11 +114,25 @@ The official Phase~A results across the four test batches are presented in Table
     bioinfo-3 & 0.0438 & 0.1845 & 0.0667 & 0.0718 & 0.0003 \\
     \hline
   \end{tabular}
+  \par\medskip
+  \caption{Ranking positions for Test Batch 2 (lower is better).}
+  \label{tab:phasea-b2-rank}
+  \begin{tabular}{lccccc}
+    \hline
+    \textbf{System} & \textbf{MAP} & \textbf{Prec.} & \textbf{Recall} & \textbf{F-M} & \textbf{GMAP} \\
+    \hline
+    bioinfo-4 & 12 & 9 & 9 & 12 & 11 \\
+    bioinfo-1 & 13 & 7 & 14 & 11 & 10 \\
+    bioinfo-0 & 44 & 36 & 44 & 39 & 26 \\
+    bioinfo-2 & 50 & 48 & 50 & 50 & 35 \\
+    bioinfo-3 & 51 & 48 & 50 & 50 & 35 \\
+    \hline
+  \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A document retrieval results for Test Batch 3.}
+  \caption{Phase A document retrieval absolute scores for Test Batch 3.}
   \label{tab:phasea-b3}
   \begin{tabular}{lccccc}
     \hline
@@ -117,11 +145,25 @@ The official Phase~A results across the four test batches are presented in Table
     bioinfo-4 & 0.0383 & 0.1927 & 0.0620 & 0.0993 & 0.0003 \\
     \hline
   \end{tabular}
+  \par\medskip
+  \caption{Ranking positions for Test Batch 3 (lower is better).}
+  \label{tab:phasea-b3-rank}
+  \begin{tabular}{lccccc}
+    \hline
+    \textbf{System} & \textbf{MAP} & \textbf{Prec.} & \textbf{Recall} & \textbf{F-M} & \textbf{GMAP} \\
+    \hline
+    bioinfo-0 & 7 & 9 & 10 & 10 & 8 \\
+    bioinfo-1 & 14 & 6 & 11 & 8 & 12 \\
+    bioinfo-2 & 19 & 12 & 15 & 16 & 15 \\
+    bioinfo-3 & 32 & 27 & 28 & 27 & 30 \\
+    bioinfo-4 & 35 & 35 & 33 & 34 & 30 \\
+    \hline
+  \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A document retrieval results for Test Batch 4.}
+  \caption{Phase A document retrieval absolute scores for Test Batch 4.}
   \label{tab:phasea-b4}
   \begin{tabular}{lccccc}
     \hline
@@ -134,267 +176,312 @@ The official Phase~A results across the four test batches are presented in Table
     bioinfo-1 & 0.0783 & 0.2977 & 0.1142 & 0.1163 & 0.0013 \\
     \hline
   \end{tabular}
+  \par\medskip
+  \caption{Ranking positions for Test Batch 4 (lower is better).}
+  \label{tab:phasea-b4-rank}
+  \begin{tabular}{lccccc}
+    \hline
+    \textbf{System} & \textbf{MAP} & \textbf{Prec.} & \textbf{Recall} & \textbf{F-M} & \textbf{GMAP} \\
+    \hline
+    bioinfo-2 & 10 & 7 & 4 & 5 & 2 \\
+    bioinfo-0 & 12 & 12 & 14 & 12 & 12 \\
+    bioinfo-3 & 28 & 23 & 33 & 27 & 11 \\
+    bioinfo-4 & 28 & 23 & 33 & 27 & 11 \\
+    bioinfo-1 & 44 & 16 & 16 & 16 & 15 \\
+    \hline
+  \end{tabular}
 \end{table}
 
-Across the four batches, our Phase~A systems demonstrated competitive performance. The best MAP scores were achieved by \texttt{bioinfo-3} in Batch~1 (0.2479), \texttt{bioinfo-4} in Batch~2 (0.1922), \texttt{bioinfo-0} in Batch~3 (0.1887), and \texttt{bioinfo-2} in Batch~4 (0.1959). The variability in system rankings across batches is consistent with previous years, reflecting the inherent difficulty of the retrieval task and variations in question difficulty distributions between batches.
+Across the four batches, our Phase~A systems demonstrated competitive performance, with multiple top-10 rankings. \texttt{bioinfo-3} achieved the best MAP rank in Batch~1 (6th), \texttt{bioinfo-0} ranked 7th in Batch~3, and \texttt{bioinfo-2} reached 2nd in GMAP in Batch~4. The variability in system rankings across batches is consistent with previous years, reflecting the inherent difficulty of the retrieval task and variations in question distributions between batches.
 
 \subsection{Official Results: Snippet Retrieval (Phase A)}
 \label{sec:results-snippets}
 
-For the snippet retrieval subtask, we participated starting from Test Batch~3, as the snippet generation pipeline was not fully operational for the first two batches. The results are shown in Table~\ref{tab:snippets}.
+For the snippet retrieval subtask, we participated starting from Test Batch~3, as the snippet generation pipeline was not fully operational for the first two batches. The absolute scores and ranking positions are shown in Table~\ref{tab:snippets}.
 
 \begin{table}[ht]
   \centering
-  \caption{Snippet retrieval results across test batches. Batches 1 and 2 have no snippet data.}
+  \caption{Snippet retrieval absolute scores and ranking positions across test batches. Rankings shown in parentheses next to each score.}
   \label{tab:snippets}
-  \begin{tabular}{lccccc}
+  \begin{tabular}{llccccc}
     \hline
-    \textbf{Batch} & \textbf{System} & \textbf{Precision} & \textbf{Recall} & \textbf{F-Measure} & \textbf{MAP} \\
+    \textbf{Batch} & \textbf{System} & \textbf{MAP (rank)} & \textbf{Prec. (rank)} & \textbf{Recall (rank)} & \textbf{F-M (rank)} & \textbf{GMAP (rank)} \\
     \hline
-    B3 & bioinfo-0 & 0.0196 & 0.1409 & 0.0319 & 0.0546 \\
-    B3 & bioinfo-1 & 0.0236 & 0.1374 & 0.0373 & 0.0352 \\
-    B4 & bioinfo-0 & 0.0375 & 0.1335 & 0.0525 & 0.0591 \\
-    B4 & bioinfo-2 & 0.0533 & 0.1192 & 0.0638 & 0.0495 \\
+    B3 & bioinfo-0 & 0.0546 (7) & 0.0196 (13) & 0.1409 (7) & 0.0319 (11) & 0.0005 (5) \\
+    B3 & bioinfo-1 & 0.0352 (12) & 0.0236 (11) & 0.1374 (8) & 0.0373 (7) & 0.0003 (6) \\
+    B3 & bioinfo-2 & 0.0375 (10) & 0.0156 (20) & 0.1255 (11) & 0.0260 (18) & 0.0003 (6) \\
+    B3 & bioinfo-3 & 0.0267 (14) & 0.0092 (27) & 0.0637 (26) & 0.0139 (26) & 0.0001 (11) \\
+    B3 & bioinfo-4 & 0.0130 (18) & 0.0085 (29) & 0.0613 (28) & 0.0132 (29) & 0.0001 (11) \\
+    \hline
+    B4 & bioinfo-0 & 0.0591 (17) & 0.0375 (19) & 0.1335 (13) & 0.0525 (18) & 0.0004 (6) \\
+    B4 & bioinfo-2 & 0.0495 (20) & 0.0533 (10) & 0.1192 (16) & 0.0638 (11) & 0.0005 (5) \\
+    B4 & bioinfo-4 & 0.0490 (21) & 0.0413 (15) & 0.1235 (15) & 0.0511 (17) & 0.0006 (4) \\
+    B4 & bioinfo-3 & 0.0431 (25) & 0.0353 (21) & 0.1095 (18) & 0.0452 (21) & 0.0004 (6) \\
+    B4 & bioinfo-1 & 0.0296 (35) & 0.0375 (19) & 0.0978 (21) & 0.0459 (20) & 0.0002 (14) \\
     \hline
   \end{tabular}
 \end{table}
 
-Snippet retrieval performance was modest, reflecting the difficulty of the task and our first attempt at this subtask. The F-Measure scores indicate that precise identification of relevant text spans remains challenging, though performance improved between Batch~3 and Batch~4, suggesting that rapid iteration on the snippet extraction methodology yielded measurable gains.
+Snippet retrieval performance was modest, reflecting the difficulty of the task and our first attempt at this subtask. The best MAP ranks were 7th (\texttt{bioinfo-0}, Batch~3) and 17th (\texttt{bioinfo-0}, Batch~4). Performance improved between Batch~3 and Batch~4 in terms of absolute F-Measure, suggesting that rapid iteration on the snippet extraction methodology yielded measurable gains, though ranking positions remained competitive but outside the top tier.
 
 \subsection{Official Results: Phase A+ (Exact and Ideal Answers)}
 \label{sec:results-phase-aplus}
 
-Phase~A+ requires generating exact answers (yes/no, factoid, and list-type questions) as well as ideal answers (paragraph-length summaries). Results across the four batches are presented in Tables~\ref{tab:phaseap-b1}--\ref{tab:phaseap-b4}.
+Phase~A+ requires generating exact answers (yes/no, factoid, and list-type questions) as well as ideal answers (paragraph-length summaries). For each batch, we present both the absolute scores and the competition rankings side by side.
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A+ results for Test Batch 1.}
+  \caption{Phase A+ exact answer scores and rankings for Test Batch 1. Rankings shown in parentheses.}
   \label{tab:phaseap-b1}
+  \footnotesize
   \begin{tabular}{lcccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \hline
-    bioinfo-1 & 0.8824 & 0.8786 & 0.3043 & 0.3478 & 0.3261 & 0.1461 & 0.2485 & 0.1735 \\
-    bioinfo-2 & 0.8824 & 0.8786 & 0.3043 & 0.3478 & 0.3261 & 0.1534 & 0.2334 & 0.1731 \\
-    bioinfo-3 & 0.8824 & 0.8786 & 0.2609 & 0.2609 & 0.2609 & 0.1461 & 0.2485 & 0.1735 \\
-    bioinfo-4 & 0.8824 & 0.8786 & 0.2609 & 0.2609 & 0.2609 & 0.1534 & 0.2334 & 0.1731 \\
-    bioinfo-0 & 0.8235 & 0.8211 & 0.2609 & 0.3043 & 0.2696 & 0.1275 & 0.2219 & 0.1509 \\
+    bioinfo-1 & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
+    bioinfo-2 & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
+    bioinfo-3 & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
+    bioinfo-4 & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
+    bioinfo-0 & 0.8235 (36) & 0.8211 (31) & 0.2609 (26) & 0.3043 (30) & 0.2696 (32) & 0.1275 (35) & 0.2219 (26) & 0.1509 (35) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase A+ ideal answer scores and rankings for Test Batch 1. Rankings shown in parentheses.}
+  \label{tab:phaseap-b1-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-2 & 0.2408 & 0.0825 & 0.2706 & 0.0932 \\
-    bioinfo-4 & 0.2348 & 0.0916 & 0.2664 & 0.1023 \\
-    bioinfo-3 & 0.2245 & 0.0955 & 0.2489 & 0.1021 \\
-    bioinfo-1 & 0.2200 & 0.1009 & 0.2393 & 0.1074 \\
-    bioinfo-0 & 0.2150 & 0.1021 & 0.2340 & 0.1094 \\
+    bioinfo-2 & 0.2408 (7) & 0.0825 (32) & 0.2706 (7) & 0.0932 (34) \\
+    bioinfo-4 & 0.2348 (11) & 0.0916 (29) & 0.2664 (8) & 0.1023 (28) \\
+    bioinfo-3 & 0.2245 (16) & 0.0955 (26) & 0.2489 (15) & 0.1021 (29) \\
+    bioinfo-1 & 0.2200 (17) & 0.1009 (22) & 0.2393 (18) & 0.1074 (24) \\
+    bioinfo-0 & 0.2150 (21) & 0.1021 (21) & 0.2340 (20) & 0.1094 (22) \\
     \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A+ results for Test Batch 2.}
+  \caption{Phase A+ exact answer scores and rankings for Test Batch 2. Rankings shown in parentheses.}
   \label{tab:phaseap-b2}
+  \footnotesize
   \begin{tabular}{lcccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \hline
-    bioinfo-3 & 0.9048 & 0.8929 & 0.2000 & 0.3500 & 0.2450 & 0.2926 & 0.3841 & 0.3145 \\
-    bioinfo-1 & 0.9048 & 0.8929 & 0.2000 & 0.2500 & 0.2250 & 0.2391 & 0.2784 & 0.2479 \\
-    bioinfo-0 & 0.8571 & 0.8444 & 0.2000 & 0.2000 & 0.2000 & 0.2401 & 0.1608 & 0.1778 \\
-    bioinfo-4 & 0.8571 & 0.8444 & 0.2500 & 0.3000 & 0.2750 & 0.2948 & 0.4034 & 0.3227 \\
-    bioinfo-2 & 0.8571 & 0.8444 & 0.2000 & 0.2000 & 0.2000 & 0.2406 & 0.2249 & 0.2306 \\
+    bioinfo-3 & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.3500 (14) & 0.2450 (27) & 0.2926 (12) & 0.3841 (7) & 0.3145 (9) \\
+    bioinfo-1 & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.2500 (35) & 0.2250 (33) & 0.2391 (24) & 0.2784 (23) & 0.2479 (26) \\
+    bioinfo-0 & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2401 (23) & 0.1608 (50) & 0.1778 (48) \\
+    bioinfo-4 & 0.8571 (27) & 0.8444 (25) & 0.2500 (23) & 0.3000 (28) & 0.2750 (26) & 0.2948 (11) & 0.4034 (5) & 0.3227 (8) \\
+    bioinfo-2 & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2406 (22) & 0.2249 (44) & 0.2306 (39) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase A+ ideal answer scores and rankings for Test Batch 2. Rankings shown in parentheses.}
+  \label{tab:phaseap-b2-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-3 & 0.2843 & 0.0983 & 0.2984 & 0.1082 \\
-    bioinfo-4 & 0.2833 & 0.0963 & 0.2983 & 0.1061 \\
-    bioinfo-1 & 0.2280 & 0.1236 & 0.2406 & 0.1291 \\
-    bioinfo-0 & 0.1892 & 0.1322 & 0.1966 & 0.1334 \\
-    bioinfo-2 & 0.1755 & 0.1286 & 0.1918 & 0.1353 \\
+    bioinfo-3 & 0.2843 (3) & 0.0983 (35) & 0.2984 (3) & 0.1082 (35) \\
+    bioinfo-4 & 0.2833 (4) & 0.0963 (36) & 0.2983 (4) & 0.1061 (36) \\
+    bioinfo-1 & 0.2280 (17) & 0.1236 (18) & 0.2406 (19) & 0.1291 (20) \\
+    bioinfo-0 & 0.1892 (39) & 0.1322 (13) & 0.1966 (40) & 0.1334 (13) \\
+    bioinfo-2 & 0.1755 (45) & 0.1286 (22) & 0.1918 (43) & 0.1353 (12) \\
     \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A+ results for Test Batch 3.}
+  \caption{Phase A+ exact answer scores and rankings for Test Batch 3. Rankings shown in parentheses.}
   \label{tab:phaseap-b3}
+  \footnotesize
   \begin{tabular}{lcccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \hline
-    bioinfo-1 & 1.0000 & 1.0000 & 0.3529 & 0.4706 & 0.4118 & 0.2787 & 0.3355 & 0.2891 \\
-    bioinfo-2 & 1.0000 & 1.0000 & 0.2941 & 0.4706 & 0.3824 & 0.2459 & 0.3221 & 0.2649 \\
-    bioinfo-0 & 0.9091 & 0.8952 & 0.4118 & 0.4118 & 0.4118 & 0.2835 & 0.2659 & 0.2671 \\
-    bioinfo-3 & 0.9091 & 0.8952 & 0.4118 & 0.5294 & 0.4706 & 0.2863 & 0.3779 & 0.3138 \\
-    bioinfo-4 & 0.9091 & 0.8952 & 0.3529 & 0.5294 & 0.4412 & 0.2602 & 0.3140 & 0.2790 \\
+    bioinfo-1 & 1.0000 (1) & 1.0000 (1) & 0.3529 (6) & 0.4706 (9) & 0.4118 (9) & 0.2787 (11) & 0.3355 (9) & 0.2891 (11) \\
+    bioinfo-2 & 1.0000 (1) & 1.0000 (1) & 0.2941 (16) & 0.4706 (9) & 0.3824 (15) & 0.2459 (19) & 0.3221 (13) & 0.2649 (17) \\
+    bioinfo-0 & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.4118 (26) & 0.4118 (9) & 0.2835 (10) & 0.2659 (28) & 0.2671 (20) \\
+    bioinfo-3 & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.5294 (2) & 0.4706 (2) & 0.2863 (9) & 0.3779 (4) & 0.3138 (6) \\
+    bioinfo-4 & 0.9091 (28) & 0.8952 (23) & 0.3529 (6) & 0.5294 (2) & 0.4412 (5) & 0.2602 (15) & 0.3140 (14) & 0.2790 (13) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase A+ ideal answer scores and rankings for Test Batch 3. Rankings shown in parentheses.}
+  \label{tab:phaseap-b3-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-3 & 0.2052 & 0.1210 & 0.2192 & 0.1286 \\
-    bioinfo-1 & 0.1984 & 0.1166 & 0.2135 & 0.1243 \\
-    bioinfo-4 & 0.1942 & 0.1223 & 0.2059 & 0.1288 \\
-    bioinfo-2 & 0.1933 & 0.1203 & 0.2005 & 0.1228 \\
-    bioinfo-0 & 0.1710 & 0.1201 & 0.1815 & 0.1266 \\
+    bioinfo-3 & 0.2052 (7) & 0.1210 (25) & 0.2192 (7) & 0.1286 (17) \\
+    bioinfo-1 & 0.1984 (11) & 0.1166 (28) & 0.2135 (12) & 0.1243 (23) \\
+    bioinfo-4 & 0.1942 (13) & 0.1223 (23) & 0.2059 (14) & 0.1288 (18) \\
+    bioinfo-2 & 0.1933 (14) & 0.1203 (26) & 0.2005 (15) & 0.1228 (26) \\
+    bioinfo-0 & 0.1710 (24) & 0.1201 (27) & 0.1815 (24) & 0.1266 (20) \\
     \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase A+ results for Test Batch 4.}
+  \caption{Phase A+ exact answer scores and rankings for Test Batch 4. Rankings shown in parentheses. \texttt{bioinfo-2} did not have results for this batch.}
   \label{tab:phaseap-b4}
+  \footnotesize
   \begin{tabular}{lcccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \hline
-    bioinfo-0 & 0.8750 & 0.8667 & 0.2727 & 0.2727 & 0.2727 & 0.2317 & 0.2812 & 0.2316 \\
-    bioinfo-4 & 0.8750 & 0.8667 & 0.3636 & 0.3636 & 0.3636 & 0.2211 & 0.2124 & 0.2047 \\
-    bioinfo-1 & 0.8750 & 0.8667 & 0.2727 & 0.2727 & 0.2727 & 0.3059 & 0.3630 & 0.3133 \\
-    bioinfo-3 & 0.8750 & 0.8667 & 0.2727 & 0.2727 & 0.2727 & 0.3196 & 0.4053 & 0.3388 \\
+    bioinfo-0 & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.2317 (32) & 0.2812 (29) & 0.2316 (33) \\
+    bioinfo-4 & 0.8750 (10) & 0.8667 (12) & 0.3636 (5) & 0.3636 (13) & 0.3636 (12) & 0.2211 (35) & 0.2124 (43) & 0.2047 (42) \\
+    bioinfo-1 & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3059 (18) & 0.3630 (14) & 0.3133 (18) \\
+    bioinfo-3 & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3196 (16) & 0.4053 (9) & 0.3388 (14) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase A+ ideal answer scores and rankings for Test Batch 4. Rankings shown in parentheses.}
+  \label{tab:phaseap-b4-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-1 & 0.2122 & 0.1152 & 0.2230 & 0.1194 \\
-    bioinfo-3 & 0.2099 & 0.1220 & 0.2344 & 0.1323 \\
-    bioinfo-4 & 0.2097 & 0.1151 & 0.2203 & 0.1180 \\
-    bioinfo-0 & 0.1992 & 0.1213 & 0.2119 & 0.1274 \\
+    bioinfo-1 & 0.2122 (13) & 0.1152 (35) & 0.2230 (11) & 0.1194 (34) \\
+    bioinfo-3 & 0.2099 (15) & 0.1220 (27) & 0.2344 (8) & 0.1323 (26) \\
+    bioinfo-4 & 0.2097 (16) & 0.1151 (37) & 0.2203 (17) & 0.1180 (39) \\
+    bioinfo-0 & 0.1992 (20) & 0.1213 (29) & 0.2119 (16) & 0.1274 (28) \\
     \hline
   \end{tabular}
 \end{table}
 
-Yes/No accuracy was consistently high across all batches, with perfect scores (1.0000) achieved in Batch~3 by \texttt{bioinfo-1} and \texttt{bioinfo-2}. Factoid performance showed greater variability, with strict accuracy ranging from 0.2000 to 0.4706 across batches. List-type answers demonstrated the most room for improvement, with F-Measure scores typically below 0.35. For ideal answers, ROUGE-2 F1 scores remained modest, consistent with the known difficulty of generating answers that match the distribution of gold-standard summaries under automatic evaluation.
+Yes/No accuracy was consistently high across all batches, with perfect scores (1.0000, rank~1) achieved in Batch~3 by \texttt{bioinfo-1} and \texttt{bioinfo-2}. Factoid performance showed greater variability, with our best strict accuracy rank being 1st (\texttt{bioinfo-0} and \texttt{bioinfo-3}, Batch~3). List-type answers demonstrated the most room for improvement, with F-Measure ranks typically in the 10--35 range. For ideal answers, recall ranks were notably stronger than F1 ranks---\texttt{bioinfo-3} achieved 3rd in R-2 and R-SU4 recall in Batch~2---suggesting that our systems tend to produce comprehensive answers that cover relevant content but may include extraneous information that reduces precision-oriented metrics.
 
 \subsection{Official Results: Phase B (Exact and Ideal Answers)}
 \label{sec:results-phase-b}
 
-Phase~B answers are generated using the gold-standard documents and snippets provided by the organizers. Results are presented in Tables~\ref{tab:phaseb-b1}--\ref{tab:phaseb-b4}.
+Phase~B answers are generated using the gold-standard documents and snippets provided by the organizers. Absolute scores and ranking positions are presented side by side for each batch.
 
 \begin{table}[ht]
   \centering
-  \caption{Phase B results for Test Batch 1.}
+  \caption{Phase B exact answer scores and rankings for Test Batch 1. Rankings shown in parentheses.}
   \label{tab:phaseb-b1}
+  \footnotesize
   \begin{tabular}{lccccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \hline
-    bioinfo-0 & 0.8824 & 0.9000 & 0.8571 & 0.8786 & 0.3913 & 0.4348 & 0.4130 & 0.2351 & 0.2581 \\
-    bioinfo-1 & 0.8824 & 0.9000 & 0.8571 & 0.8786 & 0.4348 & 0.4783 & 0.4565 & 0.2417 & 0.2659 \\
+    bioinfo-0 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.3913 (17) & 0.4348 (19) & 0.4130 (18) & 0.2351 (38) & 0.2581 (32) \\
+    bioinfo-1 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.4348 (9) & 0.4783 (10) & 0.4565 (8) & 0.2417 (35) & 0.2659 (29) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase B ideal answer scores and rankings for Test Batch 1. Rankings shown in parentheses.}
+  \label{tab:phaseb-b1-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-0 & 0.2857 & 0.1303 & 0.3033 & 0.1323 \\
-    bioinfo-1 & 0.2678 & 0.0958 & 0.2805 & 0.0982 \\
+    bioinfo-0 & 0.2857 (13) & 0.1303 (39) & 0.3033 (14) & 0.1323 (38) \\
+    bioinfo-1 & 0.2678 (20) & 0.0958 (48) & 0.2805 (21) & 0.0982 (48) \\
     \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase B results for Test Batch 2.}
+  \caption{Phase B exact answer scores and rankings for Test Batch 2. Rankings shown in parentheses.}
   \label{tab:phaseb-b2}
+  \footnotesize
   \begin{tabular}{lccccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \hline
-    bioinfo-2 & 0.9048 & 0.9286 & 0.8571 & 0.8929 & 0.3000 & 0.3000 & 0.3000 & 0.3657 & 0.3709 \\
-    bioinfo-3 & 0.9048 & 0.9286 & 0.8571 & 0.8929 & 0.3000 & 0.3000 & 0.3000 & 0.4137 & 0.4366 \\
-    bioinfo-1 & 0.9048 & 0.9286 & 0.8571 & 0.8929 & 0.3000 & 0.3500 & 0.3250 & 0.2266 & 0.2270 \\
-    bioinfo-0 & 0.8571 & 0.8800 & 0.8235 & 0.8518 & 0.2500 & 0.2500 & 0.2500 & 0.4369 & 0.3836 \\
-    bioinfo-4 & 0.8571 & 0.8800 & 0.8235 & 0.8518 & 0.3500 & 0.3500 & 0.3500 & 0.4308 & 0.4062 \\
+    bioinfo-2 & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.3657 (38) & 0.3709 (35) \\
+    bioinfo-3 & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.4137 (28) & 0.4366 (18) \\
+    bioinfo-1 & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3500 (19) & 0.3250 (18) & 0.2266 (57) & 0.2270 (57) \\
+    bioinfo-0 & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.2500 (24) & 0.2500 (38) & 0.2500 (35) & 0.4369 (21) & 0.3836 (26) \\
+    bioinfo-4 & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.3500 (11) & 0.3500 (19) & 0.3500 (12) & 0.4308 (23) & 0.4062 (22) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase B ideal answer scores and rankings for Test Batch 2. Rankings shown in parentheses.}
+  \label{tab:phaseb-b2-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-3 & 0.3386 & 0.1334 & 0.3550 & 0.1403 \\
-    bioinfo-4 & 0.3024 & 0.1595 & 0.3022 & 0.1566 \\
-    bioinfo-2 & 0.3005 & 0.1903 & 0.2899 & 0.1807 \\
-    bioinfo-1 & 0.2852 & 0.1527 & 0.2848 & 0.1522 \\
-    bioinfo-0 & 0.2359 & 0.1766 & 0.2328 & 0.1704 \\
+    bioinfo-3 & 0.3386 (3) & 0.1334 (25) & 0.3550 (2) & 0.1403 (24) \\
+    bioinfo-4 & 0.3024 (9) & 0.1595 (17) & 0.3022 (8) & 0.1566 (16) \\
+    bioinfo-2 & 0.3005 (12) & 0.1903 (8) & 0.2899 (13) & 0.1807 (8) \\
+    bioinfo-1 & 0.2852 (20) & 0.1527 (22) & 0.2848 (17) & 0.1522 (25) \\
+    bioinfo-0 & 0.2359 (34) & 0.1766 (10) & 0.2328 (34) & 0.1704 (12) \\
     \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase B results for Test Batch 3.}
+  \caption{Phase B exact answer scores and rankings for Test Batch 3. Rankings shown in parentheses.}
   \label{tab:phaseb-b3}
+  \footnotesize
   \begin{tabular}{lccccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \hline
-    bioinfo-0 & 0.9091 & 0.9333 & 0.8571 & 0.8952 & 0.3529 & 0.4118 & 0.3824 & 0.4125 & 0.4102 \\
-    bioinfo-1 & 0.9091 & 0.9333 & 0.8571 & 0.8952 & 0.4706 & 0.4706 & 0.4706 & 0.3706 & 0.3575 \\
-    bioinfo-2 & 0.9091 & 0.9333 & 0.8571 & 0.8952 & 0.3529 & 0.4118 & 0.3725 & 0.3822 & 0.3963 \\
-    bioinfo-4 & 0.9091 & 0.9333 & 0.8571 & 0.8952 & 0.4706 & 0.5294 & 0.5000 & 0.3866 & 0.3763 \\
-    bioinfo-3 & 0.8182 & 0.8571 & 0.7500 & 0.8036 & 0.3529 & 0.4118 & 0.3824 & 0.3840 & 0.4053 \\
+    bioinfo-0 & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.4125 (18) & 0.4102 (20) \\
+    bioinfo-1 & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.4706 (21) & 0.4706 (14) & 0.3706 (25) & 0.3575 (26) \\
+    bioinfo-2 & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3725 (29) & 0.3822 (21) & 0.3963 (23) \\
+    bioinfo-4 & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.5294 (10) & 0.5000 (10) & 0.3866 (20) & 0.3763 (25) \\
+    bioinfo-3 & 0.8182 (38) & 0.8571 (40) & 0.7500 (32) & 0.8036 (35) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.3840 (19) & 0.4053 (17) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase B ideal answer scores and rankings for Test Batch 3. Rankings shown in parentheses.}
+  \label{tab:phaseb-b3-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-3 & 0.2734 & 0.1732 & 0.2704 & 0.1716 \\
-    bioinfo-1 & 0.2495 & 0.1700 & 0.2464 & 0.1651 \\
-    bioinfo-4 & 0.2487 & 0.1661 & 0.2570 & 0.1678 \\
-    bioinfo-0 & 0.2472 & 0.1815 & 0.2438 & 0.1774 \\
-    bioinfo-2 & 0.2368 & 0.1680 & 0.2402 & 0.1701 \\
+    bioinfo-3 & 0.2734 (8) & 0.1732 (26) & 0.2704 (8) & 0.1716 (26) \\
+    bioinfo-1 & 0.2495 (15) & 0.1700 (29) & 0.2464 (18) & 0.1651 (28) \\
+    bioinfo-4 & 0.2487 (16) & 0.1661 (32) & 0.2570 (13) & 0.1678 (27) \\
+    bioinfo-0 & 0.2472 (17) & 0.1815 (18) & 0.2438 (16) & 0.1774 (18) \\
+    bioinfo-2 & 0.2368 (20) & 0.1680 (31) & 0.2402 (20) & 0.1701 (24) \\
     \hline
   \end{tabular}
 \end{table}
 
 \begin{table}[ht]
   \centering
-  \caption{Phase B results for Test Batch 4.}
+  \caption{Phase B exact answer scores and rankings for Test Batch 4. Rankings shown in parentheses.}
   \label{tab:phaseb-b4}
+  \footnotesize
   \begin{tabular}{lccccccccc}
     \hline
     \textbf{System} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \hline
-    bioinfo-0 & 0.9375 & 0.9474 & 0.9231 & 0.9352 & 0.2727 & 0.3636 & 0.3182 & 0.3695 & 0.3809 \\
-    bioinfo-4 & 0.9375 & 0.9474 & 0.9231 & 0.9352 & 0.3636 & 0.4545 & 0.3939 & 0.3816 & 0.3862 \\
-    bioinfo-1 & 0.8750 & 0.9000 & 0.8333 & 0.8667 & 0.1818 & 0.2727 & 0.2273 & 0.4867 & 0.4858 \\
-    bioinfo-2 & 0.8750 & 0.9000 & 0.8333 & 0.8667 & 0.3636 & 0.4545 & 0.4091 & 0.4442 & 0.4763 \\
-    bioinfo-3 & 0.8750 & 0.9000 & 0.8333 & 0.8667 & 0.4545 & 0.5455 & 0.5000 & 0.5583 & 0.5671 \\
+    bioinfo-0 & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.2727 (18) & 0.3636 (19) & 0.3182 (19) & 0.3695 (40) & 0.3809 (41) \\
+    bioinfo-4 & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.3636 (10) & 0.4545 (9) & 0.3939 (11) & 0.3816 (37) & 0.3862 (39) \\
+    bioinfo-1 & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.1818 (29) & 0.2727 (36) & 0.2273 (35) & 0.4867 (24) & 0.4858 (22) \\
+    bioinfo-2 & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.3636 (10) & 0.4545 (9) & 0.4091 (9) & 0.4442 (29) & 0.4763 (25) \\
+    bioinfo-3 & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.4545 (4) & 0.5455 (4) & 0.5000 (5) & 0.5583 (15) & 0.5671 (11) \\
     \hline
   \end{tabular}
-  \par\bigskip
+  \par\medskip
+  \caption{Phase B ideal answer scores and rankings for Test Batch 4. Rankings shown in parentheses.}
+  \label{tab:phaseb-b4-ideal}
   \begin{tabular}{lcccc}
     \hline
     \textbf{System} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \hline
-    bioinfo-1 & 0.2716 & 0.1566 & 0.2678 & 0.1543 \\
-    bioinfo-2 & 0.2682 & 0.1714 & 0.2698 & 0.1698 \\
-    bioinfo-4 & 0.2496 & 0.1526 & 0.2477 & 0.1496 \\
-    bioinfo-0 & 0.2472 & 0.1742 & 0.2480 & 0.1729 \\
-    bioinfo-3 & 0.2401 & 0.1452 & 0.2484 & 0.1467 \\
+    bioinfo-1 & 0.2716 (8) & 0.1566 (28) & 0.2678 (8) & 0.1543 (29) \\
+    bioinfo-2 & 0.2682 (11) & 0.1714 (22) & 0.2698 (6) & 0.1698 (19) \\
+    bioinfo-4 & 0.2496 (18) & 0.1526 (31) & 0.2477 (18) & 0.1496 (31) \\
+    bioinfo-0 & 0.2472 (19) & 0.1742 (15) & 0.2480 (17) & 0.1729 (15) \\
+    bioinfo-3 & 0.2401 (21) & 0.1452 (33) & 0.2484 (14) & 0.1467 (32) \\
     \hline
   \end{tabular}
 \end{table}
 
-Phase~B results followed similar patterns to Phase~A+, with strong yes/no performance and more variable factoid and list results. The use of gold-standard documents in Phase~B generally improved factoid and list scores relative to Phase~A+, particularly in later batches, suggesting that retrieval quality remains a significant factor in end-to-end answer generation performance.
+Phase~B results followed similar patterns to Phase~A+, with strong yes/no performance and more variable factoid and list results. The use of gold-standard documents in Phase~B generally improved ranking positions relative to Phase~A+, particularly in later batches. Most notably, \texttt{bioinfo-3} achieved 4th place in both factoid strict accuracy and factoid lenient accuracy in Batch~4, and several systems achieved top-10 ideal answer recall ranks across multiple batches. The strong recall performance is consistent with our findings from the 13th edition, where snippet-based systems consistently achieved top recall scores.
