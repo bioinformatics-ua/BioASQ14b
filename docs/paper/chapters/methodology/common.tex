@@ -3,5 +3,74 @@
 
 This section describes the major architectural and methodological changes introduced in the 14th edition of our BioASQ participation. Beyond the specific pipeline modifications described below, we undertook a comprehensive codebase refactoring, restructuring the entire project with a focus on modularity. This refactoring separated retrieval, reranking, and generation components into distinct, independently testable modules, facilitating more rapid experimentation and reducing coupling between pipeline stages.
 
+\subsection{Architecture Overview}
+
+~Figure~\ref{fig:pipeline} provides a visual overview of the complete pipeline. The retrieval process follows a three-stage design: first-stage hybrid retrieval combining BM25 and dense embeddings, an optional query expansion step (HyDE or Context-1), followed by neural re-ranking using cross-encoder models. For snippet generation, a separate fine-tuned model extracts relevant text spans from the top-ranked documents. The fusion of BM25 and dense retrieval results is performed via either Reciprocal Rank Fusion (RRF) or weighted sum, producing a consolidated ranking that feeds into the re-ranking stage. For Phases~A+ and B, the top-ranked documents and their snippets are passed to the agent quorum or LLM-as-judge framework for answer generation.
+
+\begin{figure}[ht]
+  \centering
+  \footnotesize
+  \begin{tikzpicture}[
+      node distance=0.6cm and 1.2cm,
+      box/.style={draw, rounded corners=3pt, minimum width=2.5cm, minimum height=0.8cm, align=center, font=\scriptsize},
+      widebox/.style={draw, rounded corners=3pt, minimum width=3.5cm, minimum height=0.8cm, align=center, font=\scriptsize},
+      fusionbox/.style={draw, rounded corners=3pt, minimum width=1.8cm, minimum height=0.8cm, align=center, font=\scriptsize},
+      arr/.style={-{Stealth[scale=0.7]}, thick},
+      dasharr/.style={-{Stealth[scale=0.7]}, thick, densely dashed},
+    ]
+
+    % ── ROW 1: Vertical Retrieval Stack & Parallel Flows ──
+    % Stacked Retrieval
+    \node[box, fill=blue!8] (bm25) {BM25\\(pg\_textsearch)};
+    \node[box, fill=blue!8, below=of bm25] (dense) {Dense\\(BGE-M3 + Qdrant)};
+
+    % Optional HyDE sticking to Dense
+    \node[box, fill=yellow!12, left=1.0cm of dense] (hyde) {HyDE\\(Hypothetical Ans)};
+    \draw[dasharr] (hyde.east) -- (dense.west);
+
+    % Upper Parallel Path: Context-1 (Takes input from retrieval, goes straight to rerank)
+    \node[widebox, fill=yellow!12, right=1.5cm of bm25, yshift=0.3cm] (ctx1) {Context-1\\(LLM Retriever / Decision)};
+
+    % Lower Parallel Path: Traditional Fusion
+    \node[fusionbox, fill=green!8, right=1.5cm of dense, yshift=-0.3cm] (fusion) {Fusion\\RRF / wsum};
+
+    % Convergence Node
+    \node[widebox, fill=orange!8, right=5.8cm of bm25, yshift=-0.4cm] (rerank) {Re-ranking\\Multiple cross-encoders};
+
+    % ── ROW 2: Downstream Processing ──
+    \node[widebox, fill=red!8, below=2.8cm of rerank] (snippets) {Snippet extraction\\Fine-tuned Gemma~4};
+    \node[widebox, fill=purple!8, left=1.5cm of snippets] (gen) {Answer generation\\Agent quorum / LLM judge};
+
+    % ── Wiring the Parallel Flows ──
+    % Routing to Context-1
+    \draw[arr] ([yshift=0.15cm]bm25.east) -- ++(0.5,0) |- (ctx1.west);
+    \draw[arr] ([yshift=0.15cm]dense.east) -- ++(0.5,0) |- (ctx1.west);
+
+    % Routing to Fusion
+    \draw[arr] ([yshift=-0.15cm]bm25.east) -- ++(0.9,0) |- (fusion.west);
+    \draw[arr] ([yshift=-0.15cm]dense.east) -- ++(0.9,0) |- (fusion.west);
+
+    % Connecting Parallel paths to Re-ranking
+    \draw[arr] (ctx1.east) -- ++(0.5,0) |- ([yshift=0.15cm]rerank.west);
+    \draw[arr] (fusion.east) -- ++(0.9,0) |- ([yshift=-0.15cm]rerank.west);
+
+    % ── Wiring Row 1 to Row 2 ──
+    \draw[arr] (rerank.south) -- ++(0,-0.5) -| (snippets.north);
+    \draw[arr] (snippets.west) -- (gen.east);
+
+    % ── Phase labels ──
+    \node[above=2.15cm of hyde.north west, anchor=south west, font=\scriptsize\bfseries, text=blue!60] {Phase A (Retrieval \& Routing)};
+    \node[above=0.4cm of gen.north west, anchor=south west, font=\scriptsize\bfseries, text=purple!60] {Phases A+ / B (Generation)};
+
+    % ── Bounding boxes ──
+    \begin{scope}[on background layer]
+      \node[draw=blue!30, dashed, rounded corners=6pt, inner sep=12pt, fit=(bm25)(dense)(hyde)(ctx1)(fusion)(rerank)] (phaseA) {};
+      \node[draw=purple!30, dashed, rounded corners=6pt, inner sep=12pt, fit=(snippets)(gen)] (phaseAB) {};
+    \end{scope}
+  \end{tikzpicture}
+  \caption{Pipeline architecture for the 14th edition. Features a split layout where BM25 and Dense outputs are evaluated either through standard RRF Fusion or routed via Context-1 directly to the Re-ranking matrix.}
+  \label{fig:pipeline}
+\end{figure}
+
 \input{chapters/methodology/retrieval}
 \input{chapters/methodology/generation}

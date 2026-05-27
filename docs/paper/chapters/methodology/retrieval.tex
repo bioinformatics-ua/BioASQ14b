@@ -1,33 +1,53 @@
-\subsection{Retrieval (Phase A)}
-\label{sec:retrieval}
+\subsection{First-Stage Retrieval}
+\label{sec:first-stage}
 
-\subsubsection{BM25 Retrieval: From PyTerrier PISA to pg\_textsearch}
+The first stage of our retrieval pipeline performs parallel lexical and dense search over the PubMed corpus, then fuses the results into a single candidate list for subsequent re-ranking.
 
-In previous editions, we relied on the PISA indexing framework~\cite{mallia2019pisa} accessed through the PyTerrier interface for BM25-based first-stage retrieval. While effective, this approach presented several operational limitations. The PISA indexes required loading into memory at each pipeline iteration, and they existed as separate artifacts from the document storage, creating synchronization and maintenance challenges.
+\subsubsection{BM25 Retrieval via pg\_textsearch}
 
-For the 14th edition, we migrated BM25 retrieval to PostgreSQL using the pg\_textsearch extension~\cite{pgtextsearch}, an external module that provides full-text search capabilities. This change integrated document storage and full-text search into a single source of truth, eliminating the need for separate index files. The PostgreSQL GiN (Generalized Inverted Index) indexes are maintained automatically alongside document updates, and the entire pipeline now operates on a single database. The key improvement is in usability and maintainability: document ingestion, index updates, and retrieval queries all happen within the same system, reducing operational complexity and the risk of synchronization errors between document versions and retrieval indexes.
+In previous editions, we relied on the PISA indexing framework~\cite{mallia2019pisa} accessed through the PyTerrier interface for BM25-based first-stage retrieval. While effective, this approach required loading indexes into memory at each pipeline iteration and maintaining them as separate artifacts from document storage.
 
-\subsubsection{Dense Retrieval with Qdrant}
+For the 14th edition, we migrated BM25 retrieval to PostgreSQL using the pg\_textsearch extension~\cite{pgtextsearch}, an external module that provides full-text search capabilities. This change integrated document storage and full-text search into a single source of truth, eliminating the need for separate index files. The PostgreSQL GiN (Generalized Inverted Index) indexes are maintained automatically alongside document updates, and the entire pipeline now operates on a single database. The BM25 index was configured with parameters $k_1 = 0.4$ and $b = 0.3$, values determined empirically on held-out data. The key improvement is in usability and maintainability: document ingestion, index updates, and retrieval queries all happen within the same system, reducing operational complexity and the risk of synchronization errors between document versions and retrieval indexes.
 
-A major architectural shift was the adoption of Qdrant as the vector database for dense embedding indexing. In prior editions, we precomputed and stored all cross-embedding similarities as flat NumPy arrays, a practice that became increasingly untenable as the document corpus grew. This approach consumed substantial disk space and offered no flexibility for ad-hoc similarity searches or incremental updates.
+\subsubsection{Dense Retrieval with Qdrant and BGE-M3}
 
-Qdrant provides several advantages over the previous approach. First, GPU acceleration for similarity search enables significantly faster retrieval compared to CPU-based cosine similarity computation on NumPy arrays. Second, the HNSW (Hierarchical Navigable Small World) indexing in Qdrant provides an efficient approximate nearest neighbor search with configurable precision-speed tradeoffs. Third, storage efficiency improves markedly, as Qdrant compactly stores embeddings and indexes rather than materializing the full similarity matrix. Finally, the Qdrant API supports dynamic collection management, enabling filtering by metadata fields and seamless updates as new documents are indexed.
+This year we introduced dense retrieval as a first-stage retrieval method, moving beyond our previous use of dense embeddings solely for Pseudo Relevance Feedback. For embedding generation, we deployed the BGE-M3 model~\cite{chen2024bge} (569M parameters) via the Text Embeddings Interface (TEI) from Hugging Face. BGE-M3 is a multi-lingual, multi-functional embedding model that produces dense vectors suitable for semantic similarity search in the biomedical domain.
 
-\subsubsection{Text Embeddings Interface (TEI)}
+TEI is a Rust-based implementation optimized for serving text embeddings. A key architectural advantage of TEI is its API-based design, which decouples embedding generation from the main pipeline process. This allows deploying multiple TEI instances in parallel, scaling horizontally to meet the throughput demands of indexing the full PubMed corpus. TEI provides tokenization and model inference in a single binary supporting both CPU and GPU execution.
 
-For embedding generation, we adopted the Text Embeddings Interface (TEI) from Hugging Face, a Rust-based implementation optimized for serving text embeddings. A key architectural advantage of TEI is its API-based design, which decouples embedding generation from the main pipeline process. This allows deploying multiple TEI instances in parallel, scaling horizontally to meet the throughput demands of indexing the full PubMed corpus. TEI provides tokenization and model inference in a single binary supporting both CPU and GPU execution, and its API interface enables seamless integration with the rest of the retrieval pipeline.
+The generated embeddings are indexed and stored in Qdrant, a vector database that supports GPU-accelerated approximate nearest neighbor search via HNSW (Hierarchical Navigable Small World) indexing. This replaces our previous approach of precomputing and storing all cross-embedding similarities as flat NumPy arrays---a practice that became increasingly untenable as the document corpus grew. Qdrant provides compact storage, configurable precision-speed tradeoffs, and dynamic collection management with metadata filtering, enabling efficient incremental updates as new documents are indexed.
 
-\subsubsection{Query Expansion with HyDE}
+At query time, the question text (or its HyDE expansion, described below) is encoded via the same TEI endpoint and searched against the Qdrant index. The top 100 dense-retrieved documents are then combined with the top 100 BM25-retrieved documents through fusion.
 
-Hypothetical Document Embeddings (HyDE) is a query expansion technique that replaces the original query with a hypothetical answer generated by an LLM. Rather than embedding the user's question directly, the LLM is prompted to produce a plausible answer to the question, and this generated text is embedded and used as the query for dense retrieval. The intuition is that an LLM-generated answer, even if factually incomplete or partially incorrect, shares the linguistic and conceptual structure of genuinely relevant documents more closely than the original question does. This semantic alignment between the hypothetical answer and relevant documents improves retrieval recall, particularly for questions whose natural phrasing differs substantially from the language used in the target documents.
+\subsubsection{Hybrid Fusion: Weighted Sum}
 
-\subsubsection{Context-1: Agentic Search for Retrieval}
+To combine the BM25 and dense retrieval results into a single candidate list, we evaluated two approaches. The weighted sum method combines scores linearly:
 
-Context-1~\cite{context1} is a 20B-parameter model purpose-trained for multi-turn, agentic search over document collections. Unlike traditional single-pass retrieval pipelines or query expansion methods, Context-1 operates as a retrieval subagent that iteratively decomposes a high-level question into sub-queries, retrieves documents, evaluates their relevance, and refines its search strategy across multiple turns.
+\begin{equation}
+  S_{ws}(d) = \alpha \cdot S_{bm25}(d) + (1 - \alpha) \cdot S_{dense}(d)
+\end{equation}
 
-The model is trained to manage its own context window actively. As it accumulates documents over successive retrieval turns, it selectively discards irrelevant passages through a pruning mechanism, freeing context capacity for further exploration. This self-editing behavior addresses a key limitation of multi-turn retrieval: the tendency of the context window to fill with tangential or redundant material, which both increases computational cost and degrades downstream answer quality. The agent interacts with the underlying search infrastructure through structured tool calls---searching the corpus, reading full documents, and pruning irrelevant chunks---within a fixed token budget that forces it to make explicit relevance judgments.
+where $S_{bm25}(d)$ and $S_{dense}(d)$ are normalized scores from each retrieval method and $\alpha \in [0,1]$ controls the relative contribution of each. We used $\alpha = 0.6$, giving slightly more weight to BM25, which was found to perform well on validation data. While straightforward, this method is sensitive to the scale and distribution of the individual scores, since BM25 and dense similarity scores have different ranges and statistical properties.
 
-Context-1 was trained via supervised fine-tuning followed by reinforcement learning with verifiable rewards on over eight thousand synthetically generated multi-hop retrieval tasks. In our pipeline, we deployed Context-1 as an alternative first-stage retrieval method, where the model receives the original BioASQ question and iteratively searches our indexed PubMed collection, returning a ranked set of documents for subsequent reranking. This approach is distinct from query expansion: rather than transforming the query, it delegates the entire retrieval strategy to a specialized model that reasons about what to search for, when to stop, and which results to retain.
+Reciprocal Rank Fusion (RRF) provides an alternative that operates on ranks rather than raw scores, making it robust to heterogeneous score distributions. We discuss RRF in the context of re-ranking fusion in Section~\ref{sec:fusion}, as it is primarily used to fuse the outputs of multiple rerankers. For first-stage fusion, both weighted sum and RRF were evaluated; their comparative performance is reported in Section~\ref{sec:results}.
+
+\subsection{HyDE}
+\label{sec:query-expansion}
+
+Hypothetical Document Embeddings (HyDE) replaces the original query with a hypothetical answer generated by an LLM. Rather than embedding the user's question directly, the LLM is prompted to produce a plausible answer, and this generated text is embedded via TEI and used as the query for dense retrieval. The intuition is that an LLM-generated answer, even if factually incomplete or partially incorrect, shares the linguistic and conceptual structure of genuinely relevant documents more closely than the original question does. When HyDE is enabled, the dense retrieval branch of the first-stage pipeline uses the HyDE embedding instead of the raw question embedding; the BM25 branch continues to use the original query text.
+
+\subsection{Context-1}
+
+Context-1~\cite{context1} is a 20B-parameter model purpose-trained for multi-turn, agentic search over document collections. Unlike single-pass retrieval pipelines or query expansion methods, Context-1 operates as a retrieval subagent that iteratively decomposes a high-level question into sub-queries, retrieves documents, evaluates their relevance, and refines its search strategy across multiple turns.
+
+The model actively manages its own context window. As it accumulates documents over successive retrieval turns, it selectively discards irrelevant passages through a pruning mechanism, freeing context capacity for further exploration. This self-editing behavior addresses a key limitation of multi-turn retrieval: the tendency of the context window to fill with tangential material. The agent interacts with the underlying search infrastructure through structured tool calls---searching the corpus, reading full documents, and pruning irrelevant chunks---within a fixed token budget that forces explicit relevance judgments.
+
+In our pipeline, Context-1 serves as a retrieval subagent that receives the original BioASQ question and iteratively searches our indexed PubMed collection (via BM25 and dense search tools), internally using the BGE-reranker-v2-m3 cross-encoder to score retrieved candidates. The output of Context-1 is a ranked set of documents, which we then feed through our own ensemble of rerankers for the final ranking. Validation of Context-1 as a retrieval method is presented in Section~\ref{sec:internal-retrieval}, where it achieved the highest R@100 (0.453) among all tested configurations.
+
+Since Context-1 is a recent project, only the model was available at the time; the harness was developed in-house (since it will be disclosed in the future) based on the description in the original paper. We implemented the necessary tool interfaces for BM25 and dense search, as well as the pruning mechanism to manage the context window.
+
+\subsection{Re-Ranking and Fusion}
+\label{sec:reranking}
 
 \subsubsection{Reranker Training Pipeline}
 
@@ -35,29 +55,18 @@ We developed a new, flexible training pipeline for cross-encoder rerankers. The 
 
 We trained a total of 29 reranker models based on diverse architectures including BGE-reranker-v2-m3, PubMedBERT, BioLinkBERT, BioBERT, MedCPT, and the LLaMA Nemotron reranker, among others. Training employed a pairwise loss with varying configurations of epochs, samplers, and hard negative counts. A complete listing of the trained models and their configurations is provided in Appendix~\ref{sec:appendix-models}.
 
-\subsubsection{Fusion Strategies}
+\subsubsection{Reciprocal Rank Fusion (RRF)}
+\label{sec:fusion}
 
-For combining BM25 and dense retrieval scores into a single ranked list, we evaluated two complementary approaches: weighted sum and Reciprocal Rank Fusion (RRF).
-
-\textbf{Weighted sum.} The weighted sum approach combines scores linearly:
-
-\begin{equation}
-S_{ws}(d) = \alpha \cdot S_{bm25}(d) + (1 - \alpha) \cdot S_{dense}(d)
-\end{equation}
-
-where $S_{bm25}(d)$ and $S_{dense}(d)$ are normalized scores from each retrieval method and $\alpha \in [0,1]$ controls the relative contribution of each. While straightforward, this method is sensitive to the scale and distribution of the individual scores. BM25 scores and dense similarity scores typically have different ranges and statistical properties, requiring careful normalization and tuning of $\alpha$ on held-out data.
-
-\textbf{Reciprocal Rank Fusion (RRF).} RRF combines rankings based solely on reciprocal positions rather than raw scores, making it robust to score scale differences between heterogeneous retrieval methods. The RRF score for a document $d$ is computed as:
+To combine the outputs of multiple rerankers into a single ranked list, we employ Reciprocal Rank Fusion (RRF). RRF combines rankings based solely on reciprocal positions rather than raw scores, making it robust to score scale differences between heterogeneous models. The RRF score for a document $d$ is computed as:
 
 \begin{equation}
-RRF(d) = \sum_{r \in R} \frac{1}{k + rank_r(d)}
+  RRF(d) = \sum_{r \in R} \frac{1}{k + rank_r(d)}
 \end{equation}
 
-where $R$ is the set of retrieval runs and $k$ is a constant (typically 60) that mitigates the impact of high-ranked documents dominating the final score. Because RRF operates on ranks rather than scores, it requires no normalization and is insensitive to the magnitude of individual retrieval scores. This is particularly important in our setting, where BM25 and dense retrieval produce scores on fundamentally different scales.
+where $R$ is the set of reranker runs and $k$ is a constant (typically 60) that mitigates the impact of high-ranked documents dominating the final score. Because RRF operates on ranks rather than scores, it requires no normalization and is insensitive to the magnitude of individual reranker scores. This is particularly important when combining rerankers of different architectures (e.g., BERT-based and decoder-based models) whose score distributions differ substantially. In our experiments, RRF consistently outperformed weighted sum for reranker fusion, as the rank-based approach naturally handles heterogeneous score scales without requiring per-batch calibration.
 
-In our experiments, RRF consistently outperformed weighted sum, as the rank-based nature of RRF naturally handles the varying score distributions across BM25 and dense retrieval, eliminating the need for per-batch calibration of fusion weights. Weighted sum was retained primarily as a baseline and for configurations where the retrieval runs produce scores on comparable scales.
-
-\subsubsection{Snippet Generation via Fine-Tuned Gemma 4}
+\subsection{Snippet Generation via Fine-Tuned Gemma 4}
 
 For the first time, we participated in the snippet generation subtask. Given a question and a set of retrieved documents, the system must identify the most relevant text spans within those documents. We approached this as a text generation problem: a model receives the question along with a document's title and abstract, and generates the most relevant snippets from that document.
 

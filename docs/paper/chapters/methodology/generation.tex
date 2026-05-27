@@ -1,9 +1,9 @@
-\subsection{Generation (Phases A+ and B)}
+\section{Generation (Phases A+ and B)}
 \label{sec:generation}
 
 The generation phase underwent its most substantial revision in this edition, with two major innovations: an LLM-as-a-judge framework and a multi-agent quorum mechanism.
 
-\subsubsection{LLM as a Judge}
+\subsection{LLM as a Judge}
 
 In previous editions, we employed a simple ensemble of different models with majority voting for answer selection, where each model produced an answer independently, and the final answer was chosen by a fixed aggregation rule. While straightforward, majority voting treats all models as equally reliable and cannot leverage cases where one model produces a partially correct answer that could be improved by incorporating elements from another. It also provides no mechanism for evaluating the factual consistency of candidate answers against the retrieved evidence.
 
@@ -16,7 +16,7 @@ The motivation for adopting an LLM judge over majority voting is twofold. First,
 
 In practice, the LLM judge proved especially effective for exact answer types (yes/no, factoid, list), where correctness is more objectively verifiable against context.
 
-\subsubsection{Agent Quorum Mechanism}
+\subsection{Agent Quorum Mechanism}
 
 The most significant methodological innovation for this edition is the agent quorum, a multi-agent debate framework designed to produce more robust and well-reasoned answers. The mechanism operates as follows.
 

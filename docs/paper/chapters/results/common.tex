@@ -68,6 +68,30 @@ The LLaMA Nemotron reranker models achieved outstanding validation performance, 
 
 The official Phase~A document retrieval results across the four test batches are presented below. For each batch, we show both the absolute scores (Tables~\ref{tab:phasea-b1}--\ref{tab:phasea-b4}) and the corresponding competition rankings (Tables~\ref{tab:phasea-b1-rank}--\ref{tab:phasea-b4-rank}), which indicate each system's position relative to all other submissions. Ranking is based on MAP.
 
+
+Table~\ref{tab:system-configs} summarizes the retrieval configurations used in each submission. Across all batches, \texttt{bioinfo-0} and \texttt{bioinfo-1} served as our primary exploration systems, testing different combinations of dense retrieval, HyDE, Context-1, and reranker ensembles, while \texttt{bioinfo-2} through \texttt{bioinfo-4} explored narrower configurations and served as comparative baselines.
+
+\begin{table}[ht]
+  \centering
+  \caption{System configuration summary across Phase~A submissions. $\bullet$ = used in all batches, $\bullet$B$N$ = used in specific batch(es), --- = not used.}
+  \label{tab:system-configs}
+  \footnotesize
+  \begin{tabular}{lccccc}
+    \hline
+    \textbf{Component} & \textbf{bioinfo-0} & \textbf{bioinfo-1} & \textbf{bioinfo-2} & \textbf{bioinfo-3} & \textbf{bioinfo-4} \\
+    \hline
+    BM25 (pg\_textsearch) & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+    Dense (BGE-M3 + Qdrant) & $\bullet$ & $\bullet$ & $\bullet$B1--3 & $\bullet$ & $\bullet$ \\
+    HyDE query expansion & --- & B2--4 & --- & B1,B3 & B3--4 \\
+    Context-1 retrieval & --- & --- & --- & --- & --- \\
+    RRF fusion (1st stage) & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & --- \\
+    Weighted sum fusion (1st stage) & --- & --- & --- & --- & $\bullet$ \\
+    Neural reranker ensemble & $\bullet$ & $\bullet$ & $\bullet$B1--2 & $\bullet$ & $\bullet$ \\
+    RRF fusion (rerankers) & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ & $\bullet$ \\
+    \hline
+  \end{tabular}
+\end{table}
+
 \begin{table}[ht]
   \centering
   \caption{Phase A document retrieval absolute scores for Test Batch 1.}
