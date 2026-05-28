@@ -8,9 +8,9 @@ Table~\ref{tab:all-rerankers} lists all 29 reranker models trained for Phase~A d
 \caption{Complete list of reranker models trained for the 14th edition. \texttt{E} = epochs, \texttt{S} = sampler, \texttt{M} = loss type, \texttt{FullData} = trained on the full dataset.}
 \label{tab:all-rerankers}
 \begin{tabular}{llcccl}
-\hline
+\toprule
 \textbf{Model} & \textbf{Size} & \textbf{E} & \textbf{S} & \textbf{Loss} & \textbf{Notes} \\
-\hline
+\midrule
 LLaMA Nemotron rerank 1B & 1B & 2 & 4 & multi\_neg\_pairwise & InfoNCE, FullData \\
 LLaMA Nemotron rerank 1B & 1B & 2 & --- & pairwise & 13B1+13B2 data \\
 LLaMA Nemotron rerank 1B & 1B & 5 & shifter & pairwise & \\
@@ -40,7 +40,7 @@ allenai/specter2\_base & 110M & 5 & shifter & pairwise & \\
 Bio\_ClinicalBERT & 110M & 5 & shifter & pairwise & \\
 SapBERT-from-PubMedBERT-fulltext & 110M & 5 & shifter & pairwise & \\
 dmis-lab/biobert-base-cased-v1.2 & 110M & 5 & shifter & pairwise & \\
-\hline
+\bottomrule
 \end{tabular}
 \end{table}
 

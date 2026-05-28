@@ -10,8 +10,7 @@
 
 \usepackage{tabularx}
 \usepackage{tikz}
-\usetikzlibrary{positioning, arrows.meta, shapes.geometric, backgrounds, fit}
-
+\usepackage{booktabs}
 %%
 %% One can fix some overfulls
 \sloppy
@@ -20,6 +19,9 @@
 %% Minted listings support
 %% Need pygment <http://pygments.org/> <http://pypi.python.org/pypi/Pygments>
 \usepackage{listings}
+\usepackage{todonotes}
+
+\usetikzlibrary{backgrounds, fit, positioning, arrows.meta}
 %% auto break lines
 \lstset{breaklines=true}
 
@@ -48,43 +50,45 @@ International (CC BY 4.0).}
 %%
 %% The "author" command and its associated commands are used to define
 %% the authors and their affiliations.
-\author[1]{André Ribeiro}[%
+\author[2]{André Ribeiro}[%
   orcid=0009-0008-0194-7171,
   email=andrepedroribeiro@ua.pt,
 ]
 \cormark[1]
 
-\author[2]{Rúben Garrido}[%
+\author[1]{Rúben Garrido}[%
   orcid=0009-0002-1508-7885,
   email=rubengarrido@ua.pt,
 ]
 \cormark[1]
 
-\author[2]{Richard A. A. Jonker}[%
+
+\author[3]{Alexander Christiansen}[%
+  email=ach22@student.aau.dk,
+]
+
+% \author[1]{Tiago Almeida}[%
+%   orcid=0000-0002-4258-3350,
+%   email=tiagomeloalmeida@ua.pt,
+% ]
+
+\author[1,3]{Richard A. A. Jonker}[%
   orcid=0000-0002-3806-6940,
   email=richard.jonker@ua.pt,
 ]
 
-\author[3]{Alexander Christiansen}[%
-  email=ach22@business.aau.dk,
-]
 
-\author[2]{Tiago Almeida}[%
-  orcid=0000-0002-4258-3350,
-  email=tiagomeloalmeida@ua.pt,
-]
-
-\author[2]{Sérgio Matos}[%
+\author[1]{Sérgio Matos}[%
   orcid=0000-0003-1941-3983,
   email=aleixomatos@ua.pt,
 ]
 
-\author[2]{João R. Almeida}[%
-  orcid=0000-0003-0729-2264,
-  email=joao.rafael.almeida@ua.pt,
-]
-\address[1]{IT, University of Aveiro, Aveiro, Portugal}
-\address[2]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
+% \author[1]{João R. Almeida}[%
+%   orcid=0000-0003-0729-2264,
+%   email=joao.rafael.almeida@ua.pt,
+% ]
+\address[1]{IEETA/DETI, LASI, University of Aveiro, Aveiro, Portugal}
+\address[2]{IT, University of Aveiro, Aveiro, Portugal}
 \address[3]{Aalborg University Business School, Aalborg, Denmark}
 
 %% Footnotes
@@ -94,7 +98,7 @@ International (CC BY 4.0).}
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
-  This paper describes the participation of the BIT.UA team from the University of Aveiro in the 14th edition of the BioASQ Task B challenge on biomedical question answering. Building on our previous submissions, we introduced a substantially refactored and modular codebase, and made significant changes to both the retrieval and generation components of the pipeline. For Phase~A document retrieval, we replaced the PyTerrier PISA index with PostgreSQL-based pg\_textsearch for BM25 retrieval and adopted Qdrant for dense embedding indexing, enabling more efficient storage and GPU-accelerated similarity search. We employed the Text Embeddings Interface (TEI) for embedding generation and explored HyDE-based query expansion alongside a Context-1 retrieval strategy. A new reranker training pipeline was developed, incorporating dense retrieval for negative sampling. For Phases A+ and B answer generation, we introduced an LLM-as-a-judge framework and a novel agent quorum mechanism, where multiple agents with diverse prompts debate and iteratively converge on a consensus answer using adaptive document retention. We also participated in the snippets generation subtask for the first time. Our systems achieved competitive results across all batches, with our best Phase~A system ranking first in multiple test batches. We discuss the impact of these architectural changes, lessons learned, and outline directions for future work including SPLADE and ColBERT integration.
+  This paper describes the participation of the BIT.UA team from the University of Aveiro in the 14th edition of the BioASQ Task B challenge on biomedical question answering. Building on our previous submissions, we introduced a substantially refactored and modular codebase, and made significant changes to both the retrieval and generation components of the pipeline. For Phase~A document retrieval, we replaced the PyTerrier PISA index with PostgreSQL-based pg\_textsearch for BM25 retrieval and adopted Qdrant for dense embedding indexing, enabling more efficient storage and GPU-accelerated similarity search. We explored HyDE-based query expansion alongside a Context-1 retrieval strategy. A new reranker training pipeline was developed, incorporating dense retrieval for negative sampling. For Phases A+ and B answer generation, we introduced an LLM-as-a-judge framework and a novel agent quorum mechanism, where multiple agents with diverse prompts debate and iteratively converge on a consensus answer using adaptive document retention. We also participated in the snippets generation subtask for the first time. Our systems achieved competitive results across all batches, with Phase~A systems achieving MAP ranks of 6 (Batch~1), 7 (Batch~3), and top-10 in Batches~1,~3,~and~4. We discuss the impact of these architectural changes, lessons learned, and outline directions for future work including SPLADE and ColBERT integration.
 \end{abstract}
 
 %%
@@ -114,15 +118,35 @@ International (CC BY 4.0).}
 %% This command processes the author and affiliation and title
 %% information and builds the first part of the formatted document.
 \maketitle
-
+\todo[inline]{github+acknowledgements}
 \input{chapters/introduction}
 \input{chapters/previous-work}
 \input{chapters/methodology/common}
 \input{chapters/results/common}
 \input{chapters/discussion}
 \input{chapters/conclusion}
-\input{chapters/appendix}
+
+
+\begin{acknowledgments}
+This work was funded by FEDER - Fundo Europeu de Desenvolvimento Regional funds through Programa Regional do Centro, within project CENTRO2030-FEDER-02595400 and by the Foundation for Science and Technology (FCT) through the contract \url{https://doi.org/10.54499/UID/00127/2025}. Richard A. A. Jonker is funded by the FCT doctoral grant PRT/BD/154792/2023,
+with DOI identifier \url{https://doi.org/10.54499/PRT/BD/154792/2023}.
+\end{acknowledgments}
+
+
+%% https://ceur-ws.org/GenAI/Policy.html
+\section*{Declaration on Generative AI}
+  {\em Either:}\newline
+  The author(s) have not employed any Generative AI tools.
+  \newline
+  
+ \noindent{\em Or (by using the activity taxonomy in ceur-ws.org/genai-tax.html):\newline}
+ During the preparation of this work, the author(s) used X-GPT-4 and Gramby in order to: Grammar and spelling check. Further, the author(s) used X-AI-IMG for figures 3 and 4 in order to: Generate images. After using these tool(s)/service(s), the author(s) reviewed and edited the content as needed and take(s) full responsibility for the publication’s content. 
+
 
 \bibliography{references}
+
+
+
+\input{chapters/appendix}
 
 \end{document}

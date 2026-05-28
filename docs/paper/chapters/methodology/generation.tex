@@ -1,7 +1,6 @@
-\section{Generation (Phases A+ and B)}
-\label{sec:generation}
 
-The generation phase underwent its most substantial revision in this edition, with two major innovations: an LLM-as-a-judge framework and a multi-agent quorum mechanism.
+
+% The generation phase underwent its most substantial revision in this edition, with two major innovations: an LLM-as-a-judge framework and a multi-agent quorum mechanism.
 
 \subsection{LLM as a Judge}
 
@@ -37,9 +36,9 @@ The most significant methodological innovation for this edition is the agent quo
   \caption{Agent quorum configurations across test batches. Agents are listed with their model identifier and the synthesizer used for final answer generation.}
   \label{tab:quorum-batches}
   \begin{tabularx}{\textwidth}{llX}
-    \hline
+\toprule
     \textbf{Batch} & \textbf{Version} & \textbf{Agents (Model)} \\
-    \hline
+\midrule
     B2 & V1 & Qwen3-Next-80B, Nemotron-3-Super-120B, MedGemma-27B \\
     &    & Synthesizer: Nemotron-3-Super-120B \\
     B2 & V2 & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
@@ -48,7 +47,7 @@ The most significant methodological innovation for this edition is the agent quo
     &    & Synthesizer: GPT-5.4-Nano \\
     B2 & V4 & Gemma-4-31B, Gemma-4-26B, MedGemma-27B \\
     &    & Synthesizer: Gemma-4-31B \\
-    \hline
+\midrule
     B3 & V0 & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
     &    & Synthesizer: Gemma-4-E4B \\
     B3 & V1 & Gemma-4-26B, Gemma-4-31B, Nemotron-3-Nano-30B, Qwen3.5-35B \\
@@ -57,7 +56,7 @@ The most significant methodological innovation for this edition is the agent quo
     &    & Synthesizer: Gemini-2.5-Flash \\
     B3 & V3 & Gemma-4-31B, Qwen3.5-35B, Mistral-Small, Mistral-Large \\
     &    & Synthesizer: Mistral-Small \\
-    \hline
+\midrule
     B4 & V0 & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
     &    & Synthesizer: Gemma-4-E4B \\
     B4 & V1 & Gemma-4-26B, Gemma-4-31B \\
@@ -70,6 +69,6 @@ The most significant methodological innovation for this edition is the agent quo
     &    & Synthesizer: Mistral-Medium \\
     B4 & V5 & Mistral-Medium, Mistral-Small \\
     &    & Synthesizer: Mistral-Medium \\
-    \hline
+\bottomrule
   \end{tabularx}
 \end{table}
