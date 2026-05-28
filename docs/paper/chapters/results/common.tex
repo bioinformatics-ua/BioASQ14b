@@ -19,7 +19,7 @@ We conducted extensive internal testing of the various retrieval strategies intr
   \caption{Internal retrieval testing results comparing BM25 baseline, fusion strategies of BM25 and dense retrieval (hybrid RRF and weighted sum), reranked variants, and Context-1. Bold values indicate the best result in each column.}
   \label{tab:internal-retrieval}
   \footnotesize
-  \begin{tabular}{lcccccc}
+  \footnotesize\begin{tabular}{lcccccc}
     \toprule
     \textbf{Method} & \textbf{Docs} & \textbf{M@100} & \textbf{H@100} & \textbf{AR@100} & \textbf{MRR} & \textbf{R@100} \\
     \midrule
@@ -53,7 +53,7 @@ We conducted internal validation of our reranker models using the 13B golden dat
   \centering
   \caption{Internal validation results for selected reranker models on the 13B golden datasets.}
   \label{tab:reranker-val}
-  \begin{tabular}{lcc}
+  \footnotesize\begin{tabular}{lcc}
     \toprule
     \textbf{Model} & \textbf{Configuration} & \textbf{MAP-bioasq@10} \\
     \midrule
@@ -88,8 +88,7 @@ The official Phase~A document retrieval results across the four test batches are
   \caption{Phase~A document retrieval results for Test Batch~1. Systems explored the effect of reranker ensemble size atop DPRF (Dense Passage Retrieval Fusion). Best competitor MAP: $\sim$0.38, Median MAP: $\sim$0.27.}
   \label{tab:phasea-b1}
   \footnotesize
-  \setlength{\tabcolsep}{3.5pt}
-  \begin{tabular}{lllccccc}
+  \footnotesize\begin{tabular}{lllccccc}
     \toprule
     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
     \midrule
@@ -110,8 +109,7 @@ The official Phase~A document retrieval results across the four test batches are
   \caption{Phase~A document retrieval results for Test Batch~2. Systems compared BM25-only vs.\ hybrid (BM25 + dense) retrieval with best or all rerankers. Best competitor MAP: $\sim$0.44, Median MAP: $\sim$0.30.}
   \label{tab:phasea-b2}
   \footnotesize
-  \setlength{\tabcolsep}{3.5pt}
-  \begin{tabular}{lllccccc}
+  \footnotesize\begin{tabular}{lllccccc}
     \toprule
     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
     \midrule
@@ -132,8 +130,7 @@ The official Phase~A document retrieval results across the four test batches are
   \caption{Phase~A document retrieval results for Test Batch~3. Systems compared BM25 baseline, hybrid + HyDE, and Context-1 with old vs.\ new rerankers. Best competitor MAP: $\sim$0.30, Median MAP: $\sim$0.20.}
   \label{tab:phasea-b3}
   \footnotesize
-  \setlength{\tabcolsep}{3.5pt}
-  \begin{tabular}{lllccccc}
+  \footnotesize\begin{tabular}{lllccccc}
     \toprule
     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
     \midrule
@@ -154,8 +151,7 @@ The official Phase~A document retrieval results across the four test batches are
   \caption{Phase~A document retrieval results for Test Batch~4. Systems compared BM25 baseline, hybrid RRF, HyDE, and Context-1 with best or all rerankers. Best competitor MAP: $\sim$0.17, Median MAP: $\sim$0.06.}
   \label{tab:phasea-b4}
   \footnotesize
-  \setlength{\tabcolsep}{3.5pt}
-  \begin{tabular}{lllccccc}
+  \footnotesize\begin{tabular}{lllccccc}
     \toprule
     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
     \midrule
@@ -186,7 +182,7 @@ For the snippet retrieval subtask, we participated starting from Test Batch~3. T
   \caption{Snippet retrieval results across test batches. All submissions used the Phase~A retrieval pipeline for document sourcing; snippet extraction was performed by the same generation models used in Phase~A+/B.}
   \label{tab:snippets}
   \footnotesize
-  \begin{tabular}{lllcc}
+  \footnotesize\begin{tabular}{lllcc}
     \toprule
     \textbf{Batch} & \textbf{System} & \textbf{Description} & \textbf{MAP} & \textbf{Rank} \\
     \midrule
@@ -223,30 +219,30 @@ Phase~A+ requires generating exact answers (yes/no, factoid, and list-type quest
   \caption{Phase A+ exact answer scores and rankings for Test Batch~1. Rankings shown in parentheses. Base retrieval: DPRF + Rerankers $>$0.64.}
   \label{tab:phaseap-b1}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llcccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Models (Exact / Ideal)} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & MedGemma 27B + Qwen3.5 35B / Nemotron 120B & 0.8235 (36) & 0.8211 (31) & 0.2609 (26) & 0.3043 (30) & 0.2696 (32) & 0.1275 (35) & 0.2219 (26) & 0.1509 (35) \\
-    bioinfo-1 & Qwen3.5 235B + Qwen Max Thinking / Nemotron 120B & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
+    bioinfo-0 & MedGemma-27B + Qwen3.5 35B / Nemotron-3-Super-120B & 0.8235 (36) & 0.8211 (31) & 0.2609 (26) & 0.3043 (30) & 0.2696 (32) & 0.1275 (35) & 0.2219 (26) & 0.1509 (35) \\
+    bioinfo-1 & Qwen3.5 235B + Qwen Max Thinking / Nemotron-3-Super-120B & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
     bioinfo-2 & Gemini 2.0 Flash + 2.5 Flash + Qwen3.5 122B / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
     bioinfo-3 & Gemini 2.0 Flash + 2.5 Flash / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
     bioinfo-4 & All models ensemble / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase A+ ideal answer scores and rankings for Test Batch~1. Rankings shown in parentheses.}
   \label{tab:phaseap-b1-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Models} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
     bioinfo-2 & Opus + Sonnet & 0.2408 (7) & 0.0825 (32) & 0.2706 (7) & 0.0932 (34) \\
     bioinfo-4 & Opus + Sonnet & 0.2348 (11) & 0.0916 (29) & 0.2664 (8) & 0.1023 (28) \\
     bioinfo-3 & Opus + Sonnet & 0.2245 (16) & 0.0955 (26) & 0.2489 (15) & 0.1021 (29) \\
-    bioinfo-1 & Nemotron 120B & 0.2200 (17) & 0.1009 (22) & 0.2393 (18) & 0.1074 (24) \\
-    bioinfo-0 & Nemotron 120B & 0.2150 (21) & 0.1021 (21) & 0.2340 (20) & 0.1094 (22) \\
+    bioinfo-1 & Nemotron-3-Super-120B & 0.2200 (17) & 0.1009 (22) & 0.2393 (18) & 0.1074 (24) \\
+    bioinfo-0 & Nemotron-3-Super-120B & 0.2150 (21) & 0.1021 (21) & 0.2340 (20) & 0.1094 (22) \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -259,22 +255,22 @@ Phase~A+ requires generating exact answers (yes/no, factoid, and list-type quest
   \caption{Phase A+ exact answer scores and rankings for Test Batch~2. Rankings shown in parentheses. Systems used agent-based generation with different model configurations.}
   \label{tab:phaseap-b2}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llcccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \midrule
     bioinfo-0 & Agents v1 (Qwen3-Next-80B + Nemotron-120B + MedGemma-27B) & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2401 (23) & 0.1608 (50) & 0.1778 (48) \\
-    bioinfo-1 & Agents v2 (Nemotron-120B + Grok-4.1 + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.2500 (35) & 0.2250 (33) & 0.2391 (24) & 0.2784 (23) & 0.2479 (26) \\
+    bioinfo-1 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.2500 (35) & 0.2250 (33) & 0.2391 (24) & 0.2784 (23) & 0.2479 (26) \\
     bioinfo-2 & Agents v3 (Qwen3-Next-80B + Mimo-v2-Flash + Qwen3.5-35B + Nemotron-120B) & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2406 (22) & 0.2249 (44) & 0.2306 (39) \\
     bioinfo-3 & LLM-as-judge top-k=1 & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.3500 (14) & 0.2450 (27) & 0.2926 (12) & 0.3841 (7) & 0.3145 (9) \\
     bioinfo-4 & LLM-as-judge top-k=3 & 0.8571 (27) & 0.8444 (25) & 0.2500 (23) & 0.3000 (28) & 0.2750 (26) & 0.2948 (11) & 0.4034 (5) & 0.3227 (8) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase A+ ideal answer scores and rankings for Test Batch~2. Rankings shown in parentheses.}
   \label{tab:phaseap-b2-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
@@ -295,22 +291,22 @@ Phase~A+ requires generating exact answers (yes/no, factoid, and list-type quest
   \caption{Phase A+ exact answer scores and rankings for Test Batch~3. Rankings shown in parentheses. Base retrieval: Context-1 + new rerankers. \textbf{[S]} = small/lightweight local models.}
   \label{tab:phaseap-b3}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llcccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-Nano-4B) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.4118 (26) & 0.4118 (9) & 0.2835 (10) & 0.2659 (28) & 0.2671 (20) \\
-    bioinfo-1 & Agents v1 [M] (Gemma-4-26B + 31B + Nemotron-Nano-30B + Qwen3.5-35B) & 1.0000 (1) & 1.0000 (1) & 0.3529 (6) & 0.4706 (9) & 0.4118 (9) & 0.2787 (11) & 0.3355 (9) & 0.2891 (11) \\
-    bioinfo-2 & Agents v2 (Nemotron-120B + Grok-4.1 + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 1.0000 (1) & 1.0000 (1) & 0.2941 (16) & 0.4706 (9) & 0.3824 (15) & 0.2459 (19) & 0.3221 (13) & 0.2649 (17) \\
+    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.4118 (26) & 0.4118 (9) & 0.2835 (10) & 0.2659 (28) & 0.2671 (20) \\
+    bioinfo-1 & Agents v1 [M] (Gemma-4-26B + 31B + Nemotron-3-Nano-30B + Qwen3.5-35B) & 1.0000 (1) & 1.0000 (1) & 0.3529 (6) & 0.4706 (9) & 0.4118 (9) & 0.2787 (11) & 0.3355 (9) & 0.2891 (11) \\
+    bioinfo-2 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 1.0000 (1) & 1.0000 (1) & 0.2941 (16) & 0.4706 (9) & 0.3824 (15) & 0.2459 (19) & 0.3221 (13) & 0.2649 (17) \\
     bioinfo-3 & Agents v3 (Gemma-4-31B + Qwen3.5-35B + Mistral-Small + Mistral-Large) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.5294 (2) & 0.4706 (2) & 0.2863 (9) & 0.3779 (4) & 0.3138 (6) \\
     bioinfo-4 & Agents ensemble (v0 + v1 + v2 + v3) & 0.9091 (28) & 0.8952 (23) & 0.3529 (6) & 0.5294 (2) & 0.4412 (5) & 0.2602 (15) & 0.3140 (14) & 0.2790 (13) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase A+ ideal answer scores and rankings for Test Batch~3. Rankings shown in parentheses.}
   \label{tab:phaseap-b3-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
@@ -331,21 +327,21 @@ Phase~A+ requires generating exact answers (yes/no, factoid, and list-type quest
   \caption{Phase A+ exact answer scores and rankings for Test Batch~4. Rankings shown in parentheses. Base retrieval: Context-1 + best rerankers. \textbf{[S]} = small/lightweight local models. \texttt{bioinfo-2} had no submission this batch.}
   \label{tab:phaseap-b4}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llcccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-Nano-4B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.2317 (32) & 0.2812 (29) & 0.2316 (33) \\
+    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.2317 (32) & 0.2812 (29) & 0.2316 (33) \\
     bioinfo-1 & Agents v1 (Gemma-4-26B + 31B; synth: Gemma-4-26B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3059 (18) & 0.3630 (14) & 0.3133 (18) \\
     bioinfo-3 & Agents v3 (Qwen3.6-35B + 27B + Flash; synth: Qwen3.6-35B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3196 (16) & 0.4053 (9) & 0.3388 (14) \\
     bioinfo-4 & Agents v4 (Mistral-Medium + Small + Large; synth: Mistral-Medium) & 0.8750 (10) & 0.8667 (12) & 0.3636 (5) & 0.3636 (13) & 0.3636 (12) & 0.2211 (35) & 0.2124 (43) & 0.2047 (42) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase A+ ideal answer scores and rankings for Test Batch~4. Rankings shown in parentheses.}
   \label{tab:phaseap-b4-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
@@ -380,8 +376,7 @@ Phase~B answers are generated using the gold-standard documents and snippets pro
   \caption{Phase B exact answer scores and rankings for Test Batch~1. Rankings shown in parentheses. Both submissions used LLM-as-judge with top-k document selection.}
   \label{tab:phaseb-b1}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llccccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \midrule
@@ -389,10 +384,11 @@ Phase~B answers are generated using the gold-standard documents and snippets pro
     bioinfo-1 & LLM-as-judge top-k=5 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.4348 (9) & 0.4783 (10) & 0.4565 (8) & 0.2417 (35) & 0.2659 (29) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase B ideal answer scores and rankings for Test Batch~1. Rankings shown in parentheses.}
   \label{tab:phaseb-b1-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
@@ -410,22 +406,22 @@ Phase~B answers are generated using the gold-standard documents and snippets pro
   \caption{Phase B exact answer scores and rankings for Test Batch~2. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models.}
   \label{tab:phaseb-b2}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llccccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \midrule
     bioinfo-0 & Agents v1 (Qwen3-Next-80B + Nemotron-120B + MedGemma-27B) & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.2500 (24) & 0.2500 (38) & 0.2500 (35) & 0.4369 (21) & 0.3836 (26) \\
-    bioinfo-1 & Agents v2 (Nemotron-120B + Grok-4.1 + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3500 (19) & 0.3250 (18) & 0.2266 (57) & 0.2270 (57) \\
+    bioinfo-1 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3500 (19) & 0.3250 (18) & 0.2266 (57) & 0.2270 (57) \\
     bioinfo-2 & Agents v4 [S] (Gemma-4-31B + 26B + MedGemma-27B; synth: Gemma-4-31B) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.3657 (38) & 0.3709 (35) \\
     bioinfo-3 & LLM-as-judge + ensemble summarization (mixed) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.4137 (28) & 0.4366 (18) \\
     bioinfo-4 & Ensemble (Gemini + Nemotron + Pixa) exact + Sonnet 4.6 ideal & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.3500 (11) & 0.3500 (19) & 0.3500 (12) & 0.4308 (23) & 0.4062 (22) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase B ideal answer scores and rankings for Test Batch~2. Rankings shown in parentheses.}
   \label{tab:phaseb-b2-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
@@ -446,22 +442,22 @@ Phase~B answers are generated using the gold-standard documents and snippets pro
   \caption{Phase B exact answer scores and rankings for Test Batch~3. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models, \textbf{[M]} = medium models.}
   \label{tab:phaseb-b3}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llccccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-Nano-4B) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.4125 (18) & 0.4102 (20) \\
-    bioinfo-1 & Agents v1 [M] (Gemma-4-26B + 31B + Nemotron-Nano-30B + Qwen3.5-35B) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.4706 (21) & 0.4706 (14) & 0.3706 (25) & 0.3575 (26) \\
-    bioinfo-2 & Agents v2 (Nemotron-120B + Grok-4.1 + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3725 (29) & 0.3822 (21) & 0.3963 (23) \\
+    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.4125 (18) & 0.4102 (20) \\
+    bioinfo-1 & Agents v1 [M] (Gemma-4-26B + 31B + Nemotron-3-Nano-30B + Qwen3.5-35B) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.4706 (21) & 0.4706 (14) & 0.3706 (25) & 0.3575 (26) \\
+    bioinfo-2 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3725 (29) & 0.3822 (21) & 0.3963 (23) \\
     bioinfo-3 & Agents v3 (Gemma-4-31B + Qwen3.5-35B + Mistral-Small + Mistral-Large) & 0.8182 (38) & 0.8571 (40) & 0.7500 (32) & 0.8036 (35) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.3840 (19) & 0.4053 (17) \\
     bioinfo-4 & Agents v4 (Mistral-Medium + Small + Large; synth: Mistral-Medium) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.5294 (10) & 0.5000 (10) & 0.3866 (20) & 0.3763 (25) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase B ideal answer scores and rankings for Test Batch~3. Rankings shown in parentheses.}
   \label{tab:phaseb-b3-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
@@ -482,22 +478,22 @@ Phase~B answers are generated using the gold-standard documents and snippets pro
   \caption{Phase B exact answer scores and rankings for Test Batch~4. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models.}
   \label{tab:phaseb-b4}
   \footnotesize
-  \setlength{\tabcolsep}{2pt}
-  \begin{tabular}{llccccccccc}
+  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-Nano-4B) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.2727 (18) & 0.3636 (19) & 0.3182 (19) & 0.3695 (40) & 0.3809 (41) \\
+    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.2727 (18) & 0.3636 (19) & 0.3182 (19) & 0.3695 (40) & 0.3809 (41) \\
     bioinfo-1 & Agents v1 (Gemma-4-26B + 31B; synth: Gemma-4-26B) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.1818 (29) & 0.2727 (36) & 0.2273 (35) & 0.4867 (24) & 0.4858 (22) \\
     bioinfo-2 & Agents v2 (Nemotron-120B + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.3636 (10) & 0.4545 (9) & 0.4091 (9) & 0.4442 (29) & 0.4763 (25) \\
     bioinfo-3 & Agents v3 (Qwen3.6-35B + 27B + Flash; synth: Qwen3.6-35B) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.4545 (4) & 0.5455 (4) & 0.5000 (5) & 0.5583 (15) & 0.5671 (11) \\
     bioinfo-4 & Agents v5 (Mistral-Medium + Small; synth: Mistral-Medium) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.3636 (10) & 0.4545 (9) & 0.3939 (11) & 0.3816 (37) & 0.3862 (39) \\
     \bottomrule
   \end{tabular}
+}%
   \par\medskip
   \caption{Phase B ideal answer scores and rankings for Test Batch~4. Rankings shown in parentheses.}
   \label{tab:phaseb-b4-ideal}
-  \begin{tabular}{llcccc}
+  \footnotesize\begin{tabular}{llcccc}
     \toprule
     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
