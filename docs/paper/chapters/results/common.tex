@@ -1,7 +1,7 @@
 \section{Results}
 \label{sec:results}
 
-This section presents both our internal validation results and the official evaluation results for each phase across the four test batches of the 14th BioASQ challenge. Our systems are labeled \texttt{bioinfo-0} through \texttt{bioinfo-4}, representing different configurations submitted across batches. For each absolute-value table, we also provide the corresponding ranking position within the full competition field (lower rank = better). Systems sharing the same score receive the same rank, and subsequent ranks are skipped accordingly.
+This section presents both our internal validation results and the official evaluation results for each phase across the four test batches of the 14th BioASQ challenge.
 
 \subsection{Validation}
 
@@ -18,7 +18,7 @@ We conducted extensive internal testing of the various retrieval strategies intr
   \label{tab:internal-retrieval}
   \footnotesize
   \footnotesize
-  \begin{tabular}{lcccccc}
+  \begin{tabular}{l|cccccc}
     \toprule
     \textbf{Method} & \textbf{Docs} & \textbf{M@100} & \textbf{H@100} & \textbf{AR@100} & \textbf{MRR} & \textbf{R@100} \\
     \midrule
@@ -72,9 +72,14 @@ We conducted internal validation of our reranker models using the 13B golden dat
 
 The LLaMA Nemotron reranker models achieved outstanding validation performance, substantially outperforming all BERT-based architectures. There are however concerns of data leakage due to the unusually high score. Among the smaller models, BGE-reranker-v2-m3 demonstrated the strongest performance, outperforming the model used in previous years (BioLinkBERT-Base), followed by the biomedical domain-specific models. The gap between general-domain and biomedical-specific rerankers was narrower than in previous years, suggesting that larger pretrained models can effectively transfer to biomedical text without extensive domain-specific pretraining.
 
-\subsection{Official Results}
+\subsubsection{Answer Generation}
 
-\subsubsection{Phase A (Document Retrieval)}
+
+
+\subsection{Official Results}
+Our systems are labeled \texttt{bioinfo-0} through \texttt{bioinfo-4}, representing different configurations submitted across batches. For each absolute-value table, we also provide the corresponding ranking position within the full competition field (lower rank = better). Systems sharing the same score receive the same rank, and subsequent ranks are skipped accordingly.
+
+\subsubsection{Document Retrieval (Phase A)}
 \label{sec:results-phase-a}
 The official Phase~A document retrieval results across the four test batches are presented in Table~\ref{tab:phasea-all}. In Batch 1, we utilized BM25+DPRF exclusively for first-stage retrieval. We primarily experimented with new reranker models by first filtering them (bioinfo-0 and bioinfo-1), evaluating the complete set (bioinfo-2), and employing the previous year's rerankers (bioinfo-3). The key takeaway from these runs was that the filtered models performed significantly worse, indicating that the Nemotron models may not be performing as well as initially anticipated. Furthermore, consistent with prior observations, larger model ensembles tended to yield better performance. Additionally, we noted that the 2025 rerankers outperformed the 2026 variants. Upon further investigation, we discovered that this batch suffered from incomplete indexing, with approximately one million missing documents. We believe this omission severely impacted model efficacy and degraded first-stage retrieval performance for this batch, an issue subsequently corrected in Batch 2.
 

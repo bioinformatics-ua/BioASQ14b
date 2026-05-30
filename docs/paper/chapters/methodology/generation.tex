@@ -1,8 +1,10 @@
-
-
 % The generation phase underwent its most substantial revision in this edition, with two major innovations: an LLM-as-a-judge framework and a multi-agent quorum mechanism.
 
-\subsection{LLM as a Judge}
+\subsection{Answer Generation}
+
+Lorem ipsum shit
+
+\subsubsection{LLM as a Judge}
 
 In previous editions, we employed a simple ensemble of different models with majority voting for answer selection, where each model produced an answer independently, and the final answer was chosen by a fixed aggregation rule. While straightforward, majority voting treats all models as equally reliable and cannot leverage cases where one model produces a partially correct answer that could be improved by incorporating elements from another. It also provides no mechanism for evaluating the factual consistency of candidate answers against the retrieved evidence.
 
@@ -10,12 +12,11 @@ For this edition, we replaced majority voting with an LLM-as-a-judge framework. 
 
 The judge's system prompt establishes it as a biomedical question-answering evaluator that outputs a structured JSON object containing numerical scores and a concise rationale. As stated before, the scoring dimensions are: \emph{correctness} (factual accuracy of the answer), \emph{faithfulness} (whether claims are grounded in the retrieved context), \emph{completeness} (whether all aspects of the question are addressed), and \emph{overall} (a holistic quality judgment). This multi-dimensional evaluation provides a richer signal than binary voting and allows the pipeline to prefer answers that are well-supported by evidence, even if they are not the most similar to the majority opinion.
 
-% TODO: Entendo o pq de estar isto aqui, mas ao ler pareceu-me repetição
 The motivation for adopting an LLM judge over majority voting is twofold. First, an LLM can critically evaluate the evidence grounding of each answer, penalizing hallucinations that a voting scheme would not detect. Second, the judge can identify complementary information across different candidate answers and either select the most comprehensive one or, in some configurations, synthesize a hybrid answer. This flexibility is particularly valuable for ideal answer generation, where different models may emphasize different aspects of the evidence.
 
 In practice, the LLM judge proved especially effective for exact answer types (yes/no, factoid, list), where correctness is more objectively verifiable against context.
 
-\subsection{Agent Quorum Mechanism}
+\subsubsection{Agent Quorum Mechanism}
 
 The most significant methodological innovation for this edition is the agent quorum, a multi-agent debate framework designed to produce more robust and well-reasoned answers. The mechanism operates as follows.
 
@@ -35,40 +36,40 @@ The most significant methodological innovation for this edition is the agent quo
   \centering
   \caption{Agent quorum configurations across test batches. Agents are listed with their model identifier and the synthesizer used for final answer generation. The \textbf{Config} code encodes the number of agents, weight openness (\texttt{open} = all weights public, \texttt{mixed} = some API-only), and the parameter range (in billions) across open-weight agents; \texttt{api} denotes configurations dominated by hosted closed models.}
   \label{tab:quorum-batches}
-  \begin{tabularx}{\textwidth}{lllX}
-\toprule
-    \textbf{Batch} & \textbf{Version} & \textbf{Config} & \textbf{Agents (Model)} \\
-\midrule
-    B2 & V1 & \texttt{3-open-27-120b} & Qwen3-Next-80B, Nemotron-3-Super-120B, MedGemma-27B \\
-    &    &                          & Synthesizer: Nemotron-3-Super-120B \\
-    B2 & V2 & \texttt{5-mixed}    & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
-    &    &                          & Synthesizer: Claude-Sonnet-4.6 \\
-    B2 & V3 & \texttt{4-open-35-309b} & Qwen3-Next-80B, Mimo-v2-Flash (309B), Qwen3.5-35B, Nemotron-3-Super-120B \\
-    &    &                          & Synthesizer: GPT-5.4-Nano \\
-    B2 & V4 & \texttt{3-open-26-31b}  & Gemma-4-31B, Gemma-4-26B, MedGemma-27B \\
-    &    &                          & Synthesizer: Gemma-4-31B \\
-\midrule
-    B3 & V0 & \texttt{3-open-2-4b}    & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
-    &    &                          & Synthesizer: Gemma-4-E4B \\
-    B3 & V1 & \texttt{4-open-26-35b}  & Gemma-4-26B, Gemma-4-31B, Nemotron-3-Nano-30B, Qwen3.5-35B \\
-    &    &                          & Synthesizer: Gemma-4-26B \\
-    B3 & V2 & \texttt{5-mixed-api}    & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
-    &    &                          & Synthesizer: Gemini-2.5-Flash \\
-    B3 & V3 & \texttt{4-open-24-123b} & Gemma-4-31B, Qwen3.5-35B, Mistral-Small-4 (119B), Mistral-Large-3 (675B) \\
-    &    &                          & Synthesizer: Mistral-Small-4 (119B) \\
-\midrule
-    B4 & V0 & \texttt{3-open-2-4b}    & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
-    &    &                          & Synthesizer: Gemma-4-E4B \\
-    B4 & V1 & \texttt{2-gemma-4-26-31b}  & Gemma-4-26B, Gemma-4-31B \\
-    &    &                          & Synthesizer: Gemma-4-26B \\
-    B4 & V2 & \texttt{4-mixed-api}    & Nemotron-3-Super-120B, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
-    &    &                          & Synthesizer: Gemini-2.5-Flash \\
-    B4 & V3 & \texttt{3-qwen-mixed-27-35b} & Qwen3.6-35B, Qwen3.6-27B, Qwen3.6-Flash \\
-    &    &                          & Synthesizer: Qwen3.6-35B \\
-    B4 & V4 & \texttt{3-mistral-129-695b} & Mistral-Medium-3.5 (128B), Mistral-Small-4(119B), Mistral-Large (695B) \\
-    &    &                          & Synthesizer: Mistral-Medium-3.5 (128B) \\
-    B4 & V5 & \texttt{2-mistral-120B}    & Mistral-Medium-3.5 (128B), Mistral-Small-4(119B) \\
-    &    &                          & Synthesizer: Mistral-Medium-3.5 (128B)\\
-\bottomrule
+  \begin{tabularx}{\textwidth}{llX}
+    \toprule
+    \textbf{Batch} & \textbf{Version / Config} & \textbf{Agents (Model)} \\
+    \midrule
+    \multirow{8}{*}{B2}& V1 (\texttt{3-open-27-120b})      & Qwen3-Next-80B, Nemotron-3-Super-120B, MedGemma-27B \\
+    &                                      & Synthesizer: Nemotron-3-Super-120B \\
+    & V2 (\texttt{5-mixed})                & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+    &                                      & Synthesizer: Claude-Sonnet-4.6 \\
+    & V3 (\texttt{4-open-35-309b})         & Qwen3-Next-80B, Mimo-v2-Flash (309B), Qwen3.5-35B, Nemotron-3-Super-120B \\
+    &                                      & Synthesizer: GPT-5.4-Nano \\
+    & V4 (\texttt{3-open-26-31b})          & Gemma-4-31B, Gemma-4-26B, MedGemma-27B \\
+    &                                      & Synthesizer: Gemma-4-31B \\
+    \midrule
+    \multirow{8}{*}{B3} & V0 (\texttt{3-open-2-4b})         & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B \\
+    &                                      & Synthesizer: Gemma-4-E4B \\
+    & V1 (\texttt{4-open-26-35b})          & Gemma-4-26B, Gemma-4-31B, Nemotron-3-Nano-30B, Qwen3.5-35B \\
+    &                                      & Synthesizer: Gemma-4-26B \\
+    & V2 (\texttt{5-mixed-api})            & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+    &                                      & Synthesizer: Gemini-2.5-Flash \\
+    & V3 (\texttt{4-open-24-123b})         & Gemma-4-31B, Qwen3.5-35B, Mistral-Small-4 (119B), Mistral-Large-3 (675B) \\
+    &                                      & Synthesizer: Mistral-Small-4 (119B) \\
+    \midrule
+    \multirow{10}{*}{B4} & V0 (\texttt{3-open-2-4b})         & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B \\
+    &                                      & Synthesizer: Gemma-4-E4B \\
+    & V1 (\texttt{2-gemma-4-26-31b})       & Gemma-4-26B, Gemma-4-31B \\
+    &                                      & Synthesizer: Gemma-4-26B \\
+    & V2 (\texttt{4-mixed-api})            & Nemotron-3-Super-120B, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+    &                                      & Synthesizer: Gemini-2.5-Flash \\
+    & V3 (\texttt{3-qwen-27-35b})    & Qwen3.6-35B, Qwen3.6-27B, Qwen3.6-Flash \\
+    &                                      & Synthesizer: Qwen3.6-35B \\
+    & V4 (\texttt{3-mistral-129-695b})     & Mistral-Medium-3.5 (128B), Mistral-Small-4 (119B), Mistral-Large (695B) \\
+    &                                      & Synthesizer: Mistral-Medium-3.5 (128B) \\
+    & V5 (\texttt{2-mistral-120B})         & Mistral-Medium-3.5 (128B), Mistral-Small-4(119B) \\
+    &                                      & Synthesizer: Mistral-Medium-3.5 (128B)\\
+    \bottomrule
   \end{tabularx}
 \end{table}
