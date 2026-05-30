@@ -77,99 +77,162 @@ The LLaMA Nemotron reranker models achieved outstanding validation performance, 
 
 \subsubsection{Phase A (Document Retrieval)}
 \label{sec:results-phase-a}
+The official Phase~A document retrieval results across the four test batches are presented in Table~\ref{tab:phasea-all}. In Batch 1, we utilized BM25+DPRF exclusively for first-stage retrieval. We primarily experimented with new reranker models by first filtering them (bioinfo-0 and bioinfo-1), evaluating the complete set (bioinfo-2), and employing the previous year's rerankers (bioinfo-3). The key takeaway from these runs was that the filtered models performed significantly worse, indicating that the Nemotron models may not be performing as well as initially anticipated. Furthermore, consistent with prior observations, larger model ensembles tended to yield better performance. Additionally, we noted that the 2025 rerankers outperformed the 2026 variants. Upon further investigation, we discovered that this batch suffered from incomplete indexing, with approximately one million missing documents. We believe this omission severely impacted model efficacy and degraded first-stage retrieval performance for this batch, an issue subsequently corrected in Batch 2.
 
-The official Phase~A document retrieval results across the four test batches are presented in Tables~\ref{tab:phasea-b1}--\ref{tab:phasea-b4}. Each table shows the retrieval configuration, number of reranker models in the ensemble (N), absolute scores, MAP rank within the competition, and the best competitor and median MAP for context. The best competitor value represents the highest MAP achieved by any team in that batch; the median represents the middle-ranked submission. Ranking is based on MAP.
+For Batch 2, we began experimenting with hybrid retrieval. Examining runs bioinfo-0, bioinfo-2, and bioinfo-3—where the top-performing rerankers were paired with varying retrievers—we observe that hybrid retrieval using a weighted sum substantially outperforms alternative approaches. Conversely, hybrid Reciprocal Rank Fusion (RRF) underperformed relative to the BM25 baseline. Several factors could account for these outcomes; most notably, these trends may shift following the release of the final official judgments. Alternatively, this pattern may imply that BM25 features carry higher relative importance than dense retrieval in this specific context. However, looking at bioinfo-1 (which incorporated all rerankers), we observed nearly identical performance to our best sysetm, whilst using a BM25-only configuration, whereas bioinfo-3 experienced a performance drop, suggesting a potential processing anomalies within this specific batch.
+
+In Batch 3, we investigated query expansion techniques via bioinfo-1 and bioinfo-2; however, these configurations once again fell short of the established BM25 baseline. We also evaluated the Context-1 model for first-stage retrieval, which yielded negative results. We again observed that the weighted-sum hybrid approach outperformed RRF hybrid retrieval. Unfortunately, the absence of strict control tests prevents us from verifying whether query expansion provided any intrinsic benefits or merely introduced unnecessary computational overhead.
+
+For Batch 4, we maintained a similar submission strategy but replaced the weighted-sum hybrid run with a control RRF hybrid run to benchmark against a HyDE submission. The results indicate that HyDE significantly boosts retrieval effectiveness, marginally outperforming the BM25 baseline in this instance.
+
+Overall, the results this year appear worse than in previous iterations, with our most successful submissions closely mirroring our prior-year architectures. This suggests that either the newly introduced hybrid configurations are less effective, our evaluation baseline is inherently biased toward BM25, or performance metrics will normalize once final ground-truth evaluations are released.
+
+% Hybrid retrieval with RRF fusion (\texttt{bioinfo-2} in B4, \texttt{bioinfo-2} in B3) consistently outperformed BM25-only retrieval when using the same reranker ensemble, confirming the benefit of combining lexical and dense signals at the first stage. However, this advantage depended on batch characteristics: in Batch~2, BM25 + all rerankers (\texttt{bioinfo-1}, MAP 0.1914) outperformed hybrid RRF + all rerankers (\texttt{bioinfo-3}, MAP 0.0718), suggesting that when the reranker ensemble is large enough, the first-stage retrieval method matters less than the reranker coverage. In Batch~3, the BM25 baseline (\texttt{bioinfo-0}) achieved the best MAP (0.1887, rank~7), highlighting that simpler retrieval can be sufficient when combined with strong reranking.
+
+% Context-1-based retrieval showed strong recall but required reranking for precision: in Batch~3, Context-1 + 2025 rerankers (\texttt{bioinfo-3}) and + 2026 rerankers (\texttt{bioinfo-4}) placed 32nd and 35th respectively, well below the hybrid + best reranker configurations. However, in Batch~4, Context-1 + best rerankers (\texttt{bioinfo-3}) matched Context-1 + all rerankers (\texttt{bioinfo-4}) at 28th, and Context-1 + all rerankers (+ HyDE via hybrid) achieved the best result (\texttt{bioinfo-2}, rank~10), demonstrating that Context-1 benefits substantially from larger reranker ensembles and query expansion.
+
+% The effect of ensemble size was mixed. In Batch~1, larger ensembles (46--70 models) achieved top-10 ranks (6th and 8th), while the filtered subset (5--7 models) ranked 25th--28th. In Batch~2, BM25 + all rerankers (29 models, rank~13) dramatically outperformed BM25 + best rerankers (5 models, rank~44), a gap of 31 positions. Conversely, hybrid RRF with best vs.\ all rerankers showed negligible difference (ranks 50 vs.\ 51). In Batch~4, best rerankers (5 models) on hybrid RRF + HyDE achieved rank~10---our best result in that batch---while all rerankers on Context-1 achieved rank~28, tied with best rerankers. These results suggest that ensemble size matters most when the first-stage retrieval is weak (BM25-only) and matters less when the first stage is already strong (hybrid RRF + HyDE).
+
+\todo[inline]{verify every rank, gmeini generated. for every table. for this table verify all N values}
+
+\begin{table}[ht]
+  \centering
+  \caption{Phase~A document retrieval results across all four Test Batches. Best is the top competitor MAP (rank 1); Median is the median competitor MAP for that batch.}
+  \label{tab:phasea-all}
+  \footnotesize
+  \begin{tabular}{cl|lll|cc}
+    \toprule
+    \textbf{Batch} & \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} \\
+    \midrule
+    \multirow{7}{*}{1}
+      & bioinfo-0 & BM25 & Filtered (MAP$>$0.64) & 5--7 & 0.1476 & 34 \\
+      & bioinfo-1 & BM25 + DPRF & Filtered (MAP$>$0.64) & 5--7 & 0.1502 & 30 \\
+      & bioinfo-2 & - & All 2026 rerankers & $\sim$24 & 0.2220 & 14 \\
+      & bioinfo-3 & - & All 2025 rerankers & $\sim$46 & \textbf{0.2479} & \textbf{5} \\
+      & bioinfo-4 & - & All 2025 + 2026 rerankers & $\sim$70 & 0.2398 & 11 \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{3}{l|}{} & 0.2835 & 1 \\
+      & \textit{Median} & \multicolumn{3}{l|}{} & 0.1691 & 27 \\
+    \midrule
+    \multirow{7}{*}{2}
+      & bioinfo-0 & BM25 & Best rerankers & $\sim$5 & 0.0813 & 59 \\
+      & bioinfo-1 & - & All 2026 rerankers & $\sim$29 & 0.1914 & 15 \\
+      & bioinfo-2 & Hybrid RRF & Best rerankers & $\sim$5 & 0.0721 & 60 \\
+      & bioinfo-3 &- & All 2026 rerankers & $\sim$29 & 0.0718 & 61 \\
+      & bioinfo-4 & Hybrid wsum & Best rerankers & $\sim$5 & \textbf{0.1922} & \textbf{14} \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{3}{l|}{} & 0.2395 & 1 \\
+      & \textit{Median} & \multicolumn{3}{l|}{} & 0.1406 & 33--34 \\
+    \midrule
+    \multirow{7}{*}{3}
+      & bioinfo-0 & BM25 & Best rerankers (baseline) & $\sim$5 & \textbf{0.1887} & \textbf{5} \\
+      & bioinfo-1 & Hybrid wsum + HyDE & Best rerankers & $\sim$5 & 0.1600 & 17 \\
+      & bioinfo-2 & Hybrid RRF + HyDE & Best rerankers & $\sim$5 & 0.1419 & 21 \\
+      & bioinfo-3 & Context-1 & 2025 rerankers & $\sim$46 & 0.1088 & 47 \\
+      & bioinfo-4 & Context-1 & 2026 rerankers & $\sim$24 & 0.0993 & 49 \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{3}{l|}{} & 0.2114 & 1 \\
+      & \textit{Median} & \multicolumn{3}{l|}{} & 0.1253 & 31--32 \\
+    \midrule
+    \multirow{7}{*}{4}
+      & bioinfo-0 & BM25 & Best rerankers (baseline) & $\sim$5 & 0.1951 & 13 \\
+      & bioinfo-1 & Hybrid RRF & Best rerankers & $\sim$5 & 0.1163 & 53 \\
+      & bioinfo-2 & Hybrid RRF + HyDE & Best rerankers & $\sim$5 & \textbf{0.1959} & \textbf{11} \\
+      & bioinfo-3 & Context-1 & Best rerankers & $\sim$5 & 0.1538 & 40 \\
+      & bioinfo-4 & Context-1 & All 2026 rerankers & $\sim$24 & 0.1538 & 41 \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{3}{l|}{} & 0.2310 & 1 \\
+      & \textit{Median} & \multicolumn{3}{l|}{} & 0.1598 & 38--39 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 % ============================================================
 % BATCH 1 PHASE A
 % ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase~A document retrieval results for Test Batch~1. Systems explored the effect of reranker ensemble size atop DPRF (Dense Passage Retrieval Fusion). Best competitor MAP: $\sim$0.38, Median MAP: $\sim$0.27.}
-  \label{tab:phasea-b1}
-  \footnotesize
-  \footnotesize\begin{tabular}{lllccccc}
-    \toprule
-    \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
-    \midrule
-    bioinfo-0 & DPRF & Filtered (map@bioasq$>$0.64) & 5--7 & 0.1476 & 28 & $\sim$0.38 & $\sim$0.27 \\
-    bioinfo-1 & DPRF + Rerankers & Filtered (map@bioasq$>$0.64) & 5--7 & 0.1502 & 25 & $\sim$0.38 & $\sim$0.27 \\
-    bioinfo-2 & DPRF & All 2026 rerankers & $\sim$24 & 0.2220 & 10 & $\sim$0.38 & $\sim$0.27 \\
-    bioinfo-3 & DPRF & All 2025 rerankers & $\sim$46 & \textbf{0.2479} & \textbf{6} & $\sim$0.38 & $\sim$0.27 \\
-    bioinfo-4 & DPRF & All 2025 + 2026 rerankers & $\sim$70 & 0.2398 & 8 & $\sim$0.38 & $\sim$0.27 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase~A document retrieval results for Test Batch~1. Systems explored the effect of reranker ensemble size atop DPRF (Dense Passage Retrieval Fusion). Best competitor MAP: $\sim$0.38, Median MAP: $\sim$0.27.}
+%   \label{tab:phasea-b1}
+%   \footnotesize
+%   \footnotesize\begin{tabular}{lllccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
+%     \midrule
+%     bioinfo-0 & DPRF & Filtered (map@bioasq$>$0.64) & 5--7 & 0.1476 & 28 & $\sim$0.38 & $\sim$0.27 \\
+%     bioinfo-1 & DPRF  & Filtered (map@bioasq$>$0.64) & 5--7 & 0.1502 & 25 & $\sim$0.38 & $\sim$0.27 \\
+%     bioinfo-2 & DPRF & All 2026 rerankers & $\sim$24 & 0.2220 & 10 & $\sim$0.38 & $\sim$0.27 \\
+%     bioinfo-3 & DPRF & All 2025 rerankers & $\sim$46 & \textbf{0.2479} & \textbf{6} & $\sim$0.38 & $\sim$0.27 \\
+%     bioinfo-4 & DPRF & All 2025 + 2026 rerankers & $\sim$70 & 0.2398 & 8 & $\sim$0.38 & $\sim$0.27 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-% ============================================================
-% BATCH 2 PHASE A
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase~A document retrieval results for Test Batch~2. Systems compared BM25-only vs.\ hybrid (BM25 + dense) retrieval with best or all rerankers. Best competitor MAP: $\sim$0.44, Median MAP: $\sim$0.30.}
-  \label{tab:phasea-b2}
-  \footnotesize
-  \footnotesize\begin{tabular}{lllccccc}
-    \toprule
-    \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
-    \midrule
-    bioinfo-0 & BM25 & Best rerankers & $\sim$5  & 0.0813 & 44 & $\sim$0.44 & $\sim$0.30 \\
-    bioinfo-1 & BM25 & All rerankers & $\sim$29 & 0.1914 & 13 & $\sim$0.44 & $\sim$0.30 \\
-    bioinfo-2 & Hybrid RRF & Best rerankers & $\sim$5  & 0.0721 & 50 & $\sim$0.44 & $\sim$0.30 \\
-    bioinfo-3 & Hybrid RRF & All rerankers & $\sim$29 & 0.0718 & 51 & $\sim$0.44 & $\sim$0.30 \\
-    bioinfo-4 & Hybrid wsum & Best rerankers & $\sim$5  & \textbf{0.1922} & \textbf{12} & $\sim$0.44 & $\sim$0.30 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% % ============================================================
+% % BATCH 2 PHASE A
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase~A document retrieval results for Test Batch~2. Systems compared BM25-only vs.\ hybrid (BM25 + dense) retrieval with best or all rerankers. Best competitor MAP: $\sim$0.44, Median MAP: $\sim$0.30.}
+%   \label{tab:phasea-b2}
+%   \footnotesize
+%   \footnotesize\begin{tabular}{lllccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
+%     \midrule
+%     bioinfo-0 & BM25 & Best rerankers & $\sim$5  & 0.0813 & 44 & $\sim$0.44 & $\sim$0.30 \\
+%     bioinfo-1 & BM25 & All rerankers & $\sim$29 & 0.1914 & 13 & $\sim$0.44 & $\sim$0.30 \\
+%     bioinfo-2 & Hybrid RRF & Best rerankers & $\sim$5  & 0.0721 & 50 & $\sim$0.44 & $\sim$0.30 \\
+%     bioinfo-3 & Hybrid RRF & All rerankers & $\sim$29 & 0.0718 & 51 & $\sim$0.44 & $\sim$0.30 \\
+%     bioinfo-4 & Hybrid wsum & Best rerankers & $\sim$5  & \textbf{0.1922} & \textbf{12} & $\sim$0.44 & $\sim$0.30 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-% ============================================================
-% BATCH 3 PHASE A
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase~A document retrieval results for Test Batch~3. Systems compared BM25 baseline, hybrid + HyDE, and Context-1 with old vs.\ new rerankers. Best competitor MAP: $\sim$0.30, Median MAP: $\sim$0.20.}
-  \label{tab:phasea-b3}
-  \footnotesize
-  \footnotesize\begin{tabular}{lllccccc}
-    \toprule
-    \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
-    \midrule
-    bioinfo-0 & BM25 & Best rerankers (baseline) & $\sim$5  & \textbf{0.1887} & \textbf{7}  & $\sim$0.30 & $\sim$0.20 \\
-    bioinfo-1 & Hybrid wsum + HyDE & Best rerankers & $\sim$5  & 0.1600 & 14 & $\sim$0.30 & $\sim$0.20 \\
-    bioinfo-2 & Hybrid RRF + HyDE & Best rerankers & $\sim$5  & 0.1419 & 19 & $\sim$0.30 & $\sim$0.20 \\
-    bioinfo-3 & Context-1 & 2025 rerankers & $\sim$46 & 0.1088 & 32 & $\sim$0.30 & $\sim$0.20 \\
-    bioinfo-4 & Context-1 & 2026 rerankers & $\sim$24 & 0.0993 & 35 & $\sim$0.30 & $\sim$0.20 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% % ============================================================
+% % BATCH 3 PHASE A
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase~A document retrieval results for Test Batch~3. Systems compared BM25 baseline, hybrid + HyDE, and Context-1 with old vs.\ new rerankers. Best competitor MAP: $\sim$0.30, Median MAP: $\sim$0.20.}
+%   \label{tab:phasea-b3}
+%   \footnotesize
+%   \footnotesize\begin{tabular}{lllccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
+%     \midrule
+%     bioinfo-0 & BM25 & Best rerankers (baseline) & $\sim$5  & \textbf{0.1887} & \textbf{7}  & $\sim$0.30 & $\sim$0.20 \\
+%     bioinfo-1 & Hybrid wsum + HyDE & Best rerankers & $\sim$5  & 0.1600 & 14 & $\sim$0.30 & $\sim$0.20 \\
+%     bioinfo-2 & Hybrid RRF + HyDE & Best rerankers & $\sim$5  & 0.1419 & 19 & $\sim$0.30 & $\sim$0.20 \\
+%     bioinfo-3 & Context-1 & 2025 rerankers & $\sim$46 & 0.1088 & 32 & $\sim$0.30 & $\sim$0.20 \\
+%     bioinfo-4 & Context-1 & 2026 rerankers & $\sim$24 & 0.0993 & 35 & $\sim$0.30 & $\sim$0.20 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-% ============================================================
-% BATCH 4 PHASE A
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase~A document retrieval results for Test Batch~4. Systems compared BM25 baseline, hybrid RRF, HyDE, and Context-1 with best or all rerankers. Best competitor MAP: $\sim$0.17, Median MAP: $\sim$0.06.}
-  \label{tab:phasea-b4}
-  \footnotesize
-  \footnotesize\begin{tabular}{lllccccc}
-    \toprule
-    \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
-    \midrule
-    bioinfo-0 & BM25 & Best rerankers (baseline) & $\sim$5  & 0.1951 & 12 & $\sim$0.17 & $\sim$0.06 \\
-    bioinfo-1 & Hybrid RRF & Best rerankers & $\sim$5  & 0.1163 & 44 & $\sim$0.17 & $\sim$0.06 \\
-    bioinfo-2 & Hybrid RRF + HyDE & Best rerankers & $\sim$5  & \textbf{0.1959} & \textbf{10} & $\sim$0.17 & $\sim$0.06 \\
-    bioinfo-3 & Context-1 & Best rerankers & $\sim$5  & 0.1538 & 28 & $\sim$0.17 & $\sim$0.06 \\
-    bioinfo-4 & Context-1 & All rerankers & $\sim$24 & 0.1538 & 28 & $\sim$0.17 & $\sim$0.06 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% % ============================================================
+% % BATCH 4 PHASE A
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase~A document retrieval results for Test Batch~4. Systems compared BM25 baseline, hybrid RRF, HyDE, and Context-1 with best or all rerankers. Best competitor MAP: $\sim$0.17, Median MAP: $\sim$0.06.}
+%   \label{tab:phasea-b4}
+%   \footnotesize
+%   \footnotesize\begin{tabular}{lllccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Retriever} & \textbf{Reranker Ensemble} & \textbf{N} & \textbf{MAP} & \textbf{Rank} & \textbf{Best MAP} & \textbf{Med. MAP} \\
+%     \midrule
+%     bioinfo-0 & BM25 & Best rerankers (baseline) & $\sim$5  & 0.1951 & 12 & $\sim$0.17 & $\sim$0.06 \\
+%     bioinfo-1 & Hybrid RRF & Best rerankers & $\sim$5  & 0.1163 & 44 & $\sim$0.17 & $\sim$0.06 \\
+%     bioinfo-2 & Hybrid RRF + HyDE & Best rerankers & $\sim$5  & \textbf{0.1959} & \textbf{10} & $\sim$0.17 & $\sim$0.06 \\
+%     bioinfo-3 & Context-1 & Best rerankers & $\sim$5  & 0.1538 & 28 & $\sim$0.17 & $\sim$0.06 \\
+%     bioinfo-4 & Context-1 & All rerankers & $\sim$24 & 0.1538 & 28 & $\sim$0.17 & $\sim$0.06 \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
-\paragraph{Phase A Analysis.}
-Several patterns emerge consistently across batches. Hybrid retrieval with RRF fusion (\texttt{bioinfo-2} in B4, \texttt{bioinfo-2} in B3) consistently outperformed BM25-only retrieval when using the same reranker ensemble, confirming the benefit of combining lexical and dense signals at the first stage. However, this advantage depended on batch characteristics: in Batch~2, BM25 + all rerankers (\texttt{bioinfo-1}, MAP 0.1914) outperformed hybrid RRF + all rerankers (\texttt{bioinfo-3}, MAP 0.0718), suggesting that when the reranker ensemble is large enough, the first-stage retrieval method matters less than the reranker coverage. In Batch~3, the BM25 baseline (\texttt{bioinfo-0}) achieved the best MAP (0.1887, rank~7), highlighting that simpler retrieval can be sufficient when combined with strong reranking.
+% \paragraph{Phase A Analysis.}
 
-Context-1-based retrieval showed strong recall but required reranking for precision: in Batch~3, Context-1 + 2025 rerankers (\texttt{bioinfo-3}) and + 2026 rerankers (\texttt{bioinfo-4}) placed 32nd and 35th respectively, well below the hybrid + best reranker configurations. However, in Batch~4, Context-1 + best rerankers (\texttt{bioinfo-3}) matched Context-1 + all rerankers (\texttt{bioinfo-4}) at 28th, and Context-1 + all rerankers (+ HyDE via hybrid) achieved the best result (\texttt{bioinfo-2}, rank~10), demonstrating that Context-1 benefits substantially from larger reranker ensembles and query expansion.
-
-The effect of ensemble size was mixed. In Batch~1, larger ensembles (46--70 models) achieved top-10 ranks (6th and 8th), while the filtered subset (5--7 models) ranked 25th--28th. In Batch~2, BM25 + all rerankers (29 models, rank~13) dramatically outperformed BM25 + best rerankers (5 models, rank~44), a gap of 31 positions. Conversely, hybrid RRF with best vs.\ all rerankers showed negligible difference (ranks 50 vs.\ 51). In Batch~4, best rerankers (5 models) on hybrid RRF + HyDE achieved rank~10---our best result in that batch---while all rerankers on Context-1 achieved rank~28, tied with best rerankers. These results suggest that ensemble size matters most when the first-stage retrieval is weak (BM25-only) and matters less when the first stage is already strong (hybrid RRF + HyDE).
 
 
 \subsubsection{Snippet Retrieval (Phase A)}
@@ -177,28 +240,28 @@ The effect of ensemble size was mixed. In Batch~1, larger ensembles (46--70 mode
 
 For the snippet retrieval subtask, we participated starting from Test Batch~3. Table~\ref{tab:snippets} presents the simplified results showing MAP, rank, and the configuration used for each submission. All snippet submissions used the corresponding Phase~A document retrieval pipeline as their document source, with snippet extraction performed by the generation models described in Section~\ref{sec:methodology}.
 
-\begin{table}[ht]
+
+
+
+  \begin{table}[ht]
   \centering
-  \caption{Snippet retrieval results across test batches. All submissions used the Phase~A retrieval pipeline for document sourcing; snippet extraction was performed by the same generation models used in Phase~A+/B.}
+  \caption{Snippet retrieval results across test batches. All submissions used the Phase~A retrieval pipeline for document sourcing; snippet extraction was performed by the same generation models used in Phase~A+/B. System ranks are calculated out of all participating systems (50 in B3, 66 in B4).}
   \label{tab:snippets}
   \footnotesize
-  \footnotesize\begin{tabular}{lllcc}
+  \begin{tabular}{lcccc}
     \toprule
-    \textbf{Batch} & \textbf{System} & \textbf{Description} & \textbf{MAP} & \textbf{Rank} \\
+    \multirow{2}{*}{\textbf{System}} & \multicolumn{2}{c}{\textbf{Batch B3}} & \multicolumn{2}{c}{\textbf{Batch B4}} \\
+    \cmidrule(lr){2-3} \cmidrule(lr){4-5}
+    & \textbf{MAP} & \textbf{Rank} & \textbf{MAP} & \textbf{Rank} \\
     \midrule
-    \multirow{5}{*}{B3} 
-      & bioinfo-0 & BM25 + best rerankers (baseline) & 0.0546 & 7 \\
-      & bioinfo-1 & Hybrid wsum + HyDE + best rerankers & 0.0352 & 12 \\
-      & bioinfo-2 & Hybrid RRF + HyDE + best rerankers & 0.0375 & 10 \\
-      & bioinfo-3 & Context-1 + 2025 rerankers & 0.0267 & 14 \\
-      & bioinfo-4 & Context-1 + 2026 rerankers & 0.0130 & 18 \\
+    bioinfo-0 & \textbf{0.0546} & \textbf{25} & \textbf{0.0591} & \textbf{28} \\
+    bioinfo-1 & 0.0352 & 32 & 0.0296 & 51 \\
+    bioinfo-2 & 0.0375 & 30 & 0.0495 & 35 \\
+    bioinfo-3 & 0.0267 & 38 & 0.0431 & 42 \\
+    bioinfo-4 & 0.0130 & 47 & 0.0490 & 36 \\
     \midrule
-    \multirow{5}{*}{B4}
-      & bioinfo-0 & BM25 + best rerankers (baseline) & 0.0591 & 17 \\
-      & bioinfo-1 & Hybrid RRF + best rerankers & 0.0296 & 35 \\
-      & bioinfo-2 & Hybrid RRF + HyDE + best rerankers & 0.0495 & 20 \\
-      & bioinfo-3 & Context-1 + best rerankers & 0.0431 & 25 \\
-      & bioinfo-4 & Context-1 + all rerankers & 0.0490 & 21 \\
+    \textbf{Best}   & 0.1440 & 1 & 0.1750 & 1 \\
+    \textbf{Median} & 0.0543 & 25-26 & 0.0512 & 33-34 \\
     \bottomrule
   \end{tabular}
 \end{table}
@@ -206,152 +269,305 @@ For the snippet retrieval subtask, we participated starting from Test Batch~3. T
 Snippet retrieval performance was modest, reflecting the difficulty of the task and our first attempt at this subtask. The best MAP ranks were 7th (\texttt{bioinfo-0}, Batch~3) and 17th (\texttt{bioinfo-0}, Batch~4). Interestingly, the BM25 + best rerankers baseline achieved our best snippet rank in both batches, suggesting that snippet extraction benefited from the simpler, higher-precision document retrieval pipeline. Context-1, despite its strong recall for documents, produced lower snippet MAP---consistent with the observation that Context-1 retrieves more documents but with lower precision, making snippet extraction from those documents more challenging.
 
 
-\subsubsection{Phase A+ (Exact and Ideal Answers)}
+\subsubsection{Exact Answers (Phases A+ and B)}
 \label{sec:results-phase-aplus}
 
-Phase~A+ requires generating exact answers (yes/no, factoid, and list-type questions) as well as ideal answers (paragraph-length summaries). For each batch, we present both the absolute scores and the competition rankings side by side. Each system description indicates the models used for exact answer generation and ideal answer synthesis.
 
-% ============================================================
-% BATCH 1 PHASE A+
-% ============================================================
+
+Phase~A+ requires generating exact answers (yes/no, factoid, and list-type questions) as well as ideal answers (paragraph-length summaries). For each batch, we present both the absolute scores and the competition rankings side by side. Each system description indicates the models used for exact answer generation and ideal answer synthesis. The source used for documents in phase A+ is always bioinfo-0 from phase A.
+
+
+
+
+
+
+For exact answers we report the official metrics: F1 for yes/no questions,
+MRR for factoid questions, and F1 for list questions, in Phase~A+
+(Table~\ref{tab:phaseap-exact-all}) and Phase~B (Table~\ref{tab:phaseb-exact-all}).
+
+In Phase~A+, our systems were most competitive on the factoid and list metrics,
+while yes/no F1 stayed close to the leaderboard median throughout. In Batch~1 our
+submissions clustered around the median, with the proprietary/mixed quorums
+(\texttt{bioinfo-1}, \texttt{bioinfo-2}) reaching our best ranks on factoid
+(0.3261, rank~13) and list (0.1735, rank~20). Batch~2 showed a clear benefit from
+the LLM-as-judge stage: the judge-based runs (\texttt{bioinfo-3}, top-$k$\,=\,1 and
+\texttt{bioinfo-4}, top-$k$\,=\,3) lifted list F1 to 0.3145 (rank~15) and 0.3227
+(rank~13), well above the plain agent quorums (0.18--0.25), while also leading on
+yes/no and factoid. Our strongest batch was Batch~3, where two quorums reached a
+perfect yes/no F1 of 1.0 (rank~1): the open-source \texttt{bioinfo-1} and the
+mixed-API \texttt{bioinfo-2}. The open-source \texttt{bioinfo-3} quorum placed 3rd
+on factoid (0.4706) and 6th on list (0.3138), exceeding the mixed-API
+\texttt{bioinfo-2} on both metrics and indicating that an all-open-source quorum was
+competitive with proprietary configurations; its yes/no score (0.8952, rank~18) was
+above median but below our top systems that batch. In Batch~4, the Mistral quorum
+\texttt{bioinfo-4} placed 2nd on factoid (0.3636), and list F1 stayed above median
+for the smaller open quorums.
+
+Phase~B follows a similar pattern, with differentiation coming from factoid and list
+while yes/no scores sit at or slightly below the median. In Batch~1, both submissions
+used the LLM-as-judge pipeline, and widening the judge from top-$k$\,=\,3 to
+top-$k$\,=\,5 improved factoid MRR from 0.4130 to 0.4565 (rank~8). Batch~2 again
+favoured the judge/ensemble systems: LLM-as-judge with ensemble summarization
+(\texttt{bioinfo-3}) gave our best list F1 (0.4366, rank~15), while the Sonnet-4.6
+ideal-answer ensemble (\texttt{bioinfo-4}) led on factoid (0.3500, rank~10). In
+Batch~3 the Mistral quorum (\texttt{bioinfo-4}) reached 0.5000 factoid MRR (rank~8).
+Batch~4 was our strongest Phase~B result: the Qwen quorum (\texttt{bioinfo-3}) placed
+5th on factoid (0.5000) and 9th on list (0.5671), and two systems (\texttt{bioinfo-0},
+\texttt{bioinfo-4}) reached 3rd on yes/no (0.9352).
+
+Across both phases, yes/no F1 was a poor discriminator---scores were tightly bunched
+near the median for almost all participants---whereas factoid and list F1 separated
+systems more clearly and accounted for nearly all of our top-10 finishes. Two design
+choices recur in our best runs: the LLM-as-judge / ensemble-selection stage, which
+gave the largest gains on list F1, and open-source quorums that matched or exceeded
+mixed proprietary-API configurations.
+
 \begin{table}[ht]
   \centering
-  \caption{Phase A+ exact answer scores and rankings for Test Batch~1. Rankings shown in parentheses. Base retrieval: DPRF + Rerankers $>$0.64.}
-  \label{tab:phaseap-b1}
+  \caption{Phase~A+ exact answer results across all four Test Batches. Scores are shown with their overall leaderboard ranking in parentheses. The top-performing system among our submissions in each batch is highlighted in bold. \textbf{Best} represents the top competitor score (Rank 1); \textbf{Median} is the median score (and median rank) across all participants for that batch.}
+  \label{tab:phaseap-exact-all}
   \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
+  \begin{tabular}{cl|p{5.8cm}|ccc}
     \toprule
-    \textbf{System} & \textbf{Generation Models (Exact / Ideal)} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
+    \textbf{Batch} & \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N F1} & \textbf{Fact. MRR} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & MedGemma-27B + Qwen3.5 35B / Nemotron-3-Super-120B & 0.8235 (36) & 0.8211 (31) & 0.2609 (26) & 0.3043 (30) & 0.2696 (32) & 0.1275 (35) & 0.2219 (26) & 0.1509 (35) \\
-    bioinfo-1 & Qwen3.5 235B + Qwen Max Thinking / Nemotron-3-Super-120B & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
-    bioinfo-2 & Gemini 2.0 Flash + 2.5 Flash + Qwen3.5 122B / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
-    bioinfo-3 & Gemini 2.0 Flash + 2.5 Flash / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
-    bioinfo-4 & All models ensemble / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase A+ ideal answer scores and rankings for Test Batch~1. Rankings shown in parentheses.}
-  \label{tab:phaseap-b1-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Models} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+    \multirow{7}{*}{1}
+      & bioinfo-0 & MedGemma-27B + Qwen3.5 35B & 0.8211 (37) & 0.2696 (23) & 0.1509 (28) \\
+      & bioinfo-1 & Qwen3.5 235B + Qwen Max Thinking & \textbf{0.8786 (16)} & \textbf{0.3261 (13)} & \textbf{0.1735 (20)} \\
+      & bioinfo-2 & Gemini 2.0 Flash + 2.5 Flash + Qwen3.5 122B & \textbf{0.8786 (16)} & \textbf{0.3261 (13)} & 0.1731 (22) \\
+      & bioinfo-3 & Gemini 2.0 Flash + 2.5 Flash & \textbf{0.8786 (16)} & 0.2609 (24) & \textbf{0.1735 (20)} \\
+      & bioinfo-4 & All models ensemble & \textbf{0.8786 (16)} & 0.2609 (24) & 0.1731 (22) \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.4783 (1) & 0.2345 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8786 (27) & 0.2761 (27) & 0.1731 (27) \\
     \midrule
-    bioinfo-2 & Opus + Sonnet & 0.2408 (7) & 0.0825 (32) & 0.2706 (7) & 0.0932 (34) \\
-    bioinfo-4 & Opus + Sonnet & 0.2348 (11) & 0.0916 (29) & 0.2664 (8) & 0.1023 (28) \\
-    bioinfo-3 & Opus + Sonnet & 0.2245 (16) & 0.0955 (26) & 0.2489 (15) & 0.1021 (29) \\
-    bioinfo-1 & Nemotron-3-Super-120B & 0.2200 (17) & 0.1009 (22) & 0.2393 (18) & 0.1074 (24) \\
-    bioinfo-0 & Nemotron-3-Super-120B & 0.2150 (21) & 0.1021 (21) & 0.2340 (20) & 0.1094 (22) \\
+    \multirow{7}{*}{2}
+      & bioinfo-0 & Agents v1 (3-open-27-120b) & 0.8444 (28) & 0.2000 (39) & 0.1778 (48) \\
+      & bioinfo-1 & Agents v2 (5-mixed) & \textbf{0.8929 (10)} & 0.2250 (33) & 0.2479 (29) \\
+      & bioinfo-2 & Agents v3 (4-open-35-309b) & 0.8444 (28) & 0.2000 (39) & 0.2306 (36) \\
+      & bioinfo-3 & LLM-as-judge top-k=1 & \textbf{0.8929 (10)} & 0.2450 (27) & 0.3145 (15) \\
+      & bioinfo-4 & LLM-as-judge top-k=3 & 0.8444 (28) & \textbf{0.2750 (22)} & \textbf{0.3227 (13)} \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.9481 (1) & 0.4000 (1) & 0.3909 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8833 (28) & 0.2667 (28) & 0.2544 (28) \\
+    \midrule
+    \multirow{7}{*}{3}
+      & bioinfo-0 & Agents v0 [S] (3-open-2-4b ) & 0.8952 (18) & 0.4118 (9) & 0.2671 (19) \\
+      & bioinfo-1 & Agents v1 [M] (4-open-26-35b ) & \textbf{1.0000 (1)} & 0.4118 (9) & 0.2891 (11) \\
+      & bioinfo-2 & Agents v2 (5-mixed-api) & \textbf{1.0000 (1)} & 0.3824 (15) & 0.2649 (20) \\
+      & bioinfo-3 & Agents v3 (4-open-24-123b) & 0.8952 (18) & \textbf{0.4706 (3)} & \textbf{0.3138 (6)} \\
+      & bioinfo-4 & Agents ensemble (v0 + v1 + v2 + v3) & 0.8952 (18) & 0.4412 (6) & 0.2790 (13) \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5294 (1) & 0.3258 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8036 (30) & 0.3235 (30) & 0.2449 (30) \\
+    \midrule
+    \multirow{6}{*}{4}
+      & bioinfo-0 & Agents v0 [S] (3-open-2-4b ) & \textbf{0.8667 (11)} & 0.2727 (14) & 0.2316 (40) \\
+      & bioinfo-1 & Agents v1 (2-gemma-4-26-31b ) & \textbf{0.8667 (11)} & 0.2727 (14) & 0.3133 (24) \\
+      & bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & \textbf{0.8667 (11)} & 0.2727 (14) & \textbf{0.3388 (19)} \\
+      & bioinfo-4 & Agents v4 (3-mistral-129-695b) & \textbf{0.8667 (11)} & \textbf{0.3636 (2)} & 0.2047 (45) \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.9352 (1) & 0.4091 (1) & 0.4840 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8667 (28) & 0.2273 (28) & 0.3065 (28) \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-% ============================================================
-% BATCH 2 PHASE A+
-% ============================================================
+
+
 \begin{table}[ht]
   \centering
-  \caption{Phase A+ exact answer scores and rankings for Test Batch~2. Rankings shown in parentheses. Systems used agent-based generation with different model configurations.}
-  \label{tab:phaseap-b2}
+  \caption{Phase~B exact answer results across all four Test Batches. Scores are shown with their overall leaderboard ranking in parentheses. The top-performing system among our submissions in each batch is highlighted in bold. \textbf{Best} represents the top competitor score (Rank 1); \textbf{Median} is the median score (and median rank) across all participants for that batch.}
+  \label{tab:phaseb-exact-all}
   \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
+  \begin{tabular}{cl|p{5.5cm}|ccc}
     \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
+    \textbf{Batch} & \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N F1} & \textbf{Fact. MRR} & \textbf{List F1} \\
     \midrule
-    bioinfo-0 & Agents v1 (Qwen3-Next-80B + Nemotron-120B + MedGemma-27B) & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2401 (23) & 0.1608 (50) & 0.1778 (48) \\
-    bioinfo-1 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.2500 (35) & 0.2250 (33) & 0.2391 (24) & 0.2784 (23) & 0.2479 (26) \\
-    bioinfo-2 & Agents v3 (Qwen3-Next-80B + Mimo-v2-Flash + Qwen3.5-35B + Nemotron-120B) & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2406 (22) & 0.2249 (44) & 0.2306 (39) \\
-    bioinfo-3 & LLM-as-judge top-k=1 & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.3500 (14) & 0.2450 (27) & 0.2926 (12) & 0.3841 (7) & 0.3145 (9) \\
-    bioinfo-4 & LLM-as-judge top-k=3 & 0.8571 (27) & 0.8444 (25) & 0.2500 (23) & 0.3000 (28) & 0.2750 (26) & 0.2948 (11) & 0.4034 (5) & 0.3227 (8) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase A+ ideal answer scores and rankings for Test Batch~2. Rankings shown in parentheses.}
-  \label{tab:phaseap-b2-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+    \multirow{4}{*}{1}
+      & bioinfo-0 & LLM-as-judge top-k=3 & \textbf{0.8786 (24)} & 0.4130 (23) & 0.2581 (33) \\
+      & bioinfo-1 & LLM-as-judge top-k=5 & \textbf{0.8786 (24)} & \textbf{0.4565 (8)} & \textbf{0.2659 (28)} \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5217 (1) & 0.3613 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.9377 (21) & 0.4203 (21) & 0.2443 (21) \\
     \midrule
-    bioinfo-3 & LLM-as-judge top-k=1 & 0.2843 (3) & 0.0983 (35) & 0.2984 (3) & 0.1082 (35) \\
-    bioinfo-4 & LLM-as-judge top-k=3 & 0.2833 (4) & 0.0963 (36) & 0.2983 (4) & 0.1061 (36) \\
-    bioinfo-1 & Agents v2 & 0.2280 (17) & 0.1236 (18) & 0.2406 (19) & 0.1291 (20) \\
-    bioinfo-0 & Agents v1 & 0.1892 (39) & 0.1322 (13) & 0.1966 (40) & 0.1334 (13) \\
-    bioinfo-2 & Agents v3 & 0.1755 (45) & 0.1286 (22) & 0.1918 (43) & 0.1353 (12) \\
+    \multirow{7}{*}{2}
+      & bioinfo-0 & Agents v1 (3-open-27-120b) & 0.8518 (35) & 0.2500 (39) & 0.3836 (28) \\
+      & bioinfo-1 & Agents v2 (5-mixed) & \textbf{0.8929 (9)} & 0.3250 (20) & 0.2270 (43) \\
+      & bioinfo-2 & Agents v4 [S] (3-gemma-27-31b) & \textbf{0.8929 (9)} & 0.3000 (23) & 0.3709 (30) \\
+      & bioinfo-3 & LLM-as-judge + ensemble summarization (mixed) & \textbf{0.8929 (9)} & 0.3000 (23) & \textbf{0.4366 (15)} \\
+      & bioinfo-4 & Ensemble (Gemini + Nemotron + Pixa) exact + Sonnet 4.6 ideal & 0.8518 (35) & \textbf{0.3500 (10)} & 0.4062 (23) \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.4259 (1) & 0.4720 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8929 (25) & 0.3250 (25) & 0.3921 (25) \\
+    \midrule
+    \multirow{7}{*}{3}
+      & bioinfo-0 & Agents v0 [S] (3-open-2-4b) & \textbf{0.8952 (12)} & 0.3824 (26) & \textbf{0.4102 (22)} \\
+      & bioinfo-1 & Agents v1 [M] (4-open-26-35b) & \textbf{0.8952 (12)} & 0.4706 (14) & 0.3575 (33) \\
+      & bioinfo-2 & Agents v2 (5-mixed) & \textbf{0.8952 (12)} & 0.3725 (28) & 0.3963 (26) \\
+      & bioinfo-3 & Agents v3 (4-open-24-123b) & 0.8036 (38) & 0.3824 (26) & 0.4053 (24) \\
+      & bioinfo-4 & Agents v4 (3-mistral-129-695b) & \textbf{0.8952 (12)} & \textbf{0.5000 (8)} & 0.3763 (31) \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5882 (1) & 0.5175 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8952 (23) & 0.4412 (23) & 0.3963 (23) \\
+    \midrule
+    \multirow{7}{*}{4}
+      & bioinfo-0 & Agents v0 [S] (3-open-2-4b) & \textbf{0.9352 (3)} & 0.3182 (26) & 0.3809 (36) \\
+      & bioinfo-1 & Agents v1 (2-gemma-4-26-31b) & 0.8667 (19) & 0.2273 (38) & 0.4858 (24) \\
+      & bioinfo-2 & Agents v2 (4-mixed-b4) & 0.8667 (19) & 0.4091 (10) & 0.4763 (26) \\
+      & bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & 0.8667 (19) & \textbf{0.5000 (5)} & \textbf{0.5671 (9)} \\
+      & bioinfo-4 & Agents v5 (2-mistral-129-695b) & \textbf{0.9352 (3)} & 0.3939 (16) & 0.3862 (34) \\
+    \cmidrule(l){2-6}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5758 (1) & 0.6543 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.8667 (24) & 0.3182 (24) & 0.4858 (24) \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-% ============================================================
-% BATCH 3 PHASE A+
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase A+ exact answer scores and rankings for Test Batch~3. Rankings shown in parentheses. Base retrieval: Context-1 + new rerankers. \textbf{[S]} = small/lightweight local models.}
-  \label{tab:phaseap-b3}
-  \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
-    \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.4118 (26) & 0.4118 (9) & 0.2835 (10) & 0.2659 (28) & 0.2671 (20) \\
-    bioinfo-1 & Agents v1 [M] (Gemma-4-26B + 31B + Nemotron-3-Nano-30B + Qwen3.5-35B) & 1.0000 (1) & 1.0000 (1) & 0.3529 (6) & 0.4706 (9) & 0.4118 (9) & 0.2787 (11) & 0.3355 (9) & 0.2891 (11) \\
-    bioinfo-2 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 1.0000 (1) & 1.0000 (1) & 0.2941 (16) & 0.4706 (9) & 0.3824 (15) & 0.2459 (19) & 0.3221 (13) & 0.2649 (17) \\
-    bioinfo-3 & Agents v3 (Gemma-4-31B + Qwen3.5-35B + Mistral-Small + Mistral-Large) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.5294 (2) & 0.4706 (2) & 0.2863 (9) & 0.3779 (4) & 0.3138 (6) \\
-    bioinfo-4 & Agents ensemble (v0 + v1 + v2 + v3) & 0.9091 (28) & 0.8952 (23) & 0.3529 (6) & 0.5294 (2) & 0.4412 (5) & 0.2602 (15) & 0.3140 (14) & 0.2790 (13) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase A+ ideal answer scores and rankings for Test Batch~3. Rankings shown in parentheses.}
-  \label{tab:phaseap-b3-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
-    \midrule
-    bioinfo-3 & Agents v3 & 0.2052 (7) & 0.1210 (25) & 0.2192 (7) & 0.1286 (17) \\
-    bioinfo-1 & Agents v1 [M] & 0.1984 (11) & 0.1166 (28) & 0.2135 (12) & 0.1243 (23) \\
-    bioinfo-4 & Agents ensemble & 0.1942 (13) & 0.1223 (23) & 0.2059 (14) & 0.1288 (18) \\
-    bioinfo-2 & Agents v2 & 0.1933 (14) & 0.1203 (26) & 0.2005 (15) & 0.1228 (26) \\
-    bioinfo-0 & Agents v0 [S] & 0.1710 (24) & 0.1201 (27) & 0.1815 (24) & 0.1266 (20) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
 
-% ============================================================
-% BATCH 4 PHASE A+
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase A+ exact answer scores and rankings for Test Batch~4. Rankings shown in parentheses. Base retrieval: Context-1 + best rerankers. \textbf{[S]} = small/lightweight local models. \texttt{bioinfo-2} had no submission this batch.}
-  \label{tab:phaseap-b4}
-  \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
-    \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.2317 (32) & 0.2812 (29) & 0.2316 (33) \\
-    bioinfo-1 & Agents v1 (Gemma-4-26B + 31B; synth: Gemma-4-26B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3059 (18) & 0.3630 (14) & 0.3133 (18) \\
-    bioinfo-3 & Agents v3 (Qwen3.6-35B + 27B + Flash; synth: Qwen3.6-35B) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3196 (16) & 0.4053 (9) & 0.3388 (14) \\
-    bioinfo-4 & Agents v4 (Mistral-Medium + Small + Large; synth: Mistral-Medium) & 0.8750 (10) & 0.8667 (12) & 0.3636 (5) & 0.3636 (13) & 0.3636 (12) & 0.2211 (35) & 0.2124 (43) & 0.2047 (42) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase A+ ideal answer scores and rankings for Test Batch~4. Rankings shown in parentheses.}
-  \label{tab:phaseap-b4-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
-    \midrule
-    bioinfo-1 & Agents v1 & 0.2122 (13) & 0.1152 (35) & 0.2230 (11) & 0.1194 (34) \\
-    bioinfo-3 & Agents v3 & 0.2099 (15) & 0.1220 (27) & 0.2344 (8) & 0.1323 (26) \\
-    bioinfo-4 & Agents v4 & 0.2097 (16) & 0.1151 (37) & 0.2203 (17) & 0.1180 (39) \\
-    bioinfo-0 & Agents v0 [S] & 0.1992 (20) & 0.1213 (29) & 0.2119 (16) & 0.1274 (28) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+
+
+% % ============================================================
+% % BATCH 1 PHASE A+
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase A+ exact answer scores and rankings for Test Batch~1. Rankings shown in parentheses. Base retrieval: DPRF + Rerankers $>$0.64.}
+%   \label{tab:phaseap-b1}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Models (Exact / Ideal)} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & MedGemma-27B + Qwen3.5 35B / Nemotron-3-Super-120B & 0.8235 (36) & 0.8211 (31) & 0.2609 (26) & 0.3043 (30) & 0.2696 (32) & 0.1275 (35) & 0.2219 (26) & 0.1509 (35) \\
+%     bioinfo-1 & Qwen3.5 235B + Qwen Max Thinking / Nemotron-3-Super-120B & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
+%     bioinfo-2 & Gemini 2.0 Flash + 2.5 Flash + Qwen3.5 122B / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.3043 (14) & 0.3478 (19) & 0.3261 (18) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
+%     bioinfo-3 & Gemini 2.0 Flash + 2.5 Flash / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1461 (24) & 0.2485 (15) & 0.1735 (24) \\
+%     bioinfo-4 & All models ensemble / Opus + Sonnet & 0.8824 (14) & 0.8786 (22) & 0.2609 (26) & 0.2609 (39) & 0.2609 (35) & 0.1534 (22) & 0.2334 (23) & 0.1731 (25) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase A+ ideal answer scores and rankings for Test Batch~1. Rankings shown in parentheses.}
+%   \label{tab:phaseap-b1-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Models} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-2 & Opus + Sonnet & 0.2408 (7) & 0.0825 (32) & 0.2706 (7) & 0.0932 (34) \\
+%     bioinfo-4 & Opus + Sonnet & 0.2348 (11) & 0.0916 (29) & 0.2664 (8) & 0.1023 (28) \\
+%     bioinfo-3 & Opus + Sonnet & 0.2245 (16) & 0.0955 (26) & 0.2489 (15) & 0.1021 (29) \\
+%     bioinfo-1 & Nemotron-3-Super-120B & 0.2200 (17) & 0.1009 (22) & 0.2393 (18) & 0.1074 (24) \\
+%     bioinfo-0 & Nemotron-3-Super-120B & 0.2150 (21) & 0.1021 (21) & 0.2340 (20) & 0.1094 (22) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% % ============================================================
+% % BATCH 2 PHASE A+
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase A+ exact answer scores and rankings for Test Batch~2. Rankings shown in parentheses. Systems used agent-based generation with different model configurations.}
+%   \label{tab:phaseap-b2}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & Agents v1 (3-open-27-120b) & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2401 (23) & 0.1608 (50) & 0.1778 (48) \\
+%     bioinfo-1 & Agents v2 (5-mixed) & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.2500 (35) & 0.2250 (33) & 0.2391 (24) & 0.2784 (23) & 0.2479 (26) \\
+%     bioinfo-2 & Agents v3 (4-open-35-309b) & 0.8571 (27) & 0.8444 (25) & 0.2000 (30) & 0.2000 (45) & 0.2000 (40) & 0.2406 (22) & 0.2249 (44) & 0.2306 (39) \\
+%     bioinfo-3 & LLM-as-judge top-k=1 & 0.9048 (9) & 0.8929 (12) & 0.2000 (30) & 0.3500 (14) & 0.2450 (27) & 0.2926 (12) & 0.3841 (7) & 0.3145 (9) \\
+%     bioinfo-4 & LLM-as-judge top-k=3 & 0.8571 (27) & 0.8444 (25) & 0.2500 (23) & 0.3000 (28) & 0.2750 (26) & 0.2948 (11) & 0.4034 (5) & 0.3227 (8) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase A+ ideal answer scores and rankings for Test Batch~2. Rankings shown in parentheses.}
+%   \label{tab:phaseap-b2-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-3 & LLM-as-judge top-k=1 & 0.2843 (3) & 0.0983 (35) & 0.2984 (3) & 0.1082 (35) \\
+%     bioinfo-4 & LLM-as-judge top-k=3 & 0.2833 (4) & 0.0963 (36) & 0.2983 (4) & 0.1061 (36) \\
+%     bioinfo-1 & Agents v2 & 0.2280 (17) & 0.1236 (18) & 0.2406 (19) & 0.1291 (20) \\
+%     bioinfo-0 & Agents v1 & 0.1892 (39) & 0.1322 (13) & 0.1966 (40) & 0.1334 (13) \\
+%     bioinfo-2 & Agents v3 & 0.1755 (45) & 0.1286 (22) & 0.1918 (43) & 0.1353 (12) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% % ============================================================
+% % BATCH 3 PHASE A+
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase A+ exact answer scores and rankings for Test Batch~3. Rankings shown in parentheses. Base retrieval: Context-1 + new rerankers. \textbf{[S]} = small/lightweight local models.}
+%   \label{tab:phaseap-b3}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & Agents v0 [S] (3-open-2-4b) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.4118 (26) & 0.4118 (9) & 0.2835 (10) & 0.2659 (28) & 0.2671 (20) \\
+%     bioinfo-1 & Agents v1 [M] (4-open-26-35b) & 1.0000 (1) & 1.0000 (1) & 0.3529 (6) & 0.4706 (9) & 0.4118 (9) & 0.2787 (11) & 0.3355 (9) & 0.2891 (11) \\
+%     bioinfo-2 & Agents v2 (5-mixed) & 1.0000 (1) & 1.0000 (1) & 0.2941 (16) & 0.4706 (9) & 0.3824 (15) & 0.2459 (19) & 0.3221 (13) & 0.2649 (17) \\
+%     bioinfo-3 & Agents v3 (4-open-24-123b) & 0.9091 (28) & 0.8952 (23) & 0.4118 (1) & 0.5294 (2) & 0.4706 (2) & 0.2863 (9) & 0.3779 (4) & 0.3138 (6) \\
+%     bioinfo-4 & Agents ensemble (v0 + v1 + v2 + v3) & 0.9091 (28) & 0.8952 (23) & 0.3529 (6) & 0.5294 (2) & 0.4412 (5) & 0.2602 (15) & 0.3140 (14) & 0.2790 (13) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase A+ ideal answer scores and rankings for Test Batch~3. Rankings shown in parentheses.}
+%   \label{tab:phaseap-b3-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-3 & Agents v3 & 0.2052 (7) & 0.1210 (25) & 0.2192 (7) & 0.1286 (17) \\
+%     bioinfo-1 & Agents v1 [M] & 0.1984 (11) & 0.1166 (28) & 0.2135 (12) & 0.1243 (23) \\
+%     bioinfo-4 & Agents ensemble & 0.1942 (13) & 0.1223 (23) & 0.2059 (14) & 0.1288 (18) \\
+%     bioinfo-2 & Agents v2 & 0.1933 (14) & 0.1203 (26) & 0.2005 (15) & 0.1228 (26) \\
+%     bioinfo-0 & Agents v0 [S] & 0.1710 (24) & 0.1201 (27) & 0.1815 (24) & 0.1266 (20) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% % ============================================================
+% % BATCH 4 PHASE A+
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase A+ exact answer scores and rankings for Test Batch~4. Rankings shown in parentheses. Base retrieval: Context-1 + best rerankers. \textbf{[S]} = small/lightweight local models. \texttt{bioinfo-2} had no submission this batch.}
+%   \label{tab:phaseap-b4}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}cccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{Y/N F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{Fact. MRR} & \textbf{List P.} & \textbf{List R.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & Agents v0 [S] (3-open-2-4b) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.2317 (32) & 0.2812 (29) & 0.2316 (33) \\
+%     bioinfo-1 & Agents v1 (2-gemma-4-26-31b) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3059 (18) & 0.3630 (14) & 0.3133 (18) \\
+%     bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & 0.8750 (10) & 0.8667 (12) & 0.2727 (16) & 0.2727 (32) & 0.2727 (26) & 0.3196 (16) & 0.4053 (9) & 0.3388 (14) \\
+%     bioinfo-4 & Agents v4 (3-mistral-129-695b) & 0.8750 (10) & 0.8667 (12) & 0.3636 (5) & 0.3636 (13) & 0.3636 (12) & 0.2211 (35) & 0.2124 (43) & 0.2047 (42) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase A+ ideal answer scores and rankings for Test Batch~4. Rankings shown in parentheses.}
+%   \label{tab:phaseap-b4-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-1 & Agents v1 & 0.2122 (13) & 0.1152 (35) & 0.2230 (11) & 0.1194 (34) \\
+%     bioinfo-3 & Agents v3 & 0.2099 (15) & 0.1220 (27) & 0.2344 (8) & 0.1323 (26) \\
+%     bioinfo-4 & Agents v4 & 0.2097 (16) & 0.1151 (37) & 0.2203 (17) & 0.1180 (39) \\
+%     bioinfo-0 & Agents v0 [S] & 0.1992 (20) & 0.1213 (29) & 0.2119 (16) & 0.1274 (28) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
 \paragraph{Phase A+ Analysis.}
 Yes/No accuracy was consistently high across all batches, with perfect scores (1.0000, rank~1) achieved in Batch~3 by \texttt{bioinfo-1} (Agents v1, medium models) and \texttt{bioinfo-2} (Agents v2, large proprietary models). Factoid performance showed greater variability: our best strict accuracy ranks were 1st (\texttt{bioinfo-0} Agents v0 [S] and \texttt{bioinfo-3} Agents v3, both in Batch~3), demonstrating that small model agents can achieve top-tier factoid precision when paired with strong retrieval (Context-1 + new rerankers).
@@ -363,148 +579,253 @@ Yes/No accuracy was consistently high across all batches, with perfect scores (1
 \textbf{Cost considerations.} The quorum-based agent architecture, while effective, is computationally expensive: each agent invocation spawns 3--5 parallel model calls plus a synthesis step. For Batch~3, the full agents ensemble (v0+v1+v2+v3) required $\sim$17 model calls per question. The small model agents (v0) required only 4 calls with models runnable on consumer GPUs, representing a $\sim$10$\times$ cost reduction. In many practical scenarios, lightweight agents offer a favorable cost-performance trade-off, particularly for high-throughput or resource-constrained deployment.
 
 
-\subsubsection{Phase B (Exact and Ideal Answers)}
+\subsubsection{Ideal Answers (Phases A+ and B)}
 \label{sec:results-phase-b}
 
 Phase~B answers are generated using the gold-standard documents and snippets provided by the organizers, isolating generation quality from retrieval quality. Absolute scores and ranking positions are presented side by side for each batch.
 
-% ============================================================
-% BATCH 1 PHASE B
-% ============================================================
+
 \begin{table}[ht]
   \centering
-  \caption{Phase B exact answer scores and rankings for Test Batch~1. Rankings shown in parentheses. Both submissions used LLM-as-judge with top-k document selection.}
-  \label{tab:phaseb-b1}
+  \caption{Phase~A+ ideal answer results across all four Test Batches. Scores are shown with their overall leaderboard ranking in parentheses. The top-performing system among our submissions in each batch is highlighted in bold. \textbf{Best} represents the top competitor score (Rank 1); \textbf{Median} is the median score (and median rank) across all participants for that batch.}
+  \label{tab:phaseap-ideal-all}
   \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
+  \begin{tabular}{cl|l|cccc}
     \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
+    \textbf{Batch} & \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
-    bioinfo-0 & LLM-as-judge top-k=3 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.3913 (17) & 0.4348 (19) & 0.4130 (18) & 0.2351 (38) & 0.2581 (32) \\
-    bioinfo-1 & LLM-as-judge top-k=5 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.4348 (9) & 0.4783 (10) & 0.4565 (8) & 0.2417 (35) & 0.2659 (29) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase B ideal answer scores and rankings for Test Batch~1. Rankings shown in parentheses.}
-  \label{tab:phaseb-b1-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+    \multirow{7}{*}{1}
+      & bioinfo-0 & Nemotron-3-Super-120B & 0.2150 (21) & \textbf{0.1021 (35)} & 0.2340 (18) & \textbf{0.1094 (33)} \\
+      & bioinfo-1 & Nemotron-3-Super-120B & 0.2200 (17) & 0.1009 (36) & 0.2393 (17) & 0.1074 (36) \\
+      & bioinfo-2 & Opus + Sonnet & \textbf{0.2408 (7)} & 0.0825 (48) & \textbf{0.2706 (6)} & 0.0932 (48) \\
+      & bioinfo-3 & Opus + Sonnet & 0.2245 (16) & 0.0955 (41) & 0.2489 (15) & 0.1021 (40) \\
+      & bioinfo-4 & Opus + Sonnet & 0.2348 (11) & 0.0916 (44) & 0.2664 (8) & 0.1023 (39) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.2725 (1) & 0.1767 (1) & 0.2949 (1) & 0.1821 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.1937 (27) & 0.1206 (27) & 0.2023 (27) & 0.1294 (27) \\
     \midrule
-    bioinfo-0 & LLM-as-judge top-k=3 & 0.2857 (13) & 0.1303 (39) & 0.3033 (14) & 0.1323 (38) \\
-    bioinfo-1 & LLM-as-judge top-k=5 & 0.2678 (20) & 0.0958 (48) & 0.2805 (21) & 0.0982 (48) \\
+    \multirow{7}{*}{2}
+      & bioinfo-0 & Agents v1 & 0.1892 (42) & \textbf{0.1322 (22)} & 0.1966 (42) & 0.1334 (26) \\
+      & bioinfo-1 & Agents v2 & 0.2280 (17) & 0.1236 (29) & 0.2406 (19) & 0.1291 (30) \\
+      & bioinfo-2 & Agents v3 & 0.1755 (48) & 0.1286 (26) & 0.1918 (45) & \textbf{0.1353 (24)} \\
+      & bioinfo-3 & LLM-as-judge top-k=1 & \textbf{0.2843 (3)} & 0.0983 (49) & \textbf{0.2984 (3)} & 0.1082 (49) \\
+      & bioinfo-4 & LLM-as-judge top-k=3 & 0.2833 (4) & 0.0963 (51) & 0.2983 (4) & 0.1061 (52) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.2989 (1) & 0.1839 (1) & 0.3119 (1) & 0.1851 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.2057 (28) & 0.1287 (28) & 0.2187 (28) & 0.1334 (28) \\
+    \midrule
+    \multirow{7}{*}{3}
+      & bioinfo-0 & Agents v0 [S] & 0.1710 (25) & 0.1201 (21) & 0.1815 (27) & 0.1266 (25) \\
+      & bioinfo-1 & Agents v1 [M] & 0.1984 (11) & 0.1166 (27) & 0.2135 (11) & 0.1243 (28) \\
+      & bioinfo-2 & Agents v2 & 0.1933 (14) & 0.1203 (20) & 0.2005 (19) & 0.1228 (31) \\
+      & bioinfo-3 & Agents v3 & \textbf{0.2052 (7)} & 0.1210 (19) & \textbf{0.2192 (8)} & 0.1286 (22) \\
+      & bioinfo-4 & Agents ensemble & 0.1942 (13) & \textbf{0.1223 (17)} & 0.2059 (14) & \textbf{0.1288 (21)} \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.2373 (1) & 0.1577 (1) & 0.2682 (1) & 0.1537 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.1609 (30) & 0.1148 (30) & 0.1677 (30) & 0.1220 (30) \\
+    \midrule
+    \multirow{6}{*}{4}
+      & bioinfo-0 & Agents v0 [S] & 0.1992 (21) & 0.1213 (30) & 0.2119 (20) & 0.1274 (31) \\
+      & bioinfo-1 & Agents v1 & \textbf{0.2122 (13)} & 0.1152 (38) & 0.2230 (14) & 0.1194 (37) \\
+      & bioinfo-3 & Agents v3 & 0.2099 (15) & \textbf{0.1220 (29)} & \textbf{0.2344 (9)} & \textbf{0.1323 (27)} \\
+      & bioinfo-4 & Agents v4 & 0.2097 (16) & 0.1151 (39) & 0.2203 (15) & 0.1180 (39) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.2439 (1) & 0.1714 (1) & 0.2682 (1) & 0.1699 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.1836 (28) & 0.1227 (28) & 0.1951 (28) & 0.1319 (28) \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-% ============================================================
-% BATCH 2 PHASE B
-% ============================================================
+
 \begin{table}[ht]
   \centering
-  \caption{Phase B exact answer scores and rankings for Test Batch~2. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models.}
-  \label{tab:phaseb-b2}
+  \caption{Phase~B ideal answer results across all four Test Batches. Scores are shown with their overall leaderboard ranking in parentheses. The top-performing system among our submissions in each batch is highlighted in bold. \textbf{Best} represents the top competitor score (Rank 1); \textbf{Median} is the median score (and median rank) across all participants for that batch.}
+  \label{tab:phaseb-ideal-all}
   \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
+  \begin{tabular}{cl|p{5.5cm}|cccc}
     \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
+    \textbf{Batch} & \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
     \midrule
-    bioinfo-0 & Agents v1 (Qwen3-Next-80B + Nemotron-120B + MedGemma-27B) & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.2500 (24) & 0.2500 (38) & 0.2500 (35) & 0.4369 (21) & 0.3836 (26) \\
-    bioinfo-1 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3500 (19) & 0.3250 (18) & 0.2266 (57) & 0.2270 (57) \\
-    bioinfo-2 & Agents v4 [S] (Gemma-4-31B + 26B + MedGemma-27B; synth: Gemma-4-31B) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.3657 (38) & 0.3709 (35) \\
-    bioinfo-3 & LLM-as-judge + ensemble summarization (mixed) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.4137 (28) & 0.4366 (18) \\
-    bioinfo-4 & Ensemble (Gemini + Nemotron + Pixa) exact + Sonnet 4.6 ideal & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.3500 (11) & 0.3500 (19) & 0.3500 (12) & 0.4308 (23) & 0.4062 (22) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase B ideal answer scores and rankings for Test Batch~2. Rankings shown in parentheses.}
-  \label{tab:phaseb-b2-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+    \multirow{4}{*}{1}
+      & bioinfo-0 & LLM-as-judge top-k=3 & \textbf{0.2857 (13)} & \textbf{0.1303 (39)} & \textbf{0.3033 (14)} & \textbf{0.1323 (38)} \\
+      & bioinfo-1 & LLM-as-judge top-k=5 & 0.2678 (20) & 0.0958 (55) & 0.2805 (21) & 0.0982 (55) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.3746 (1) & 0.2487 (1) & 0.3835 (1) & 0.2381 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.2470 (33) & 0.1645 (33) & 0.2517 (33) & 0.1669 (33) \\
     \midrule
-    bioinfo-3 & LLM-as-judge + ensemble summarization & 0.3386 (3) & 0.1334 (25) & 0.3550 (2) & 0.1403 (24) \\
-    bioinfo-4 & Ensemble exact + Sonnet 4.6 ideal & 0.3024 (9) & 0.1595 (17) & 0.3022 (8) & 0.1566 (16) \\
-    bioinfo-2 & Agents v4 [S] & 0.3005 (12) & 0.1903 (8) & 0.2899 (13) & 0.1807 (8) \\
-    bioinfo-1 & Agents v2 & 0.2852 (20) & 0.1527 (22) & 0.2848 (17) & 0.1522 (25) \\
-    bioinfo-0 & Agents v1 & 0.2359 (34) & 0.1766 (10) & 0.2328 (34) & 0.1704 (12) \\
+    \multirow{7}{*}{2}
+      & bioinfo-0 & Agents v1 & 0.2359 (34) & 0.1766 (23) & 0.2328 (34) & 0.1704 (23) \\
+      & bioinfo-1 & Agents v2 & 0.2852 (12) & 0.1527 (36) & 0.2848 (12) & 0.1522 (35) \\
+      & bioinfo-2 & Agents v4 [S] & 0.3005 (8) & \textbf{0.1903 (16)} & 0.2899 (9) & \textbf{0.1807 (18)} \\
+      & bioinfo-3 & LLM-as-judge + ensemble summarization & \textbf{0.3386 (4)} & 0.1334 (46) & \textbf{0.3550 (4)} & 0.1403 (43) \\
+      & bioinfo-4 & Ensemble exact + Sonnet 4.6 ideal & 0.3024 (7) & 0.1595 (30) & 0.3022 (7) & 0.1566 (30) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.4028 (1) & 0.2562 (1) & 0.4155 (1) & 0.2485 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.2586 (33) & 0.1807 (33) & 0.2491 (33) & 0.1795 (33) \\
+    \midrule
+    \multirow{7}{*}{3}
+      & bioinfo-0 & Agents v0 [S] & 0.2472 (20) & \textbf{0.1815 (11)} & 0.2438 (20) & \textbf{0.1774 (11)} \\
+      & bioinfo-1 & Agents v1 [M] & 0.2495 (15) & 0.1700 (23) & 0.2464 (18) & 0.1651 (23) \\
+      & bioinfo-2 & Agents v2 & 0.2368 (26) & 0.1680 (25) & 0.2402 (26) & 0.1701 (21) \\
+      & bioinfo-3 & Agents v3 & \textbf{0.2734 (8)} & 0.1732 (18) & \textbf{0.2704 (8)} & 0.1716 (19) \\
+      & bioinfo-4 & Agents v4 & 0.2487 (17) & 0.1661 (28) & 0.2570 (14) & 0.1678 (24) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.4028 (1) & 0.2607 (1) & 0.4155 (1) & 0.2547 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.2293 (33) & 0.1598 (33) & 0.2265 (33) & 0.1621 (33) \\
+    \midrule
+    \multirow{7}{*}{4}
+      & bioinfo-0 & Agents v0 [S] & 0.2472 (27) & \textbf{0.1742 (20)} & 0.2480 (24) & \textbf{0.1729 (19)} \\
+      & bioinfo-1 & Agents v1 & \textbf{0.2716 (15)} & 0.1566 (31) & 0.2678 (15) & 0.1543 (32) \\
+      & bioinfo-2 & Agents v2 & 0.2682 (17) & 0.1714 (22) & \textbf{0.2698 (17)} & 0.1698 (22) \\
+      & bioinfo-3 & Agents v3 & 0.2401 (30) & 0.1452 (42) & 0.2484 (23) & 0.1467 (41) \\
+      & bioinfo-4 & Agents v5 & 0.2496 (26) & 0.1526 (36) & 0.2477 (25) & 0.1496 (36) \\
+    \cmidrule(l){2-7}
+      & \textit{Best} & \multicolumn{1}{l|}{} & 0.3743 (1) & 0.2827 (1) & 0.3798 (1) & 0.2699 (1) \\
+      & \textit{Median}& \multicolumn{1}{l|}{} & 0.2210 (35) & 0.1537 (35) & 0.2102 (35) & 0.1514 (35) \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-% ============================================================
-% BATCH 3 PHASE B
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase B exact answer scores and rankings for Test Batch~3. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models, \textbf{[M]} = medium models.}
-  \label{tab:phaseb-b3}
-  \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
-    \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.4125 (18) & 0.4102 (20) \\
-    bioinfo-1 & Agents v1 [M] (Gemma-4-26B + 31B + Nemotron-3-Nano-30B + Qwen3.5-35B) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.4706 (21) & 0.4706 (14) & 0.3706 (25) & 0.3575 (26) \\
-    bioinfo-2 & Agents v2 (Nemotron-120B + Grok-4.1-Fast + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3725 (29) & 0.3822 (21) & 0.3963 (23) \\
-    bioinfo-3 & Agents v3 (Gemma-4-31B + Qwen3.5-35B + Mistral-Small + Mistral-Large) & 0.8182 (38) & 0.8571 (40) & 0.7500 (32) & 0.8036 (35) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.3840 (19) & 0.4053 (17) \\
-    bioinfo-4 & Agents v4 (Mistral-Medium + Small + Large; synth: Mistral-Medium) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.5294 (10) & 0.5000 (10) & 0.3866 (20) & 0.3763 (25) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase B ideal answer scores and rankings for Test Batch~3. Rankings shown in parentheses.}
-  \label{tab:phaseb-b3-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
-    \midrule
-    bioinfo-3 & Agents v3 & 0.2734 (8) & 0.1732 (26) & 0.2704 (8) & 0.1716 (26) \\
-    bioinfo-1 & Agents v1 [M] & 0.2495 (15) & 0.1700 (29) & 0.2464 (18) & 0.1651 (28) \\
-    bioinfo-4 & Agents v4 & 0.2487 (16) & 0.1661 (32) & 0.2570 (13) & 0.1678 (27) \\
-    bioinfo-0 & Agents v0 [S] & 0.2472 (17) & 0.1815 (18) & 0.2438 (16) & 0.1774 (18) \\
-    bioinfo-2 & Agents v2 & 0.2368 (20) & 0.1680 (31) & 0.2402 (20) & 0.1701 (24) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
 
-% ============================================================
-% BATCH 4 PHASE B
-% ============================================================
-\begin{table}[ht]
-  \centering
-  \caption{Phase B exact answer scores and rankings for Test Batch~4. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models.}
-  \label{tab:phaseb-b4}
-  \footnotesize
-  \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
-    \midrule
-    bioinfo-0 & Agents v0 [S] (Gemma-4-E4B + E2B + Nemotron-3-Nano-4B) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.2727 (18) & 0.3636 (19) & 0.3182 (19) & 0.3695 (40) & 0.3809 (41) \\
-    bioinfo-1 & Agents v1 (Gemma-4-26B + 31B; synth: Gemma-4-26B) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.1818 (29) & 0.2727 (36) & 0.2273 (35) & 0.4867 (24) & 0.4858 (22) \\
-    bioinfo-2 & Agents v2 (Nemotron-120B + Gemini-3-Flash + 2.5-Flash + GPT-5-Mini) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.3636 (10) & 0.4545 (9) & 0.4091 (9) & 0.4442 (29) & 0.4763 (25) \\
-    bioinfo-3 & Agents v3 (Qwen3.6-35B + 27B + Flash; synth: Qwen3.6-35B) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.4545 (4) & 0.5455 (4) & 0.5000 (5) & 0.5583 (15) & 0.5671 (11) \\
-    bioinfo-4 & Agents v5 (Mistral-Medium + Small; synth: Mistral-Medium) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.3636 (10) & 0.4545 (9) & 0.3939 (11) & 0.3816 (37) & 0.3862 (39) \\
-    \bottomrule
-  \end{tabular}
-}%
-  \par\medskip
-  \caption{Phase B ideal answer scores and rankings for Test Batch~4. Rankings shown in parentheses.}
-  \label{tab:phaseb-b4-ideal}
-  \footnotesize\begin{tabular}{llcccc}
-    \toprule
-    \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
-    \midrule
-    bioinfo-1 & Agents v1 & 0.2716 (8) & 0.1566 (28) & 0.2678 (8) & 0.1543 (29) \\
-    bioinfo-2 & Agents v2 & 0.2682 (11) & 0.1714 (22) & 0.2698 (6) & 0.1698 (19) \\
-    bioinfo-4 & Agents v5 & 0.2496 (18) & 0.1526 (31) & 0.2477 (18) & 0.1496 (31) \\
-    bioinfo-0 & Agents v0 [S] & 0.2472 (19) & 0.1742 (15) & 0.2480 (17) & 0.1729 (15) \\
-    bioinfo-3 & Agents v3 & 0.2401 (21) & 0.1452 (33) & 0.2484 (14) & 0.1467 (32) \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+% % ============================================================
+% % BATCH 1 PHASE B
+% % ============================================================
+
+
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase B exact answer scores and rankings for Test Batch~1. Rankings shown in parentheses. Both submissions used LLM-as-judge with top-k document selection.}
+%   \label{tab:phaseb-b1}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & LLM-as-judge top-k=3 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.3913 (17) & 0.4348 (19) & 0.4130 (18) & 0.2351 (38) & 0.2581 (32) \\
+%     bioinfo-1 & LLM-as-judge top-k=5 & 0.8824 (32) & 0.9000 (30) & 0.8571 (20) & 0.8786 (26) & 0.4348 (9) & 0.4783 (10) & 0.4565 (8) & 0.2417 (35) & 0.2659 (29) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase B ideal answer scores and rankings for Test Batch~1. Rankings shown in parentheses.}
+%   \label{tab:phaseb-b1-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-0 & LLM-as-judge top-k=3 & 0.2857 (13) & 0.1303 (39) & 0.3033 (14) & 0.1323 (38) \\
+%     bioinfo-1 & LLM-as-judge top-k=5 & 0.2678 (20) & 0.0958 (48) & 0.2805 (21) & 0.0982 (48) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% % ============================================================
+% % BATCH 2 PHASE B
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase B exact answer scores and rankings for Test Batch~2. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models.}
+%   \label{tab:phaseb-b2}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & Agents v1 (3-open-27-120b) & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.2500 (24) & 0.2500 (38) & 0.2500 (35) & 0.4369 (21) & 0.3836 (26) \\
+%     bioinfo-1 & Agents v2 (5-mixed) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3500 (19) & 0.3250 (18) & 0.2266 (57) & 0.2270 (57) \\
+%     bioinfo-2 & Agents v4 [S] (3-gemma-27-31b) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.3657 (38) & 0.3709 (35) \\
+%     bioinfo-3 & LLM-as-judge + ensemble summarization (mixed) & 0.9048 (6) & 0.9286 (11) & 0.8571 (9) & 0.8929 (9) & 0.3000 (16) & 0.3000 (29) & 0.3000 (23) & 0.4137 (28) & 0.4366 (18) \\
+%     bioinfo-4 & Ensemble (Gemini + Nemotron + Pixa) exact + Sonnet 4.6 ideal & 0.8571 (27) & 0.8800 (30) & 0.8235 (20) & 0.8518 (23) & 0.3500 (11) & 0.3500 (19) & 0.3500 (12) & 0.4308 (23) & 0.4062 (22) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase B ideal answer scores and rankings for Test Batch~2. Rankings shown in parentheses.}
+%   \label{tab:phaseb-b2-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-3 & LLM-as-judge + ensemble summarization & 0.3386 (3) & 0.1334 (25) & 0.3550 (2) & 0.1403 (24) \\
+%     bioinfo-4 & Ensemble exact + Sonnet 4.6 ideal & 0.3024 (9) & 0.1595 (17) & 0.3022 (8) & 0.1566 (16) \\
+%     bioinfo-2 & Agents v4 [S] & 0.3005 (12) & 0.1903 (8) & 0.2899 (13) & 0.1807 (8) \\
+%     bioinfo-1 & Agents v2 & 0.2852 (20) & 0.1527 (22) & 0.2848 (17) & 0.1522 (25) \\
+%     bioinfo-0 & Agents v1 & 0.2359 (34) & 0.1766 (10) & 0.2328 (34) & 0.1704 (12) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% % ============================================================
+% % BATCH 3 PHASE B
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase B exact answer scores and rankings for Test Batch~3. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models, \textbf{[M]} = medium models.}
+%   \label{tab:phaseb-b3}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & Agents v0 [S] (3-open-2-4b) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.4125 (18) & 0.4102 (20) \\
+%     bioinfo-1 & Agents v1 [M] (4-open-26-35b) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.4706 (21) & 0.4706 (14) & 0.3706 (25) & 0.3575 (26) \\
+%     bioinfo-2 & Agents v2 (5-mixed) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.3529 (25) & 0.4118 (29) & 0.3725 (29) & 0.3822 (21) & 0.3963 (23) \\
+%     bioinfo-3 & Agents v3 (4-open-24-123b) & 0.8182 (38) & 0.8571 (40) & 0.7500 (32) & 0.8036 (35) & 0.3529 (25) & 0.4118 (29) & 0.3824 (27) & 0.3840 (19) & 0.4053 (17) \\
+%     bioinfo-4 & Agents v4 (3-mistral-129-695b) & 0.9091 (5) & 0.9333 (16) & 0.8571 (11) & 0.8952 (12) & 0.4706 (9) & 0.5294 (10) & 0.5000 (10) & 0.3866 (20) & 0.3763 (25) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase B ideal answer scores and rankings for Test Batch~3. Rankings shown in parentheses.}
+%   \label{tab:phaseb-b3-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-3 & Agents v3 & 0.2734 (8) & 0.1732 (26) & 0.2704 (8) & 0.1716 (26) \\
+%     bioinfo-1 & Agents v1 [M] & 0.2495 (15) & 0.1700 (29) & 0.2464 (18) & 0.1651 (28) \\
+%     bioinfo-4 & Agents v4 & 0.2487 (16) & 0.1661 (32) & 0.2570 (13) & 0.1678 (27) \\
+%     bioinfo-0 & Agents v0 [S] & 0.2472 (17) & 0.1815 (18) & 0.2438 (16) & 0.1774 (18) \\
+%     bioinfo-2 & Agents v2 & 0.2368 (20) & 0.1680 (31) & 0.2402 (20) & 0.1701 (24) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
+
+% % ============================================================
+% % BATCH 4 PHASE B
+% % ============================================================
+% \begin{table}[ht]
+%   \centering
+%   \caption{Phase B exact answer scores and rankings for Test Batch~4. Rankings shown in parentheses. \textbf{[S]} = small/lightweight local models.}
+%   \label{tab:phaseb-b4}
+%   \footnotesize
+%   \resizebox{\textwidth}{!}{\footnotesize\begin{tabular}{lp{5.5cm}ccccccccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{Y/N Acc.} & \textbf{F1 Yes} & \textbf{F1 No} & \textbf{Y/N M-F1} & \textbf{Fact. S.} & \textbf{Fact. L.} & \textbf{F. MRR} & \textbf{List P.} & \textbf{List F1} \\
+%     \midrule
+%     bioinfo-0 & Agents v0 [S] (3-open-2-4b) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.2727 (18) & 0.3636 (19) & 0.3182 (19) & 0.3695 (40) & 0.3809 (41) \\
+%     bioinfo-1 & Agents v1 (2-gemma-4-26-31b) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.1818 (29) & 0.2727 (36) & 0.2273 (35) & 0.4867 (24) & 0.4858 (22) \\
+%     bioinfo-2 & Agents v2 (4-mixed-b4) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.3636 (10) & 0.4545 (9) & 0.4091 (9) & 0.4442 (29) & 0.4763 (25) \\
+%     bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & 0.8750 (31) & 0.9000 (31) & 0.8333 (26) & 0.8667 (28) & 0.4545 (4) & 0.5455 (4) & 0.5000 (5) & 0.5583 (15) & 0.5671 (11) \\
+%     bioinfo-4 & Agents v5 (2-mistral-129-695b) & 0.9375 (5) & 0.9474 (8) & 0.9231 (7) & 0.9352 (7) & 0.3636 (10) & 0.4545 (9) & 0.3939 (11) & 0.3816 (37) & 0.3862 (39) \\
+%     \bottomrule
+%   \end{tabular}
+% }%
+%   \par\medskip
+%   \caption{Phase B ideal answer scores and rankings for Test Batch~4. Rankings shown in parentheses.}
+%   \label{tab:phaseb-b4-ideal}
+%   \footnotesize\begin{tabular}{llcccc}
+%     \toprule
+%     \textbf{System} & \textbf{Generation Configuration} & \textbf{R-2 Rec.} & \textbf{R-2 F1} & \textbf{R-SU4 Rec.} & \textbf{R-SU4 F1} \\
+%     \midrule
+%     bioinfo-1 & Agents v1 & 0.2716 (8) & 0.1566 (28) & 0.2678 (8) & 0.1543 (29) \\
+%     bioinfo-2 & Agents v2 & 0.2682 (11) & 0.1714 (22) & 0.2698 (6) & 0.1698 (19) \\
+%     bioinfo-4 & Agents v5 & 0.2496 (18) & 0.1526 (31) & 0.2477 (18) & 0.1496 (31) \\
+%     bioinfo-0 & Agents v0 [S] & 0.2472 (19) & 0.1742 (15) & 0.2480 (17) & 0.1729 (15) \\
+%     bioinfo-3 & Agents v3 & 0.2401 (21) & 0.1452 (33) & 0.2484 (14) & 0.1467 (32) \\
+%     \bottomrule
+%   \end{tabular}
+% \end{table}
 
 \paragraph{Phase B Analysis.}
 Phase~B results, using gold-standard documents, isolate the generation capability of each system from retrieval quality. Several consistent patterns emerged.

@@ -33,42 +33,42 @@ The most significant methodological innovation for this edition is the agent quo
 
 \begin{table}[ht]
   \centering
-  \caption{Agent quorum configurations across test batches. Agents are listed with their model identifier and the synthesizer used for final answer generation.}
+  \caption{Agent quorum configurations across test batches. Agents are listed with their model identifier and the synthesizer used for final answer generation. The \textbf{Config} code encodes the number of agents, weight openness (\texttt{open} = all weights public, \texttt{mixed} = some API-only), and the parameter range (in billions) across open-weight agents; \texttt{api} denotes configurations dominated by hosted closed models.}
   \label{tab:quorum-batches}
-  \begin{tabularx}{\textwidth}{llX}
+  \begin{tabularx}{\textwidth}{lllX}
 \toprule
-    \textbf{Batch} & \textbf{Version} & \textbf{Agents (Model)} \\
+    \textbf{Batch} & \textbf{Version} & \textbf{Config} & \textbf{Agents (Model)} \\
 \midrule
-    B2 & V1 & Qwen3-Next-80B, Nemotron-3-Super-120B, MedGemma-27B \\
-    &    & Synthesizer: Nemotron-3-Super-120B \\
-    B2 & V2 & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
-    &    & Synthesizer: Claude-Sonnet-4.6 \\
-    B2 & V3 & Qwen3-Next-80B, Mimo-v2-Flash, Qwen3.5-35B, Nemotron-3-Super-120B \\
-    &    & Synthesizer: GPT-5.4-Nano \\
-    B2 & V4 & Gemma-4-31B, Gemma-4-26B, MedGemma-27B \\
-    &    & Synthesizer: Gemma-4-31B \\
+    B2 & V1 & \texttt{3-open-27-120b} & Qwen3-Next-80B, Nemotron-3-Super-120B, MedGemma-27B \\
+    &    &                          & Synthesizer: Nemotron-3-Super-120B \\
+    B2 & V2 & \texttt{5-mixed}    & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+    &    &                          & Synthesizer: Claude-Sonnet-4.6 \\
+    B2 & V3 & \texttt{4-open-35-309b} & Qwen3-Next-80B, Mimo-v2-Flash (309B), Qwen3.5-35B, Nemotron-3-Super-120B \\
+    &    &                          & Synthesizer: GPT-5.4-Nano \\
+    B2 & V4 & \texttt{3-open-26-31b}  & Gemma-4-31B, Gemma-4-26B, MedGemma-27B \\
+    &    &                          & Synthesizer: Gemma-4-31B \\
 \midrule
-    B3 & V0 & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
-    &    & Synthesizer: Gemma-4-E4B \\
-    B3 & V1 & Gemma-4-26B, Gemma-4-31B, Nemotron-3-Nano-30B, Qwen3.5-35B \\
-    &    & Synthesizer: Gemma-4-26B \\
-    B3 & V2 & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
-    &    & Synthesizer: Gemini-2.5-Flash \\
-    B3 & V3 & Gemma-4-31B, Qwen3.5-35B, Mistral-Small, Mistral-Large \\
-    &    & Synthesizer: Mistral-Small \\
+    B3 & V0 & \texttt{3-open-2-4b}    & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
+    &    &                          & Synthesizer: Gemma-4-E4B \\
+    B3 & V1 & \texttt{4-open-26-35b}  & Gemma-4-26B, Gemma-4-31B, Nemotron-3-Nano-30B, Qwen3.5-35B \\
+    &    &                          & Synthesizer: Gemma-4-26B \\
+    B3 & V2 & \texttt{5-mixed-api}    & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+    &    &                          & Synthesizer: Gemini-2.5-Flash \\
+    B3 & V3 & \texttt{4-open-24-123b} & Gemma-4-31B, Qwen3.5-35B, Mistral-Small-4 (119B), Mistral-Large-3 (675B) \\
+    &    &                          & Synthesizer: Mistral-Small-4 (119B) \\
 \midrule
-    B4 & V0 & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
-    &    & Synthesizer: Gemma-4-E4B \\
-    B4 & V1 & Gemma-4-26B, Gemma-4-31B \\
-    &    & Synthesizer: Gemma-4-26B \\
-    B4 & V2 & Nemotron-3-Super-120B, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
-    &    & Synthesizer: Gemini-2.5-Flash \\
-    B4 & V3 & Qwen3.6-35B, Qwen3.6-27B, Qwen3.6-Flash \\
-    &    & Synthesizer: Qwen3.6-35B \\
-    B4 & V4 & Mistral-Medium, Mistral-Small, Mistral-Large \\
-    &    & Synthesizer: Mistral-Medium \\
-    B4 & V5 & Mistral-Medium, Mistral-Small \\
-    &    & Synthesizer: Mistral-Medium \\
+    B4 & V0 & \texttt{3-open-2-4b}    & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B (small, local models) \\
+    &    &                          & Synthesizer: Gemma-4-E4B \\
+    B4 & V1 & \texttt{2-gemma-4-26-31b}  & Gemma-4-26B, Gemma-4-31B \\
+    &    &                          & Synthesizer: Gemma-4-26B \\
+    B4 & V2 & \texttt{4-mixed-api}    & Nemotron-3-Super-120B, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
+    &    &                          & Synthesizer: Gemini-2.5-Flash \\
+    B4 & V3 & \texttt{3-qwen-mixed-27-35b} & Qwen3.6-35B, Qwen3.6-27B, Qwen3.6-Flash \\
+    &    &                          & Synthesizer: Qwen3.6-35B \\
+    B4 & V4 & \texttt{3-mistral-129-695b} & Mistral-Medium-3.5 (128B), Mistral-Small-4(119B), Mistral-Large (695B) \\
+    &    &                          & Synthesizer: Mistral-Medium-3.5 (128B) \\
+    B4 & V5 & \texttt{2-mistral-120B}    & Mistral-Medium-3.5 (128B), Mistral-Small-4(119B) \\
+    &    &                          & Synthesizer: Mistral-Medium-3.5 (128B)\\
 \bottomrule
   \end{tabularx}
 \end{table}
