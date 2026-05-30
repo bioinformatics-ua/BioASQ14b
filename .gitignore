@@ -102,3 +102,17 @@ data/training
 data/context1_test**
 unsloth_compiled_cache/
 tests/
+.DS_Store
+
+docs/paper/*.abs
+docs/paper/*.aux
+docs/paper/*.bbl
+docs/paper/*.blg
+docs/paper/*.fdb_latexmk
+docs/paper/*.fls
+docs/paper/*.log
+docs/paper/*.out
+docs/paper/*.pdf
+docs/paper/*.synctex.gz
+docs/paper/*.xmpdata
+docs/paper/*.xmpi
