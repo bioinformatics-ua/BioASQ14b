@@ -5,6 +5,7 @@
 Lorem ipsum shit
 
 \subsubsection{LLM as a Judge}
+\label{sec:llm-judge}
 
 In previous editions, we employed a simple ensemble of different models with majority voting for answer selection, where each model produced an answer independently, and the final answer was chosen by a fixed aggregation rule. While straightforward, majority voting treats all models as equally reliable and cannot leverage cases where one model produces a partially correct answer that could be improved by incorporating elements from another. It also provides no mechanism for evaluating the factual consistency of candidate answers against the retrieved evidence.
 
