@@ -10,7 +10,7 @@ These experiments were conducted on the 13B Batch~1--4 golden datasets and were 
 \subsubsection{First Stage Retrieval}
 \label{sec:internal-retrieval}
 
-We conducted extensive internal testing of the various retrieval strategies introduced this year, including Context-1-based retrieval and different fusion approaches (RRF and weighted sum) with and without neural reranking. Table~\ref{tab:internal-retrieval} presents the results using standard retrieval metrics: M@100 (Match@100, average number of relevant documents in the top 100), H@100 (Hit@100, fraction of questions with $\ge$1 relevant document), AR@100 (AllRel@100, fraction of all relevant documents recovered), MRR (Mean Reciprocal Rank), and R@100 (Recall@100).
+We conducted extensive internal testing of the various retrieval strategies introduced this year, including Context-1-based retrieval and different fusion approaches (RRF and weighted sum) with and without neural reranking. Table~\ref{tab:internal-retrieval} presents the results using standard retrieval metrics: M@100 (Match@100, average number of relevant documents in the top 100), H@100 (Hit@100, fraction of questions with $\ge$1 relevant document), AR@100 (AllRel@100, fraction of all relevant documents recovered), MRR (Mean Reciprocal Rank), and R@100 (Recall@100). MRR is the primary metric for ranking systems in Phase~A, while the others provide complementary insights into retrieval effectiveness. R@100 and AR@100 are particularly important for Phase~A+ and Phase~B, where the quality of retrieved documents directly impacts answer generation performance.
 
 \begin{table}[ht]
   \centering
@@ -42,6 +42,8 @@ Several patterns emerge from these results. The BM25 baseline achieves the lowes
 The addition of a neural reranker produces mixed but instructive results. When applied to the RRF-fused results, the BGE-reranker-v2-m3 yields an MRR of 0.649, slightly below the un-reranked RRF baseline (0.696), while the base variant drops to 0.498. However, when the reranker is applied to the weighted-sum results, the v2-m3 model achieves the best MRR overall (0.738), suggesting an interaction between the fusion method and the reranker: weighted sum preserves score magnitudes that the reranker can exploit, whereas RRF discards score information in favor of ranks. The base reranker variant consistently underperforms its v2-m3 counterpart, confirming the expected performance hierarchy between these models observed in our validation.
 
 Context-1 achieves the highest M@100 (14.16) and R@100 (0.453), demonstrating its ability to surface a broader set of relevant documents than the single-pass hybrid approaches. However, its MRR (0.508) is lower than the best fusion configurations, indicating that while Context-1 is effective at exploration---finding more relevant documents overall---it is less precise at ranking the most relevant documents first. This is consistent with Context-1's design as a retrieval subagent optimized for recall, intended to feed a downstream reranker or reasoning model rather than to produce a final ranking directly.
+
+As such, some choices in our official submissions were guided by these insights: we prioritized the RRF and weighted-sum hybrid approaches for its superior MRR when combined with the BGE-reranker-v2-m3, while also including Context-1-based runs to leverage its strong recall capabilities, albeit with the understanding that it may require more aggressive reranking to achieve competitive precision.
 
 \subsubsection{Reranker Models}
 \label{sec:internal-validation}
@@ -303,7 +305,7 @@ mixed proprietary-API configurations.
   \end{tabular}
 \end{table}
 
-\textbf{Small model competitiveness.} A clear finding was that small model agents (Agents v0, using Gemma-4-E2B/E4B and Nemotron-3-Nano-4B, marked [S] in the tables) performed competitively with much larger configurations. In Batch~3 Phase~A+, Agents v0 [S] achieved 1st in factoid strict accuracy (0.4118), tied with Agents v3, and placed 10th in list precision---outperforming Agents v2 (large proprietary models) which ranked 19th. In Batch~4, Agents v0 [S] achieved identical Y/N accuracy (0.8750, rank~10) and factoid scores (0.2727, rank~16) to Agents v1 (medium models) and Agents v3 (Qwen3.6 family). On ideal answers, Agents v0 [S] achieved R-SU4 F1 of 0.1274 (rank~28) in Batch~4, comparable to Agents v1 (0.1194, rank~34) and Agents v3 (0.1323, rank~26). 
+\textbf{Small model competitiveness.} A clear finding was that small model agents (Agents v0, using Gemma-4-E2B/E4B and Nemotron-3-Nano-4B, marked [S] in the tables) performed competitively with much larger configurations. In Batch~3 Phase~A+, Agents v0 [S] achieved 1st in factoid strict accuracy (0.4118), tied with Agents v3, and placed 10th in list precision---outperforming Agents v2 (large proprietary models) which ranked 19th. In Batch~4, Agents v0 [S] achieved identical Y/N accuracy (0.8750, rank~10) and factoid scores (0.2727, rank~16) to Agents v1 (medium models) and Agents v3 (Qwen3.6 family). On ideal answers, Agents v0 [S] achieved R-SU4 F1 of 0.1274 (rank~28) in Batch~4, comparable to Agents v1 (0.1194, rank~34) and Agents v3 (0.1323, rank~26).
 
 \textbf{Agent-based generation.} Multi-model agent configurations (Agents v1--v4) consistently produced strong list-type results: Agents v3 achieved 6th in list F-Measure (Batch~3) and 14th (Batch~4), while Agents v2 achieved 9th (Batch~2). The LLM-as-judge approach (Batch~2, \texttt{bioinfo-3} top-k=1 and \texttt{bioinfo-4} top-k=3) produced excellent list recall (ranks 7 and 5 respectively) and ideal answer recall (ranks 3 and 4), but lower precision/F1, consistent with a recall-oriented selection strategy. The agents ensemble (\texttt{bioinfo-4} in Batch~3) did not outperform the best individual agent (Agents v3), suggesting that ensemble proliferation adds cost without proportional benefit when a well-tuned single agent is available.
 
@@ -349,6 +351,7 @@ the agent quorum's multi-perspective debate producing comprehensive but sometime
 verbose answers. As noted in previous editions, ROUGE scores correlate imperfectly
 with human judgment, and our qualitative assessment suggests that the quorum's
 ideal answers were often more informative than their F1 scores imply.
+
 \begin{table}[ht]
   \centering
   \caption{Phase~A+ ideal answer results across all four Test Batches. Scores are shown with their overall leaderboard ranking in parentheses. The top-performing system among our submissions in each batch is highlighted in bold. \textbf{Best} represents the top competitor score (Rank 1); \textbf{Median} is the median score (and median rank) across all participants for that batch.}
@@ -449,10 +452,9 @@ ideal answers were often more informative than their F1 scores imply.
   \end{tabular}
 \end{table}
 
-\paragraph{Phase B Analysis.}
 Phase~B results, using gold-standard documents, isolate the generation capability of each system from retrieval quality. Several consistent patterns emerged.
 
-\textbf{Small model agents remain competitive.} Agents v0 [S] (Gemma-4-E4B/E2B + Nemotron-3-Nano-4B) achieved strong results across batches. In Batch~3, Agents v0 [S] matched the Y/N accuracy of all other systems (0.9091, rank~5) and achieved the best ideal answer F1 scores in the batch (R-2 F1: 0.1815, rank~18; R-SU4 F1: 0.1774, rank~18). In Batch~4, Agents v0 [S] achieved the highest Y/N accuracy (0.9375, rank~5) alongside Agents v5, and the best R-2 F1 (0.1742, rank~15) among our submissions. These results confirm that lightweight local models, when provided with gold-standard evidence, can generate answers whose quality rivals or exceeds much larger models. The key advantage appears to be in precision-oriented metrics (F1 scores), where smaller models produce more focused, less verbose answers.
+\textbf{Small model agents remain competitive.} Agents v0 [S] (Gemma-4-E4B/E2B + Nemotron-3-Nano-4B) achieved strong results across batches. In Batch~3, Agents v0 [S] matched the Y/N accuracy of all other systems (0.9091, rank~5) and achieved the best ideal answer F1 scores in the batch (R-2 F1: 0.1815, rank~18; R-SU4 F1: 0.1774, rank~18). In Batch~4, Agents v0 [S] achieved the highest Y/N accuracy (0.9375, rank~5) alongside Agents v5, and the best R-2 F1 (0.1742, rank~15) among our submissions.
 
 \textbf{Agent model family specialization.} Different agent configurations showed distinct strengths. Agents v3 (Qwen3.6 family in Batch~4) excelled at factoid and list questions, achieving 4th in factoid strict accuracy (0.4545) and 11th in list F-Measure (0.5671)---our strongest factoid result across all batches. Agents v4 (Mistral family in Batch~3) achieved the best factoid lenient accuracy (0.5294, rank~10) and factoid MRR (0.5000, rank~10). Agents v2 (large proprietary models) performed best on Y/N questions but showed weaker list and factoid precision. The Mistral-family agents (v4, v5) consistently produced strong factoid results across batches, suggesting that the Mistral model family may have particular strengths in biomedical fact extraction.
 
