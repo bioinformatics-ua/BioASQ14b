@@ -53,6 +53,14 @@ We developed a new, flexible training pipeline for cross-encoder rerankers. The 
 
 We trained a total of 29 reranker models based on diverse architectures including BGE-reranker-v2-m3, PubMedBERT, BioLinkBERT, BioBERT, MedCPT, and the LLaMA Nemotron reranker, among others. Training employed a pairwise loss with varying configurations of epochs, samplers, and hard negative counts. A complete listing of the trained models and their configurations is provided in Appendix~\ref{sec:appendix-models}.
 
+\subsubsection{Sampling strategies}
+
+The training pipeline supports multiple negative sampling strategies. We focus on the two used in our final models.
+
+\textbf{BasicSampler.} This sampler implements straightforward random selection. A positive document is chosen uniformly from any relevance group above the negative threshold (i.e., any document annotated as relevant to the question). A negative document is sampled uniformly from the pool of documents labeled as irrelevant (relevance group~0). When constructing a positive-negative pair, the sampler selects the positive from a randomly chosen relevance tier and the negative from a lower-ranked tier, ensuring that the negative has a strictly weaker relevance signal than the paired positive. This strategy provides a clean training signal but does not differentiate between easy and hard negatives.
+
+\textbf{ShifterSampler.} This sampler implements a curriculum learning strategy that progressively exposes the model to harder negatives as training advances. BM25-retrieved negatives are assumed to be roughly ordered by semantic proximity to the query, with the top-ranked documents (index~0) being the hardest to distinguish from genuine positives. In early epochs, the sampler draws negatives from the full candidate pool $[0, N]$, giving the model a mix of easy and hard examples. As training progresses through later epochs, the sampling window shrinks toward the hard end, eventually sampling only from the top~10 hardest negatives. Given $max\_epoch$ total epochs, at epoch $e$ the window spans $[0, N - \Delta e]$ where $\Delta = N / (max\_epoch + 1)$. This forces the reranker to learn increasingly fine-grained distinctions between relevant documents and their most similar distractors, mirroring the challenge it faces in production where the top-ranked BM25 candidates are precisely the documents most likely to be confused with relevant ones.
+
 \subsubsection{Reciprocal Rank Fusion (RRF)}
 \label{sec:fusion}
 

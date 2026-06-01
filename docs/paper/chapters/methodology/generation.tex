@@ -2,12 +2,14 @@
 
 \subsection{Answer Generation}
 
-Lorem ipsum shit
+This section describes the three answer generation strategies used across Phases~A+ and~B, in order of increasing sophistication: majority voting over independently generated candidate answers, an LLM-as-a-judge framework that evaluates and selects among candidates, and a multi-agent quorum mechanism where distinct models debate and converge on a consensus. Majority voting served as the baseline approach in earlier editions and was retained for comparison; the LLM judge and agent quorum represent the two principal innovations for this edition.
+
+\subsubsection{Majority Voting}
+
+For Batch 1, we employed previous editions' majority voting as the primary method for aggregating outputs from multiple generation models. Each model produces an answer independently given the same question and context, and the final answer is selected by a fixed, rule-based aggregation strategy that varies by question type. For yes/no questions, a simple majority vote is taken: whichever answer (``yes'' or ``no'') appears most frequently across model outputs wins, with ties defaulting to ``yes.'' For factoid questions, which ask for a specific named entity, models produce ranked lists of up to five candidates. These lists are merged via Reciprocal Rank Fusion (RRF): each candidate receives a score equal to the sum of $1 / (rank + k)$ across all input lists, with $k = 60$, and the top five candidates by fused score are returned. For list questions, entities that appear in at least a threshold fraction of the input sets (defaulting to a strict majority, i.e., 50\% of models) are retained in the final output. This approach is straightforward and computationally inexpensive, but it treats all models as equally reliable and provides no mechanism for evaluating whether a candidate answer is actually supported by the retrieved evidence.
 
 \subsubsection{LLM as a Judge}
 \label{sec:llm-judge}
-
-In previous editions, we employed a simple ensemble of different models with majority voting for answer selection, where each model produced an answer independently, and the final answer was chosen by a fixed aggregation rule. While straightforward, majority voting treats all models as equally reliable and cannot leverage cases where one model produces a partially correct answer that could be improved by incorporating elements from another. It also provides no mechanism for evaluating the factual consistency of candidate answers against the retrieved evidence.
 
 For this edition, we replaced majority voting with an LLM-as-a-judge framework. Rather than applying a fixed aggregation rule, a separate LLM instance evaluates the outputs of different generation models and either selects the best candidate answer or synthesizes a superior answer by combining elements from multiple outputs. The judge model receives all candidate answers along with the original question, the question type, the retrieved context, and (when available) reference ideal answers. It is prompted to score each candidate answer along multiple dimensions (correctness, faithfulness to the provided context, and completeness) on a 0--1 scale, with an accompanying rationale.
 
