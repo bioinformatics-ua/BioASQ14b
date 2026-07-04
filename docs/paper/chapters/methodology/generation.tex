@@ -2,7 +2,7 @@
 
 \subsection{Answer Generation}
 
-This section describes the three answer generation strategies used across Phases~A+ and~B, in order of increasing sophistication: majority voting over independently generated candidate answers, an LLM-as-a-judge framework that evaluates and selects among candidates, and a multi-agent quorum mechanism where distinct models debate and converge on a consensus. Majority voting served as the baseline approach in earlier editions and was retained for comparison; the LLM judge and agent quorum represent the two principal innovations for this edition.
+Once relevant documents and snippets have been retrieved, the system must produce a final answer to the biomedical question. Rather than relying on a single generation call, this edition explores two complementary strategies for combining and refining candidate outputs from multiple models: an LLM-as-a-judge framework that evaluates and selects among independently generated answers, and an agent quorum mechanism that has multiple models debate and converge on a shared answer. Both approaches aim to improve robustness over simple majority voting by incorporating richer signals about correctness, evidentiary support, and completeness. The following subsections describe each in detail.
 
 \subsubsection{Majority Voting}
 
@@ -58,7 +58,7 @@ The most significant methodological innovation for this edition is the agent quo
     &                                      & Synthesizer: Gemma-4-26B \\
     & V2 (\texttt{5-mixed-api})            & Nemotron-3-Super-120B, Grok-4.1-Fast, Gemini-3-Flash, Gemini-2.5-Flash, GPT-5-Mini \\
     &                                      & Synthesizer: Gemini-2.5-Flash \\
-    & V3 (\texttt{4-open-24-123b})         & Gemma-4-31B, Qwen3.5-35B, Mistral-Small-4 (119B), Mistral-Large-3 (675B) \\
+    & V3 (\texttt{4-open-24-675b})         & Gemma-4-31B, Qwen3.5-35B, Mistral-Small-4 (119B), Mistral-Large-3 (675B) \\
     &                                      & Synthesizer: Mistral-Small-4 (119B) \\
     \midrule
     \multirow{10}{*}{B4} & V0 (\texttt{3-open-2-4b})         & Gemma-4-E4B, Gemma-4-E2B, Nemotron-3-Nano-4B \\

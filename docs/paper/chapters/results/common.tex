@@ -72,7 +72,7 @@ We conducted internal validation of our reranker models using the 13B golden dat
   \end{tabular}
 \end{table}
 
-The LLaMA Nemotron reranker models achieved outstanding validation performance, substantially outperforming all BERT-based architectures. There are however concerns of data leakage due to the unusually high score. Among the smaller models, BGE-reranker-v2-m3 demonstrated the strongest performance, outperforming the model used in previous years (BioLinkBERT-Base), followed by the biomedical domain-specific models. The gap between general-domain and biomedical-specific rerankers was narrower than in previous years, suggesting that larger pretrained models can effectively transfer to biomedical text without extensive domain-specific pretraining.
+The LLaMA Nemotron reranker models achieved outstanding validation performance, substantially outperforming all BERT-based architectures. There are, however, concerns of data leakage due to the unusually high score. Among the smaller models, BGE-reranker-v2-m3 demonstrated the strongest performance, outperforming the model used in previous years (BioLinkBERT-Base), followed by the biomedical domain-specific models. The gap between general-domain and biomedical-specific rerankers was narrower than in previous years, suggesting that larger pretrained models can effectively transfer to biomedical text without extensive domain-specific pretraining.
 
 \subsubsection{Sampling strategies}
 
@@ -117,9 +117,9 @@ Our systems are labeled \texttt{bioinfo-0} through \texttt{bioinfo-4}, represent
 
 \subsubsection{Document Retrieval (Phase A)}
 \label{sec:results-phase-a}
-The official Phase~A document retrieval results across the four test batches are presented in Table~\ref{tab:phasea-all}. In Batch 1, we utilized BM25 and DPRF exclusively for first-stage retrieval. We primarily experimented with new reranker models by first filtering them (bioinfo-0 and bioinfo-1), evaluating the complete set (bioinfo-2), and employing the previous year's rerankers (bioinfo-3). The key takeaway from these runs was that the filtered models performed significantly worse, indicating that the Nemotron models may not be performing as well as initially anticipated. Furthermore, consistent with prior observations, larger model ensembles tended to yield better performance. Additionally, we noted that the 2025 rerankers outperformed the 2026 variants. Upon further investigation, we discovered that this batch suffered from incomplete indexing, with approximately one million missing documents. We believe this omission severely impacted model efficacy and degraded first-stage retrieval performance for this batch, an issue subsequently corrected in Batch 2.
+The official Phase~A document retrieval results across the four test batches are presented in Table~\ref{tab:phasea-all}. In Batch 1, we utilized BM25 and DPRF exclusively for first-stage retrieval. We primarily experimented with new reranker models by first filtering them (bioinfo-0 and bioinfo-1), evaluating the complete set (bioinfo-2), and employing the previous year's rerankers (bioinfo-3). The key takeaway from these runs was that the filtered models performed significantly worse, indicating that the Nemotron models may not be performing as well as initially anticipated. Additionally, we noted that the 2025 rerankers outperformed the 2026 variants. Upon further investigation, we discovered that this batch suffered from incomplete indexing, with approximately one million missing documents. We believe this omission severely impacted model efficacy and degraded first-stage retrieval performance for this batch, an issue subsequently corrected in Batch 2.
 
-For Batch 2, we began experimenting with hybrid retrieval. Examining runs bioinfo-0, bioinfo-2, and bioinfo-3—where the top-performing rerankers were paired with varying retrievers—we observe that hybrid retrieval using a weighted sum substantially outperforms alternative approaches. Conversely, hybrid Reciprocal Rank Fusion (RRF) underperformed relative to the BM25 baseline. Several factors could account for these outcomes; most notably, these trends may shift following the release of the final official judgments. Alternatively, this pattern may imply that BM25 features carry higher relative importance than dense retrieval in this specific context. However, looking at bioinfo-1 (which incorporated all rerankers), we observed nearly identical performance to our best system, whilst using a BM25-only configuration, whereas bioinfo-3 experienced a performance drop, suggesting a potential processing anomalies within this specific batch.
+For Batch 2, we began experimenting with hybrid retrieval. Examining runs bioinfo-0, bioinfo-2, and bioinfo-4—where the top-performing rerankers were paired with varying retrievers—we observe that hybrid retrieval using a weighted sum substantially outperforms alternative approaches. Conversely, hybrid Reciprocal Rank Fusion (RRF) underperformed relative to the BM25 baseline. Several factors could account for these outcomes; most notably, these trends may shift following the release of the final official judgments. Alternatively, this pattern may imply that BM25 features carry higher relative importance than dense retrieval in this specific context. However, looking at bioinfo-1 (which incorporated all rerankers), we observed nearly identical performance to our best system, whilst using a BM25-only configuration, whereas bioinfo-3 experienced a performance drop, suggesting a potential processing anomalies within this specific batch.
 
 In Batch 3, we investigated query expansion techniques via bioinfo-1 and bioinfo-2; however, these configurations once again fell short of the established BM25 baseline. We also evaluated the Context-1 model for first-stage retrieval, which yielded negative results. We again observed that the weighted-sum hybrid approach outperformed RRF hybrid retrieval. Unfortunately, the absence of strict control tests prevents us from verifying whether query expansion provided any intrinsic benefits or merely introduced unnecessary computational overhead.
 
@@ -207,7 +207,7 @@ For the snippet retrieval subtask, we participated in Batch~3 and Batch~4. Table
   \end{tabular}
 \end{table}
 
-Snippet retrieval performance was modest: the best MAP ranks were 7th (\texttt{bioinfo-0}, Batch~3) and 17th (\texttt{bioinfo-0}, Batch~4). Interestingly, the BM25 + best rerankers baseline achieved our best snippet rank in both batches, which is supported by the fact that these two systems performed best in the document retrieval stage. Context-1, despite its strong recall for documents, produced lower snippet MAP---consistent with the observation that Context-1 retrieves more documents but with lower precision, making snippet extraction from those documents more challenging.
+Snippet retrieval performance was modest: the best MAP ranks were 25th (\texttt{bioinfo-0}, Batch~3) and 28th (\texttt{bioinfo-0}, Batch~4). Interestingly, the BM25 + best rerankers baseline achieved our best snippet rank in both batches, which is supported by the fact that these two systems performed best in the document retrieval stage. Context-1, despite its strong recall for documents, produced lower snippet MAP---consistent with the observation that Context-1 retrieves more documents but with lower precision, making snippet extraction from those documents more challenging.
 
 \subsubsection{Exact Answers (Phases A+ and B)}
 \label{sec:results-phase-aplus}
@@ -272,7 +272,7 @@ mixed proprietary-API configurations.
     & bioinfo-0 & Agents v0 [S] (3-open-2-4b ) & 0.8952 (18) & 0.4118 (9) & 0.2671 (19) \\
     & bioinfo-1 & Agents v1 [M] (4-open-26-35b ) & \textbf{1.0000 (1)} & 0.4118 (9) & 0.2891 (11) \\
     & bioinfo-2 & Agents v2 (5-mixed-api) & \textbf{1.0000 (1)} & 0.3824 (15) & 0.2649 (20) \\
-    & bioinfo-3 & Agents v3 (4-open-24-123b) & 0.8952 (18) & \textbf{0.4706 (3)} & \textbf{0.3138 (6)} \\
+    & bioinfo-3 & Agents v3 (4-open-24-675b) & 0.8952 (18) & \textbf{0.4706 (3)} & \textbf{0.3138 (6)} \\
     & bioinfo-4 & Agents ensemble (v0 + v1 + v2 + v3) & 0.8952 (18) & 0.4412 (6) & 0.2790 (13) \\
     \cmidrule(l){2-6}
     & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5294 (1) & 0.3258 (1) \\
@@ -281,7 +281,7 @@ mixed proprietary-API configurations.
     \multirow{6}{*}{4}
     & bioinfo-0 & Agents v0 [S] (3-open-2-4b ) & \textbf{0.8667 (11)} & 0.2727 (14) & 0.2316 (40) \\
     & bioinfo-1 & Agents v1 (2-gemma-4-26-31b ) & \textbf{0.8667 (11)} & 0.2727 (14) & 0.3133 (24) \\
-    & bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & \textbf{0.8667 (11)} & 0.2727 (14) & \textbf{0.3388 (19)} \\
+    & bioinfo-3 & Agents v3 (3-qwen-27-35b) & \textbf{0.8667 (11)} & 0.2727 (14) & \textbf{0.3388 (19)} \\
     & bioinfo-4 & Agents v4 (3-mistral-129-695b) & \textbf{0.8667 (11)} & \textbf{0.3636 (2)} & 0.2047 (45) \\
     \cmidrule(l){2-6}
     & \textit{Best} & \multicolumn{1}{l|}{} & 0.9352 (1) & 0.4091 (1) & 0.4840 (1) \\
@@ -319,8 +319,8 @@ mixed proprietary-API configurations.
     \multirow{7}{*}{3}
     & bioinfo-0 & Agents v0 [S] (3-open-2-4b) & \textbf{0.8952 (12)} & 0.3824 (26) & \textbf{0.4102 (22)} \\
     & bioinfo-1 & Agents v1 [M] (4-open-26-35b) & \textbf{0.8952 (12)} & 0.4706 (14) & 0.3575 (33) \\
-    & bioinfo-2 & Agents v2 (5-mixed) & \textbf{0.8952 (12)} & 0.3725 (28) & 0.3963 (26) \\
-    & bioinfo-3 & Agents v3 (4-open-24-123b) & 0.8036 (38) & 0.3824 (26) & 0.4053 (24) \\
+    & bioinfo-2 & Agents v2 (5-mixed-api) & \textbf{0.8952 (12)} & 0.3725 (28) & 0.3963 (26) \\
+    & bioinfo-3 & Agents v3 (4-open-24-675b) & 0.8036 (38) & 0.3824 (26) & 0.4053 (24) \\
     & bioinfo-4 & Agents v4 (3-mistral-129-695b) & \textbf{0.8952 (12)} & \textbf{0.5000 (8)} & 0.3763 (31) \\
     \cmidrule(l){2-6}
     & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5882 (1) & 0.5175 (1) \\
@@ -329,9 +329,9 @@ mixed proprietary-API configurations.
     \multirow{7}{*}{4}
     & bioinfo-0 & Agents v0 [S] (3-open-2-4b) & \textbf{0.9352 (3)} & 0.3182 (26) & 0.3809 (36) \\
     & bioinfo-1 & Agents v1 (2-gemma-4-26-31b) & 0.8667 (19) & 0.2273 (38) & 0.4858 (24) \\
-    & bioinfo-2 & Agents v2 (4-mixed-b4) & 0.8667 (19) & 0.4091 (10) & 0.4763 (26) \\
-    & bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & 0.8667 (19) & \textbf{0.5000 (5)} & \textbf{0.5671 (9)} \\
-    & bioinfo-4 & Agents v5 (2-mistral-129-695b) & \textbf{0.9352 (3)} & 0.3939 (16) & 0.3862 (34) \\
+    & bioinfo-2 & Agents v2 (4-mixed-api) & 0.8667 (19) & 0.4091 (10) & 0.4763 (26) \\
+    & bioinfo-3 & Agents v3 (3-qwen-27-35b) & 0.8667 (19) & \textbf{0.5000 (5)} & \textbf{0.5671 (9)} \\
+    & bioinfo-4 & Agents v5 (2-mistral-120b) & \textbf{0.9352 (3)} & 0.3939 (16) & 0.3862 (34) \\
     \cmidrule(l){2-6}
     & \textit{Best} & \multicolumn{1}{l|}{} & 1.0000 (1) & 0.5758 (1) & 0.6543 (1) \\
     & \textit{Median}& \multicolumn{1}{l|}{} & 0.8667 (24) & 0.3182 (24) & 0.4858 (24) \\
@@ -419,7 +419,7 @@ ideal answers were often more informative than their F1 scores imply.
     & bioinfo-0 & Agents v0 [S] (3-open-2-4b) & 0.1710 (25) & 0.1201 (21) & 0.1815 (27) & 0.1266 (25) \\
     & bioinfo-1 & Agents v1 [M] (4-open-26-35b) & 0.1984 (11) & 0.1166 (27) & 0.2135 (11) & 0.1243 (28) \\
     & bioinfo-2 & Agents v2 (5-mixed-api) & 0.1933 (14) & 0.1203 (20) & 0.2005 (19) & 0.1228 (31) \\
-    & bioinfo-3 & Agents v3 (4-open-24-123b) & \textbf{0.2052 (7)} & 0.1210 (19) & \textbf{0.2192 (8)} & 0.1286 (22) \\
+    & bioinfo-3 & Agents v3 (4-open-24-675b) & \textbf{0.2052 (7)} & 0.1210 (19) & \textbf{0.2192 (8)} & 0.1286 (22) \\
     & bioinfo-4 & Agents ensemble (v0 + v1 + v2 + v3) & 0.1942 (13) & \textbf{0.1223 (17)} & 0.2059 (14) & \textbf{0.1288 (21)} \\
     \cmidrule(l){2-7}
     & \textit{Best} & \multicolumn{1}{l|}{} & 0.2373 (1) & 0.1577 (1) & 0.2682 (1) & 0.1537 (1) \\
@@ -428,7 +428,7 @@ ideal answers were often more informative than their F1 scores imply.
     \multirow{6}{*}{4}
     & bioinfo-0 & Agents v0 [S] (3-open-2-4b) & 0.1992 (21) & 0.1213 (30) & 0.2119 (20) & 0.1274 (31) \\
     & bioinfo-1 & Agents v1 (2-gemma-4-26-31b) & \textbf{0.2122 (13)} & 0.1152 (38) & 0.2230 (14) & 0.1194 (37) \\
-    & bioinfo-3 & Agents v3 (3-qwen-mixed-27-35b) & 0.2099 (15) & \textbf{0.1220 (29)} & \textbf{0.2344 (9)} & \textbf{0.1323 (27)} \\
+    & bioinfo-3 & Agents v3 (3-qwen-27-35b) & 0.2099 (15) & \textbf{0.1220 (29)} & \textbf{0.2344 (9)} & \textbf{0.1323 (27)} \\
     & bioinfo-4 & Agents v4 (3-mistral-129-695b) & 0.2097 (16) & 0.1151 (39) & 0.2203 (15) & 0.1180 (39) \\
     \cmidrule(l){2-7}
     & \textit{Best} & \multicolumn{1}{l|}{} & 0.2439 (1) & 0.1714 (1) & 0.2682 (1) & 0.1699 (1) \\

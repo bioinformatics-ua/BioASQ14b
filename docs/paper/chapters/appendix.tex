@@ -6,44 +6,155 @@
 Table~\ref{tab:all-rerankers} lists all 29 reranker models trained for Phase~A document retrieval. Models are identified by their base architecture, training epochs (E), sampler (S), loss type, and data configuration. ``FullData'' indicates training on the full available dataset; ``shifter'' refers to the Shifter sampling strategy for negative selection.
 
 \begin{table}[ht]
-\centering
-\caption{Complete list of reranker models trained for the 14th edition. \texttt{E} = epochs, \texttt{S} = sampler, \texttt{M} = loss type, \texttt{FullData} = trained on the full dataset.}
-\label{tab:all-rerankers}
-\begin{tabular}{llcccl}
-\toprule
-\textbf{Model} & \textbf{Size} & \textbf{E} & \textbf{S} & \textbf{Loss} & \textbf{Notes} \\
-\midrule
-LLaMA Nemotron rerank 1B & 1B & 2 & 4 & multi\_neg\_pairwise & InfoNCE, FullData \\
-LLaMA Nemotron rerank 1B & 1B & 2 & --- & pairwise & 13B1+13B2 data \\
-LLaMA Nemotron rerank 1B & 1B & 5 & shifter & pairwise & \\
-BGE-reranker-v2-m3 & 568M & 2 & 1 & pairwise & FullData, shifter \\
-BGE-reranker-v2-m3 & 568M & 5 & shifter & pairwise & \\
-BGE-reranker-base & 278M & 2 & 1 & pairwise & FullData, shifter \\
-BGE-reranker-base & 278M & 5 & shifter & pairwise & \\
-BioLinkBERT-base & 110M & 2 & 1 & pairwise & FullData, shifter \\
-BioLinkBERT-base & 110M & 5 & shifter & pairwise & \\
-BioLinkBERT-large & 340M & 2 & 1 & pairwise & FullData, shifter \\
-PubMedBERT-base & 110M & 2 & 1 & pairwise & FullData, shifter \\
-PubMedBERT-base & 110M & 5 & shifter & pairwise & \\
-MedCPT-Cross-Encoder & 110M & 2 & 1 & pairwise & FullData, shifter \\
-MedCPT-Cross-Encoder & 110M & 3 & 1 & pairwise & FullData, shifter \\
-MedCPT-Cross-Encoder & 110M & 5 & shifter & pairwise & \\
-nboost/pt-biobert-base-msmarco & 110M & 2 & 1 & pairwise & FullData, shifter \\
-nboost/pt-biobert-base-msmarco & 110M & 5 & shifter & pairwise & \\
-BioBERT v1.1 PubMed & 110M & 2 & 1 & pairwise & FullData, shifter \\
-BioBERT v1.1 PubMed & 110M & 5 & shifter & pairwise & \\
-S-PubMedBert-MS-MARCO & 110M & 2 & 1 & pairwise & FullData, shifter \\
-S-PubMedBert-MS-MARCO & 110M & 5 & shifter & pairwise & \\
-cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 2 & 1 & pairwise & FullData, shifter \\
-cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 3 & 8 & multi\_neg\_pairwise & \\
-cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 5 & shifter & pairwise & \\
-cross-encoder/ms-marco-electra-base & 110M & 5 & shifter & pairwise & \\
-allenai/specter2\_base & 110M & 5 & shifter & pairwise & \\
-Bio\_ClinicalBERT & 110M & 5 & shifter & pairwise & \\
-SapBERT-from-PubMedBERT-fulltext & 110M & 5 & shifter & pairwise & \\
-dmis-lab/biobert-base-cased-v1.2 & 110M & 5 & shifter & pairwise & \\
-\bottomrule
-\end{tabular}
+  \centering
+  \caption{Complete list of reranker models trained for the 14th edition. \texttt{E} = epochs, \texttt{S} = sampler, \texttt{M} = loss type, \texttt{FullData} = trained on the full dataset.}
+  \label{tab:all-rerankers}
+  \begin{tabular}{llcccl}
+    \toprule
+    \textbf{Model} & \textbf{Size} & \textbf{E} & \textbf{S} & \textbf{Loss} & \textbf{Notes} \\
+    \midrule
+    LLaMA Nemotron rerank 1B & 1B & 2 & 4 & multi\_neg\_pairwise & InfoNCE, FullData \\
+    LLaMA Nemotron rerank 1B & 1B & 2 & --- & pairwise & 13B1+13B2 data \\
+    LLaMA Nemotron rerank 1B & 1B & 5 & shifter & pairwise & \\
+    BGE-reranker-v2-m3 & 568M & 2 & 1 & pairwise & FullData, shifter \\
+    BGE-reranker-v2-m3 & 568M & 5 & shifter & pairwise & \\
+    BGE-reranker-base & 278M & 2 & 1 & pairwise & FullData, shifter \\
+    BGE-reranker-base & 278M & 5 & shifter & pairwise & \\
+    BioLinkBERT-base & 110M & 2 & 1 & pairwise & FullData, shifter \\
+    BioLinkBERT-base & 110M & 5 & shifter & pairwise & \\
+    BioLinkBERT-large & 340M & 2 & 1 & pairwise & FullData, shifter \\
+    PubMedBERT-base & 110M & 2 & 1 & pairwise & FullData, shifter \\
+    PubMedBERT-base & 110M & 5 & shifter & pairwise & \\
+    MedCPT-Cross-Encoder & 110M & 2 & 1 & pairwise & FullData, shifter \\
+    MedCPT-Cross-Encoder & 110M & 3 & 1 & pairwise & FullData, shifter \\
+    MedCPT-Cross-Encoder & 110M & 5 & shifter & pairwise & \\
+    nboost/pt-biobert-base-msmarco & 110M & 2 & 1 & pairwise & FullData, shifter \\
+    nboost/pt-biobert-base-msmarco & 110M & 5 & shifter & pairwise & \\
+    BioBERT v1.1 PubMed & 110M & 2 & 1 & pairwise & FullData, shifter \\
+    BioBERT v1.1 PubMed & 110M & 5 & shifter & pairwise & \\
+    S-PubMedBert-MS-MARCO & 110M & 2 & 1 & pairwise & FullData, shifter \\
+    S-PubMedBert-MS-MARCO & 110M & 5 & shifter & pairwise & \\
+    cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 2 & 1 & pairwise & FullData, shifter \\
+    cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 3 & 8 & multi\_neg\_pairwise & \\
+    cross-encoder/ms-marco-MiniLM-L-6-v2 & 67M & 5 & shifter & pairwise & \\
+    cross-encoder/ms-marco-electra-base & 110M & 5 & shifter & pairwise & \\
+    allenai/specter2\_base & 110M & 5 & shifter & pairwise & \\
+    Bio\_ClinicalBERT & 110M & 5 & shifter & pairwise & \\
+    SapBERT-from-PubMedBERT-fulltext & 110M & 5 & shifter & pairwise & \\
+    dmis-lab/biobert-base-cased-v1.2 & 110M & 5 & shifter & pairwise & \\
+    \bottomrule
+  \end{tabular}
 \end{table}
 
 \noindent All models were trained with a pairwise ranking loss unless otherwise noted. The Shifter sampler dynamically adjusts the negative sampling strategy during training. Multi-negative pairwise training uses multiple negative documents per positive pair, while InfoNCE is a contrastive loss variant applied to the LLaMA Nemotron model.
+
+\section{Prompt Templates for Answer Generation}
+
+\noindent This appendix catalogs the prompt templates used across Phases~A+~and~B. Full template text is available in the project repository; we describe each variant's design rationale below.
+\subsection{Exact Answer Prompts}
+Exact answer prompts (\texttt{prompts\_exact.json}) target yes/no, factoid, and list question types with multiple variants per type, each employing a distinct reasoning strategy. Table~\ref{tab:prompts-exact} summarizes the variants.
+\begin{table}[ht]
+  \centering
+  \caption{Exact answer prompt variants by question type. Each variant embodies a different reasoning strategy: evidence weighing, null-hypothesis framing, coverage, precision, or reformulation.}
+  \label{tab:prompts-exact}
+  \footnotesize
+  \begin{tabular}{llp{11.5cm}}
+    \toprule
+    \textbf{Type} & \textbf{Variant} & \textbf{Strategy} \\
+    \midrule
+    \multirow{4}{*}{yes/no} & 1 & Chain-of-thought: list evidence for ``yes'' and ``no'', weigh both sides. \\
+    & 2 & Null-hypothesis framing: default to ``no'' unless evidence clearly supports ``yes''. \\
+    & 3 & Blind verdict: neutral summary first, then decide --- avoids pro/con anchoring. \\
+    & 4 & Claim-linked verdict: explicitly state whether abstracts support the specific claim. \\
+    \midrule
+    \multirow{6}{*}{factoid} & 1 & Baseline: ranked candidate extraction, up to 5 entities. \\
+    & 2 & Rank-1 confidence: commit to a single best answer first, then list alternatives. \\
+    & 3 & Exhaustive coverage: identify entity type, scan every abstract, rank by support. \\
+    & 4 & Evidence-grounded: forbid prior knowledge; every answer must be traceable to an abstract. \\
+    & 5 & Fill-in-the-blank reformulation: rewrite question as a completion statement. \\
+    & 6 & Targeted slot-filling: reframe open retrieval as precise extractions. \\
+    \midrule
+    \multirow{6}{*}{list} & 1 & Baseline: collect all relevant entities as nested list. \\
+    & 2 & Per-abstract enumeration: enumerate per source, then merge and deduplicate. \\
+    & 3 & Recall-biased: include borderline entities --- better to over-include than miss. \\
+    & 4 & Entity-type anchoring: declare entity type first, then exhaustively scan. \\
+    & 5 & Precision-focused: collect candidates, verify each, remove tangential ones. \\
+    & 6 & Broad-sweep-then-verify: combine recall-biased collection with precision filtering. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\subsection{Ideal Answer Prompts}
+Ideal answer prompts (\texttt{prompts\_ideal.json}) are applied across all question types for paragraph-length answer generation. Seven variants explore increasingly structured synthesis strategies, summarized in Table~\ref{tab:prompts-ideal}.
+\begin{table}[ht]
+  \centering
+  \caption{Ideal answer prompt variants, ordered by complexity. All produce 50--150~word paragraph answers.}
+  \label{tab:prompts-ideal}
+  \footnotesize
+  \begin{tabular}{llp{11.5cm}}
+    \toprule
+    \textbf{Variant} & \textbf{Strategy} \\
+    \midrule
+    1 & Simple: context + question, answer as JSON. \\
+    2 & Biomedical expert persona, chain-of-thought before output. \\
+    3 & Same as 2, explicit plain-text-only constraint (no lists or markdown). \\
+    4 & Same as 3, explicit concise format instruction. \\
+    5 & Same as 4, includes a few-shot example (P85-Ab biomarker). \\
+    6 & XML-structured context and question tags, chain-of-thought embedded in JSON. \\
+    7 & BioASQ eval-optimized: emphasizes recall, precision, no repetition, readability; 200-word single-paragraph. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\subsection{Typed Generation Prompts}
+Typed generation prompts (\texttt{prompts\_typed.json}) combine exact and ideal answer generation in a single call. Each variant produces both an \texttt{ideal\_answer} (paragraph summary) and an \texttt{exact\_answer} (typed JSON). Table~\ref{tab:prompts-typed} summarizes the variants.
+\begin{table}[ht]
+  \centering
+  \caption{Typed generation prompts: combined exact + ideal answer variants by question type.}
+  \label{tab:prompts-typed}
+  \footnotesize
+  \begin{tabular}{llp{11.5cm}}
+    \toprule
+    \textbf{Type} & \textbf{Variant} & \textbf{Strategy} \\
+    \midrule
+    \multirow{7}{*}{yes/no} & 1 & Chain-of-thought, outputs both ideal and exact. \\
+    & 2 & Few-shot example (BRCA1), outputs both. \\
+    & 3 & Two-sided evidence weighing, targets macro F1 by countering yes-bias. \\
+    & 4 & Targets BioASQ manual evaluation criteria: recall, precision, no repetition, readability. \\
+    & 5 & Dual few-shot examples (one yes, one no) to anchor both answer classes equally. \\
+    & 6 & Mandatory evidence-quoting step before deciding. \\
+    & 7 & Four real BioASQ few-shot examples: clear yes, indirect yes, clear no, tricky no. \\
+    \midrule
+    factoid & 1--2 & Chain-of-thought and few-shot variants; both output up to 5 ranked entities. \\
+    \midrule
+    list    & 1--2 & Chain-of-thought and few-shot variants; both output nested list of entities. \\
+    \midrule
+    summary & 1--2 & Chain-of-thought and few-shot variants; ideal answer only, 50--200 words. \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+\subsection{Agent Quorum Prompts}
+The agent quorum debate uses a structured multi-part prompt (Table~\ref{tab:prompts-quorum}) built from the components in \texttt{quorum/prompts.py}. Each agent turn receives: a system prompt establishing its role, a document sample with adaptive retention instructions, conversation history from prior rounds, and a thinking-focus description drawn from the focus pool.
+\begin{table}[ht]
+  \centering
+  \caption{Agent quorum prompt components. The debate turn prompt is assembled from these sections; the final answer prompt uses a simpler synthesis-oriented structure.}
+  \label{tab:prompts-quorum}
+  \footnotesize
+  \begin{tabularx}{\textwidth}{lX}
+    \toprule
+    \textbf{Component} & \textbf{Content} \\
+    \midrule
+    System prompt & ``You are a rigorous biomedical scientist participating in a structured expert debate. Your goal is to help reach the most accurate, evidence-grounded answer to a biomedical question. You respond exclusively with valid JSON.'' \\
+    \midrule
+    Document sample & Numbered documents with stable IDs, attached snippets, and adaptive retention rules (kept documents guaranteed in next round). \\
+    \midrule
+    Conversation history & Prior turns shown in full for recent rounds, compressed to one-line summaries for older rounds to stay within context-window bounds. \\
+    \midrule
+    Thinking focus & One of six cognitive lenses: analytical (logical decomposition), evidence-based (strict textual grounding), skeptical (gap-seeking), integrative (cross-source synthesis), pragmatic (precision-focused), or theoretical (mechanism-oriented). \\
+    \midrule
+    Agreement scale & \texttt{strongly\_disagree}, \texttt{disagree}, \texttt{agree}, \texttt{strongly\_agree} --- agents warned against premature strong agreement. \\
+    \midrule
+    Output format & \texttt{\{"opinion": "<reasoning>", "kept\_documents": [ids], "agreement": "<level>"\}}. \\
+    \midrule
+    Final synthesis & Receives all documents and a structured debate summary; produces a definitive answer with type-specific format. Must not reference the debate process. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
