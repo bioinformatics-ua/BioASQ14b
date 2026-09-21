@@ -6,12 +6,30 @@ This repository is the official implementation accompanying the paper:
 
 > André Ribeiro, Rúben Garrido, Alexander Christiansen, Richard A. A. Jonker, Sérgio Matos. **"BIT.UA at BioASQ 14B: Modular Retrieval with pg_textsearch and Qdrant, and Agent-Based Answer Generation."** CLEF 2026 Working Notes. [arXiv:2609.04999](https://arxiv.org/abs/2609.04999)
 
-## Overview
+## System Overview & Approaches
 
-The system tackles the two main BioASQ Task B phases:
+The pipeline tackles the primary BioASQ Task B phases through a modular architecture:
 
-- **Phase A (document retrieval):** combines BM25 retrieval via PostgreSQL's `pg_textsearch` with dense embedding retrieval indexed in [Qdrant](https://qdrant.tech/), plus a trained reranker and optional HyDE-based query expansion.
-- **Phase A+/B (answer & snippet generation):** LLM-based generation with an agent quorum mechanism, where multiple agents debate and converge on a consensus answer, evaluated with an LLM-as-a-judge setup. The pipeline also supports the snippet generation subtask.
+### 1. Phase A — Document Retrieval
+A hybrid multi-stage retrieval pipeline designed for scalable search and precise ranking over biomedical literature (PubMed):
+- **Lexical Search (BM25):** Replaces traditional inverted-index tooling with PostgreSQL-based [`pg_textsearch`](https://github.com/timescale/pg_textsearch), enabling fast BM25 scoring and dynamic index updates directly inside the database.
+- **Dense Retrieval:** Vector embeddings served via Hugging Face **Text Embeddings Inference (TEI)** and indexed in [Qdrant](https://qdrant.tech/) for GPU-accelerated similarity search.
+- **Query Expansion:** Incorporates **Hypothetical Document Embeddings (HyDE)** to bridge vocabulary gaps between colloquial questions and medical literature, alongside an agentic **Context-1** retrieval strategy.
+- **Neural Reranking:** Fine-tuned cross-encoder rerankers trained with hard-negative mining sourced directly from the dense retrieval pool to maximize top-$k$ Precision and MAP.
+
+### 2. Snippet Generation
+- **Fine-Tuned Gemma4 31b Model:** Uses a Gemma model fine-tuned via LoRA in two stages:
+  1. *Biomedical domain adaptation* for domain knowledge injection.
+  2. *Task-specific fine-tuning* for passage extraction and retrieval-augmented generation.
+- **Span Extraction:** Predicts and extracts relevant text spans from top-ranked documents, mapped back to precise abstract character offsets.
+.
+
+### 3. Phase A+ / Phase B — Answer Generation
+Addresses exact (Yes/No, Factoid, List) and ideal (Summary) answers using system-generated snippets (Phase A+) or gold-standard annotations (Phase B):
+- **Agent Quorum Mechanism:** Deploys multiple LLM agents configured with diverse prompt strategies that independently propose, critique, and iteratively converge on a consensus answer.
+- **Adaptive Document Retention:** Iteratively trims redundant or noisy context between debate rounds to keep generation focused on salient facts.
+- **LLM-as-a-Judge:** An automated evaluation harness used during development to score candidates on factual consistency, completeness, and alignment with BioASQ task formats.
+
 
 ## Repository Structure
 
