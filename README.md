@@ -1,137 +1,50 @@
-# BioASQ 13b: A Multi-Stage Pipeline for Biomedical Question Answering
+# BioASQ14b
 
-[![Python Version](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Hugging Face Transformers](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Transformers-yellow)](https://huggingface.co/transformers/)
-[![PyTorch](https.img.shields.io/badge/PyTorch-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org/)
-[![Pyserini (BM25)](https://img.shields.io/badge/Pyserini-BM25-orange)](https://github.com/castorini/pyserini)
+Codebase for the BIT.UA team's (University of Aveiro) participation in the **14th edition of the BioASQ Task B** challenge on biomedical question answering.
 
-This repository contains the code for our submission to the **BioASQ Challenge 13, Task B**. Our system is a multi-stage pipeline that first retrieves relevant documents and then uses them to generate precise answers.
+This repository is the official implementation accompanying the paper:
 
-**Our Core Approach:**
-1.  **Phase A (Retrieval):** We use a hybrid retrieval approach. An initial set of candidate documents is fetched using a traditional sparse retriever (BM25). These candidates are then re-ranked using a fine-tuned BERT-based cross-encoder to improve relevance.
-2.  **Phase B (Generation):** The top-ranked documents from Phase A are fed as context to a generative model to produce the final factoid, list, or summary answers.
+> André Ribeiro, Rúben Garrido, Alexander Christiansen, Richard A. A. Jonker, Sérgio Matos. **"BIT.UA at BioASQ 14B: Modular Retrieval with pg_textsearch and Qdrant, and Agent-Based Answer Generation."** CLEF 2026 Working Notes. [arXiv:2609.04999](https://arxiv.org/abs/2609.04999)
 
----
+## Overview
 
-## System Architecture
+The system tackles the two main BioASQ Task B phases:
 
-Our pipeline processes a question in sequential phases to arrive at the final answer.
+- **Phase A (document retrieval):** combines BM25 retrieval via PostgreSQL's `pg_textsearch` with dense embedding retrieval indexed in [Qdrant](https://qdrant.tech/), plus a trained reranker and optional HyDE-based query expansion.
+- **Phase A+/B (answer & snippet generation):** LLM-based generation with an agent quorum mechanism, where multiple agents debate and converge on a consensus answer, evaluated with an LLM-as-a-judge setup. The pipeline also supports the snippet generation subtask.
+
+## Repository Structure
+
+- `src/bioasq/phase_a/` - retrieval pipeline (BM25 + dense retrieval, reranking, query expansion).
+- `src/bioasq/phase_b/` - answer generation, including the agent quorum logic.
+- `src/bioasq/snippets/` - snippet extraction/generation.
+- `src/bioasq/common/` and `src/bioasq/data/` - shared utilities and data handling.
+- `src/bioasq/cli.py` - command-line entry point.
+- `compose.yaml`, `init.sql`, `qdrant_config.yaml` - Docker Compose setup for the PostgreSQL and Qdrant services used for indexing/search.
 
 
-**1. BM25 Indexing & Search (`phaseA-BM25`):**
-   - A searchable index of the biomedical literature is created.
-   - For an incoming question, this module performs a fast, keyword-based search to retrieve a large set of potentially relevant documents (e.g., top 100).
+## Requirements
 
-**2. Neural Reranking (`phaseA-reranker`):**
-   - The documents from the BM25 search are passed to a fine-tuned cross-encoder model (e.g., BioBERT).
-   - This model scores each `(question, document)` pair for relevance, producing a more accurate ranking.
+The project uses [`uv`](https://github.com/astral-sh/uv) for Python dependency management (see `pyproject.toml` / `uv.lock`) and Docker Compose to run PostgreSQL (with `pg_textsearch`) and Qdrant.
 
-**3. Answer Generation (`phaseB`, `phaseAp`):**
-   - The top N most relevant documents (e.g., top 5) from the reranker are concatenated to form a context.
-   - The question and the context are passed to a language model to generate the final answer in the required format.
+## Getting Started
 
----
+1. Install dependencies with `uv sync`.
+2. Start the supporting services: `docker compose up -d`.
+3. Use the `bioasq` cli
 
-## Performance
+## Citation
 
-Pending.
----
+If you use this code, please cite the associated paper:
 
-## Setup and Installation
-
-Follow these steps to set up the environment and prepare the necessary data and models.
-
-### 1. Prerequisites
-*   Python 3.9+
-*   A system with sufficient RAM and a modern NVIDIA GPU (for the reranker and generation phases).
-
-### 2. Clone the Repository
-```sh
-git clone https://github.com/bioinformatics-ua/BioASQ13B
-cd BioASQ13B
+```bibtex
+@misc{ribeiro2026bituabioasq14bmodular,
+      title={BIT.UA at BioASQ 14B: Modular Retrieval with pg_textsearch and Qdrant, and Agent-Based Answer Generation}, 
+      author={André Ribeiro and Rúben Garrido and Alexander Christiansen and Richard A. A. Jonker and Sérgio Matos},
+      year={2026},
+      eprint={2609.04999},
+      archivePrefix={arXiv},
+      primaryClass={cs.CL},
+      url={https://arxiv.org/abs/2609.04999}, 
+}
 ```
-
-### 3. Install Dependencies
-Create and activate a virtual environment, then install the required packages.
-```sh
-python -m venv venv
-source venv/bin/activate 
-pip install -r requirements.txt
-```
-
-### 4. Download Data & Build Indexes
-You must download the official BioASQ datasets and build the BM25 index.
-```sh
-# Download the baseline data (update script if necessary)
-python data/baselines/download_baselines.py
-
-# Create the BM25 search index
-python phaseA-BM25/create_indexes.py --path [path/to/bioasq/corpus]
-
-# Download our fine-tuned models (if you're hosting them)
-# available on huggingface, support is still coming
-```
-
----
-
-## Running the Pipeline
-
-The easiest way to run the full pipeline is by using the provided shell scripts in the `/scripts/Sample` directory. **Please inspect these scripts and update any hardcoded paths before running.**
-
-### Phase A: Document Retrieval & Reranking
-
-This phase trains the reranker and then uses it to process a set of questions.
-
-```sh
-cd scripts/Sample/phaseA/
-
-# 1. Train the reranker model (if not using a pre-trained one)
-bash 1_trainer.sh
-
-# 2. Rerank the documents for a given test file
-bash 2_reranker.sh
-
-# 3-6. Convert outputs to the required formats for evaluation/next steps
-bash 3_convert.sh
-# ... and so on for the other scripts.
-```
-
-### Phase B: Answer Generation
-
-This phase takes the reranked documents and generates the final answers.
-
-```sh
-cd scripts/Sample/phaseB/  # or phaseAp
-
-# 1. Look up abstracts for the top documents
-bash 1_abstract_lookup.sh
-
-# 2. Generate initial answers using an LLM or custom model
-bash 2_initial_gen.sh
-
-# 3. Post-process into final summaries/answers
-bash 3_summaries.sh
-
-# 4. Convert to the official BioASQ submission format
-bash 4_convert.sh
-```
-
----
-
-## Directory Structure
-
-A brief overview of the key directories in this project.
-```
-├── data/                  # Scripts for downloading, processing, and managing data
-├── phaseA-BM25/           # BM25 sparse retriever: indexing and searching
-├── phaseA-reranker/       # BERT-based cross-encoder: training and inference
-├── phaseB/                # Answer generation and summarization logic
-├── phaseAp/               # Alternative/experimental generation logic
-├── scripts/               # Wrapper scripts to execute the full pipeline
-├── requirements.txt       # Project dependencies
-└── README.md              # This file
-```
-
-## License
-
-Distributed under the [MIT License]. See `LICENSE.txt` for more information.
